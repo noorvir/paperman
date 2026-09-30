@@ -4,11 +4,11 @@ PaperMan is a web workspace for scanned documents in Homestack. It has one PDF i
 
 ## Structure
 
-| Workspace      | Job                                                                   |
-| -------------- | --------------------------------------------------------------------- |
-| `apps/web`     | React UI for the inbox and tags                                       |
-| `apps/server`  | Bun HTTP server, Effect I/O, SQLite tag storage, and static web files |
-| `packages/api` | Shared oRPC contract and Effect schemas                               |
+| Workspace      | Job                                                             |
+| -------------- | --------------------------------------------------------------- |
+| `apps/web`     | React UI for the inbox and tags                                 |
+| `apps/server`  | Bun HTTP server, Effect I/O, file storage, and static web files |
+| `packages/api` | Shared oRPC contract and Effect schemas                         |
 
 The inbox contains **scan batches**. A batch can contain several letters. A future pipeline will preserve the batch, make separate logical documents, and assign tags to those documents. Tags in this first stage are a catalog; they are not assigned to batches.
 
@@ -34,7 +34,7 @@ After a build, the server also serves the web app at `http://127.0.0.1:3000`.
 
 ## Pi storage boundary
 
-`PAPERMAN_DATA_DIR` selects the data directory. The intended Pi path is `/srv/homestack/paperman` on the existing SSD, with originals in `/srv/homestack/paperman/inbox` and tag data in `/srv/homestack/paperman/paperman.sqlite`. The existing Homestack Restic job includes `/srv/homestack`, but a PaperMan backup and restore test has not been done.
+`PAPERMAN_DATA_DIR` selects the data directory. The intended Pi path is `/srv/homestack/paperman` on the existing SSD, with originals in `/srv/homestack/paperman/inbox` and the tag catalog in `/srv/homestack/paperman/index.json`. The server keeps no document or tag state in memory between requests. Index updates replace the JSON file atomically and expect one PaperMan server process. The existing Homestack Restic job includes `/srv/homestack`, but a PaperMan backup and restore test has not been done.
 
 The printer still sends scans to the Mac share. No Pi share, printer shortcut, container, or Pi service is configured by this scaffold. Keep the Mac destination until a real scan to the Pi succeeds.
 

@@ -33,7 +33,6 @@ test("reads PDF scan batches without changing originals", async () => {
   expect(
     await readFile(join(store.inboxDirectory, "Mail_20260930.pdf")),
   ).toEqual(Buffer.from(original));
-  store.close();
 });
 
 test("persists tags and rejects duplicate names without losing the first tag", async () => {
@@ -48,13 +47,30 @@ test("persists tags and rejects duplicate names without losing the first tag", a
   if (duplicate._tag === "Left") {
     expect(duplicate.left).toBeInstanceOf(DuplicateTagError);
   }
-  store.close();
-
   const reopened = await Effect.runPromise(openStore(directory));
   expect(await Effect.runPromise(reopened.listTags())).toEqual([tag]);
   expect(await Effect.runPromise(reopened.removeTag(tag.id))).toEqual({
     deleted: true,
   });
   expect(await Effect.runPromise(reopened.listTags())).toEqual([]);
-  reopened.close();
+  const index = JSON.parse(
+    await readFile(join(directory, "index.json"), "utf8"),
+  );
+  expect(index).toEqual({ version: 1, tags: [] });
+});
+
+test("keeps both tags when writes arrive together", async () => {
+  const directory = await mkdtemp(join(tmpdir(), "paperman-"));
+  directories.push(directory);
+  const store = await Effect.runPromise(openStore(directory));
+
+  await Promise.all([
+    Effect.runPromise(store.createTag("Insurance")),
+    Effect.runPromise(store.createTag("Taxes")),
+  ]);
+
+  const reopened = await Effect.runPromise(openStore(directory));
+  expect(
+    (await Effect.runPromise(reopened.listTags())).map((tag) => tag.name),
+  ).toEqual(["Insurance", "Taxes"]);
 });

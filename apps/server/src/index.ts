@@ -56,7 +56,6 @@ const program = Effect.gen(function* () {
   yield* Effect.addFinalizer(() =>
     Effect.sync(() => {
       server.stop();
-      store.close();
     }),
   );
   yield* Effect.never;
