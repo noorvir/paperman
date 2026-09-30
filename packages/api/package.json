@@ -1,0 +1,16 @@
+{
+  "name": "@paperman/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@orpc/contract": "^1.15.0",
+    "effect": "^3.22.1"
+  }
+}

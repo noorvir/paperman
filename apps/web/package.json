@@ -1,0 +1,24 @@
+{
+  "name": "@paperman/web",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "typecheck": "tsc --project tsconfig.json"
+  },
+  "dependencies": {
+    "@orpc/client": "^1.15.0",
+    "@orpc/contract": "^1.15.0",
+    "@paperman/api": "workspace:*",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "vite": "^7.3.0"
+  }
+}

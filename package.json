@@ -1,0 +1,24 @@
+{
+  "name": "paperman",
+  "private": true,
+  "packageManager": "bun@1.3.14",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "bun run --parallel dev:server dev:web",
+    "dev:server": "bun --filter @paperman/server dev",
+    "dev:web": "bun --filter @paperman/web dev",
+    "build": "bun --filter @paperman/web build",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write .",
+    "typecheck": "bun --filter @paperman/api typecheck && bun --filter @paperman/server typecheck && bun --filter @paperman/web typecheck",
+    "test": "bun --filter @paperman/server test",
+    "check": "bun run format && bun run typecheck && bun run test && bun run build"
+  },
+  "devDependencies": {
+    "prettier": "^3.9.6",
+    "typescript": "^5.9.3"
+  }
+}
