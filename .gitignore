@@ -3,3 +3,6 @@ dist/
 .cache/
 .env
 data/
+.agent/current.md
+.agent/session-handoff.md
+.agent/sessions/

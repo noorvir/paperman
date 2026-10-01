@@ -1,6 +1,8 @@
 # PaperMan
 
-PaperMan is a web workspace for scanned documents in Homestack. It has one PDF inbox and a persistent tag catalog. The AI pipeline is the next stage; this code does not yet split, classify, tag, or file documents automatically.
+PaperMan is a standalone web application for scanned documents. It has one PDF inbox and a persistent tag catalog. The AI pipeline is the next stage; this code does not yet split, classify, tag, or file documents automatically.
+
+The [document pipeline plan](.agent/plans/2026-10-01-paperman-document-pipeline.md) defines the Python backend, portable filesystem storage, custom web UI, and configurable model connection. The current scaffold still uses Bun, Effect, and oRPC.
 
 ## Structure
 
@@ -22,7 +24,7 @@ bun install
 bun run dev
 ```
 
-Open `http://127.0.0.1:3001`. The API runs on port 3000; Vite forwards `/rpc` to it. Put a PDF in `paperman/data/inbox` to see it on the web page. The page checks the inbox every ten seconds. `paperman/data` is ignored by Git.
+Open `http://127.0.0.1:3001`. The API runs on port 3000; Vite forwards `/rpc` to it. Put a PDF in `data/inbox` to see it on the web page. The page checks the inbox every ten seconds. `data/` is ignored by Git.
 
 ```sh
 bun run check
@@ -32,10 +34,12 @@ bun run --filter @paperman/server start
 
 After a build, the server also serves the web app at `http://127.0.0.1:3000`.
 
-## Pi storage boundary
+## Storage and deployment
 
-`PAPERMAN_DATA_DIR` selects the data directory. The intended Pi path is `/srv/homestack/paperman` on the existing SSD, with originals in `/srv/homestack/paperman/inbox` and the tag catalog in `/srv/homestack/paperman/index.json`. The server keeps no document or tag state in memory between requests. Index updates replace the JSON file atomically and expect one PaperMan server process. The existing Homestack Restic job includes `/srv/homestack`, but a PaperMan backup and restore test has not been done.
+`PAPERMAN_DATA_DIR` selects the data directory and defaults to `data/` in this repository. Scans are read from its `inbox/` directory, and tags are stored in `index.json`. The server reads tag state from disk, replaces the index atomically, and expects one writer process. Storage does not require a Pi or Homestack.
+
+Homestack is the first intended deployment: it will supply the mounted SSD directory, service configuration, scanner share, and backups. `/srv/homestack/paperman` is an example host path, not an application requirement. The existing Homestack Restic job includes `/srv/homestack`, but a PaperMan backup and restore test has not been done.
 
 The printer still sends scans to the Mac share. No Pi share, printer shortcut, container, or Pi service is configured by this scaffold. Keep the Mac destination until a real scan to the Pi succeeds.
 
-For a later Pi service, bind the web server to the approved private interface, mount the data directory, and make an inbox share for the printer. Then add ingestion, OCR, splitting, review, tagging, filing, duplicate handling, and backup verification. Each phase must preserve the source PDF.
+The planned worker receives storage and model interfaces through dependency injection. The first storage implementation uses ordinary files under a configured root; the first model endpoint runs on the user's GPU machine over Tailscale. Hostnames, mount paths, and provider choices belong in deployment configuration. Each processing phase must preserve the source PDF.

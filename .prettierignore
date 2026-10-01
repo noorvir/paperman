@@ -2,3 +2,6 @@ bun.lock
 node_modules/
 dist/
 data/
+.agent/current.md
+.agent/session-handoff.md
+.agent/sessions/
