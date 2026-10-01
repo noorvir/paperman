@@ -58,7 +58,7 @@ export function SettingsForm({
         Choose a local demo or connect your own model server. Real document text
         is sent only to the endpoint you set.
       </p>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid gap-3 sm:grid-cols-2">
         <label className="field-label">
           Server type
           <SelectField
@@ -118,7 +118,7 @@ export function SettingsForm({
             placeholder="Model installed on your server"
           />
         </label>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <label className="field-label">
             Output format
             <SelectField

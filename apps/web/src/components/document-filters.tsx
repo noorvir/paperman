@@ -24,7 +24,8 @@ import {
   DropdownMenu,
   DropdownMenuTrigger,
   DropdownMenuContent,
-  DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
 } from "./ui/dropdown-menu";
 
 type Search = z.infer<typeof documentSearch>;
@@ -233,13 +234,23 @@ export function DocumentSort({
         {options[value].label}
         <HugeiconsIcon icon={ArrowDown01Icon} />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        {documentSearch.shape.sort.unwrap().options.map((sort) => (
-          <DropdownMenuItem key={sort} onClick={() => onChange(sort)}>
-            <HugeiconsIcon icon={options[sort].icon} />
-            {options[sort].label}
-          </DropdownMenuItem>
-        ))}
+      <DropdownMenuContent
+        align="end"
+        className="w-max min-w-(--anchor-width) max-w-(--available-width)"
+      >
+        <DropdownMenuRadioGroup
+          value={value}
+          onValueChange={(sort) =>
+            onChange(documentSearch.shape.sort.parse(sort))
+          }
+        >
+          {documentSearch.shape.sort.unwrap().options.map((sort) => (
+            <DropdownMenuRadioItem key={sort} value={sort}>
+              <HugeiconsIcon icon={options[sort].icon} />
+              {options[sort].label}
+            </DropdownMenuRadioItem>
+          ))}
+        </DropdownMenuRadioGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   );
