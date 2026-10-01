@@ -1,0 +1,34 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    restart: unless-stopped
+    user: "${PAPERMAN_UID:-1000}:${PAPERMAN_GID:-1000}"
+    environment:
+      PAPERMAN_DATA_DIR: /data
+    volumes:
+      - ${PAPERMAN_DATA_DIR:?Set PAPERMAN_DATA_DIR to an existing document directory}:/data
+  worker:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.api
+    command: ["paperman", "worker"]
+    restart: unless-stopped
+    user: "${PAPERMAN_UID:-1000}:${PAPERMAN_GID:-1000}"
+    environment:
+      PAPERMAN_DATA_DIR: /data
+      PAPERMAN_MODEL_API_KEY: ${PAPERMAN_MODEL_API_KEY:-local}
+    volumes:
+      - ${PAPERMAN_DATA_DIR:?Set PAPERMAN_DATA_DIR to an existing document directory}:/data
+  web:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    environment:
+      PAPERMAN_API_URL: http://api:3000
+    ports:
+      - "${PAPERMAN_BIND:-127.0.0.1}:3020:3001"
+    depends_on:
+      - api

@@ -5,3 +5,11 @@ data/
 .agent/current.md
 .agent/session-handoff.md
 .agent/sessions/
+
+.venv/
+uv.lock
+openapi.json
+.output/
+.tanstack/
+apps/web/src/routeTree.gen.ts
+apps/web/src/lib/schema.d.ts

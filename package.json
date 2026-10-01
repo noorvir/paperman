@@ -3,19 +3,24 @@
   "private": true,
   "packageManager": "bun@1.3.14",
   "workspaces": [
-    "apps/*",
-    "packages/*"
+    "apps/web"
   ],
   "scripts": {
-    "dev": "bun run --parallel dev:server dev:web",
-    "dev:server": "bun --filter @paperman/server dev",
+    "dev": "bun run --parallel dev:api dev:worker dev:web",
     "dev:web": "bun --filter @paperman/web dev",
     "build": "bun --filter @paperman/web build",
-    "format": "prettier --check .",
-    "format:fix": "prettier --write .",
-    "typecheck": "bun --filter @paperman/api typecheck && bun --filter @paperman/server typecheck && bun --filter @paperman/web typecheck",
-    "test": "bun --filter @paperman/server test",
-    "check": "bun run format && bun run typecheck && bun run test && bun run build"
+    "format": "prettier --check . && uv run ruff format --check src tests scripts && uv run ruff check src tests scripts",
+    "format:fix": "prettier --write . && uv run ruff format src tests scripts",
+    "typecheck": "uv run basedpyright && bun --filter @paperman/web typecheck",
+    "test": "uv run pytest",
+    "check": "bun run format && bun run typecheck && bun run test && bun run build",
+    "dev:api": "uv run paperman serve",
+    "dev:worker": "uv run paperman worker",
+    "generate:api": "uv run paperman schema && bun --filter @paperman/web generate:api",
+    "demo": "uv run python scripts/seed_demo.py && bun run demo:services",
+    "demo:services": "bun run --parallel demo:api demo:worker dev:web",
+    "demo:api": "PAPERMAN_DATA_DIR=.demo-data uv run paperman serve",
+    "demo:worker": "PAPERMAN_DATA_DIR=.demo-data uv run paperman worker"
   },
   "devDependencies": {
     "prettier": "^3.9.6",

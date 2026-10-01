@@ -6,3 +6,12 @@ data/
 .agent/current.md
 .agent/session-handoff.md
 .agent/sessions/
+
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.output/
+.tanstack/
+
+.demo-data/
