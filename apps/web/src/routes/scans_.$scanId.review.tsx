@@ -5,7 +5,7 @@ import { PdfPreview } from "@/components/pdf-preview";
 import { ReviewForm } from "@/components/review-form";
 import { PageHeader, DetailLayout } from "@/components/page";
 
-export const Route = createFileRoute("/scans/$scanId_/review")({
+export const Route = createFileRoute("/scans_/$scanId/review")({
   loader: async ({ params }) => {
     const [scan, catalog] = await Promise.all([
       getScan({ data: params.scanId }),

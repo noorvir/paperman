@@ -26,6 +26,7 @@ import {
   ActiveFilters,
 } from "@/components/document-filters";
 import { Button, buttonVariants } from "@/components/ui/button";
+import { CollectionWorkspace } from "@/components/collection-workspace";
 import { DocumentTable } from "@/components/document-table";
 
 export const Route = createFileRoute("/documents")({
@@ -61,7 +62,20 @@ function Documents() {
     void navigate({ to: "/documents", search: next });
   };
   return (
-    <div className="document-library" data-full={full}>
+    <CollectionWorkspace
+      full={full}
+      items={documents.items}
+      selectedId={detail?.params.documentId}
+      onNavigate={(documentId, preview) =>
+        navigate({
+          to: "/documents/$documentId",
+          params: { documentId },
+          search: { ...search, preview, view: detail?.search.view ?? "pdf" },
+          resetScroll: false,
+          replace: preview && detail !== undefined,
+        })
+      }
+    >
       <PageHeader
         title="Documents"
         description="Your paperwork, in one place."
@@ -140,6 +154,6 @@ function Documents() {
           />
         )}
       </Collection>
-    </div>
+    </CollectionWorkspace>
   );
 }

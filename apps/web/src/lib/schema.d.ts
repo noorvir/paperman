@@ -334,6 +334,12 @@ export interface components {
             name: string;
             /** Aliases */
             aliases: string[];
+            /**
+             * Icon
+             * @default auto
+             * @enum {string}
+             */
+            icon: "auto" | "file" | "receipt" | "shield" | "bank" | "health" | "utilities" | "contract" | "home" | "car" | "business" | "education" | "travel" | "tax";
         };
         /** Dashboard */
         Dashboard: {
@@ -479,8 +485,26 @@ export interface components {
         EntryInput: {
             /** Name */
             name: string;
+            /**
+             * Icon
+             * @default auto
+             * @enum {string}
+             */
+            icon: "auto" | "file" | "receipt" | "shield" | "bank" | "health" | "utilities" | "contract" | "home" | "car" | "business" | "education" | "travel" | "tax";
             /** Aliases */
             aliases?: string[];
+        };
+        /** EntryRemoval */
+        EntryRemoval: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "removed" | "in_use";
+            /** Documents */
+            documents: number;
+            /** Scans */
+            scans: number;
         };
         /** Event */
         Event: {
@@ -789,7 +813,9 @@ export interface operations {
     };
     delete_entry: {
         parameters: {
-            query?: never;
+            query?: {
+                reassign_to?: string | null;
+            };
             header?: never;
             path: {
                 kind: "owners" | "tags";
@@ -805,7 +831,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ActionResult"];
+                    "application/json": components["schemas"]["EntryRemoval"];
                 };
             };
             /** @description Validation Error */

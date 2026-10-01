@@ -16,7 +16,7 @@ import { useRotate } from "@embedpdf/plugin-rotate/react";
 import { useSearch } from "@embedpdf/plugin-search/react";
 import { Button, buttonVariants } from "./ui/button";
 import { Input } from "./ui/input";
-import { NativeSelect } from "./ui/native-select";
+import { SelectField } from "./select-field";
 import { PdfSearch } from "./pdf-search";
 
 const zoomLevels = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
@@ -34,6 +34,24 @@ export function PdfToolbar({
   const { state: search, provides: searchActions } = useSearch(documentId);
   const pageInput = useRef<HTMLInputElement>(null);
   const searchButton = useRef<HTMLButtonElement>(null);
+  const zoomItems = [
+    { value: ZoomMode.Automatic, label: "Auto" },
+    { value: ZoomMode.FitPage, label: "Fit page" },
+    { value: ZoomMode.FitWidth, label: "Fit width" },
+    ...zoomLevels.map((value) => ({
+      value: String(value),
+      label: `${value * 100}%`,
+    })),
+  ];
+  if (
+    typeof zoom.zoomLevel === "number" &&
+    !zoomLevels.includes(zoom.zoomLevel)
+  ) {
+    zoomItems.push({
+      value: String(zoom.zoomLevel),
+      label: `${Math.round(zoom.currentZoomLevel * 100)}%`,
+    });
+  }
 
   return (
     <>
@@ -106,12 +124,12 @@ export function PdfToolbar({
           >
             <HugeiconsIcon icon={Remove01Icon} />
           </Button>
-          <NativeSelect
-            aria-label="PDF zoom"
+          <SelectField
+            label="PDF zoom"
             className="w-22 @min-[24rem]:w-25"
             value={String(zoom.zoomLevel)}
-            onChange={(event) => {
-              const value = event.currentTarget.value;
+            items={zoomItems}
+            onValueChange={(value) => {
               if (
                 value === ZoomMode.Automatic ||
                 value === ZoomMode.FitPage ||
@@ -122,22 +140,7 @@ export function PdfToolbar({
                 magnification?.requestZoom(Number(value));
               }
             }}
-          >
-            <option value={ZoomMode.Automatic}>Auto</option>
-            <option value={ZoomMode.FitPage}>Fit page</option>
-            <option value={ZoomMode.FitWidth}>Fit width</option>
-            {zoomLevels.map((value) => (
-              <option key={value} value={value}>
-                {value * 100}%
-              </option>
-            ))}
-            {typeof zoom.zoomLevel === "number" &&
-              !zoomLevels.includes(zoom.zoomLevel) && (
-                <option value={zoom.zoomLevel}>
-                  {Math.round(zoom.currentZoomLevel * 100)}%
-                </option>
-              )}
-          </NativeSelect>
+          />
           <Button
             variant="ghost"
             size="icon"

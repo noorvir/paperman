@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from datetime import UTC
+from pathlib import Path
 
 from paperman.inference import Inference
 from paperman.models import Analysis, Catalog, Document, Event, Scan
@@ -14,9 +15,10 @@ async def process_scan(
     storage: Storage, inference: Inference, ocr: OCR, scan: Scan
 ) -> None:
     try:
-        scan.status = "running"
-        scan.attempts += 1
         with storage.transaction():
+            scan = storage.get_scan(scan.id)
+            scan.status = "running"
+            scan.attempts += 1
             storage.save_scan(scan)
         searchable = storage.scan_path(scan.id, "searchable.pdf")
         if scan.phase == "ocr":
@@ -127,10 +129,15 @@ def file_documents(storage: Storage, scan: Scan) -> None:
             except FileNotFoundError:
                 existing = None
             if existing is not None:
-                if existing.final_path != final_path:
+                if (
+                    Path(existing.final_path).name != filename
+                    or existing.owner_id != item.owner_id
+                    or existing.source_pages != item.pages
+                ):
                     raise ValueError(
                         "Filing details changed after publication. Restore the approved proposal"
                     )
+                final_path = existing.final_path
                 if safe_path(storage.root, final_path).exists():
                     continue
             target = safe_path(storage.root, final_path)

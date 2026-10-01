@@ -6,7 +6,7 @@ import { ErrorNotice } from "./page";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
-import { NativeSelect, NativeSelectOption } from "./ui/native-select";
+import { SelectField } from "./select-field";
 
 export function SettingsForm({
   settings,
@@ -61,36 +61,33 @@ export function SettingsForm({
       <div className="grid grid-cols-2 gap-3">
         <label className="field-label">
           Server type
-          <NativeSelect
+          <SelectField
+            label="Server type"
             name="provider"
             value={provider}
-            onChange={(event) =>
-              setProvider(
-                settingsInput.shape.provider.parse(event.target.value),
-              )
+            onValueChange={(value) =>
+              setProvider(settingsInput.shape.provider.parse(value))
             }
-          >
-            <NativeSelectOption value="compatible">
-              Compatible API
-            </NativeSelectOption>
-            <NativeSelectOption value="ollama">Ollama</NativeSelectOption>
-            <NativeSelectOption value="demo">
-              Demo (local sample responses)
-            </NativeSelectOption>
-          </NativeSelect>
+            items={[
+              { value: "compatible", label: "Compatible API" },
+              { value: "ollama", label: "Ollama" },
+              { value: "demo", label: "Demo (local sample responses)" },
+            ]}
+          />
         </label>
         <label className={`field-label ${provider === "demo" ? "hidden" : ""}`}>
           Reasoning
-          <NativeSelect
+          <SelectField
+            label="Reasoning"
             name="reasoning_effort"
             defaultValue={settings.reasoning_effort}
-          >
-            {["default", "none", "low", "medium", "high"].map((effort) => (
-              <NativeSelectOption key={effort} value={effort}>
-                {effort}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+            items={["default", "none", "low", "medium", "high"].map(
+              (effort) => ({
+                value: effort,
+                label: effort,
+              }),
+            )}
+          />
         </label>
       </div>
       {provider === "demo" && (
@@ -124,18 +121,16 @@ export function SettingsForm({
         <div className="grid grid-cols-2 gap-3">
           <label className="field-label">
             Output format
-            <NativeSelect
+            <SelectField
+              label="Output format"
               name="output_mode"
               defaultValue={settings.output_mode}
-            >
-              <NativeSelectOption value="prompted">
-                JSON in response
-              </NativeSelectOption>
-              <NativeSelectOption value="native">
-                Native JSON schema
-              </NativeSelectOption>
-              <NativeSelectOption value="tool">Tool calling</NativeSelectOption>
-            </NativeSelect>
+              items={[
+                { value: "prompted", label: "JSON in response" },
+                { value: "native", label: "Native JSON schema" },
+                { value: "tool", label: "Tool calling" },
+              ]}
+            />
           </label>
           <label className="field-label">
             Timeout (seconds)

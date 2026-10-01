@@ -1,0 +1,114 @@
+import type { ComponentProps, KeyboardEvent, ReactNode } from "react";
+import { createLink } from "@tanstack/react-router";
+import { TableRow } from "./ui/table";
+
+export function CollectionWorkspace({
+  full,
+  items,
+  selectedId,
+  onNavigate,
+  children,
+}: {
+  full: boolean;
+  items: { id: string }[];
+  selectedId: string | undefined;
+  onNavigate: (id: string, preview: boolean) => Promise<void>;
+  children: ReactNode;
+}) {
+  function navigateItems(event: KeyboardEvent<HTMLDivElement>) {
+    const target = event.target;
+    if (
+      full ||
+      event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
+      event.shiftKey ||
+      !(target instanceof Element) ||
+      !target.closest(".collection-content") ||
+      target.closest(
+        'input, textarea, button, [contenteditable="true"], [role="combobox"], [role="menu"], [role="listbox"], .pdf-preview',
+      ) ||
+      (target.closest("a") && !target.closest("[data-collection-link]"))
+    ) {
+      return;
+    }
+    const focusedId = target
+      .closest("[data-collection-link]")
+      ?.getAttribute("data-item-id");
+    const index = items.findIndex(
+      (item) => item.id === (focusedId ?? selectedId),
+    );
+    let next = index;
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      next = Math.min(index + 1, items.length - 1);
+    } else if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      next = Math.max(index - 1, 0);
+    } else if (event.key !== "Enter") {
+      return;
+    }
+    const item = items[next];
+    if (!item) {
+      return;
+    }
+    event.preventDefault();
+    const preview = event.key !== "Enter";
+    void onNavigate(item.id, preview).then(() => {
+      if (preview) {
+        const link = document.getElementById(`collection-item-${item.id}`);
+        link?.focus({ preventScroll: true });
+        link?.scrollIntoView({ block: "nearest" });
+      }
+    });
+  }
+  return (
+    <div
+      className="collection-workspace @container/library"
+      data-full={full}
+      onKeyDown={navigateItems}
+    >
+      {children}
+    </div>
+  );
+}
+
+export function CollectionRow({ ...props }: ComponentProps<typeof TableRow>) {
+  return (
+    <TableRow
+      {...props}
+      className="cursor-pointer"
+      onClick={(event) => {
+        if (
+          event.target instanceof Element &&
+          event.target.closest("a, button")
+        ) {
+          return;
+        }
+        const link = event.currentTarget.querySelector<HTMLAnchorElement>(
+          "[data-collection-link]",
+        );
+        link?.focus({ preventScroll: true });
+        link?.click();
+      }}
+    />
+  );
+}
+
+export const CollectionLink = createLink(function CollectionAnchor({
+  itemId,
+  selected,
+  ...props
+}: ComponentProps<"a"> & { itemId: string; selected: boolean }) {
+  return (
+    <a
+      {...props}
+      id={`collection-item-${itemId}`}
+      data-item-id={itemId}
+      data-collection-link
+      aria-haspopup="dialog"
+      aria-expanded={selected}
+      aria-current={selected ? "true" : undefined}
+      className="document-link"
+    />
+  );
+});

@@ -1,11 +1,12 @@
+import { TagIconPicker } from "./tag-icon-picker";
 import { BackLink } from "@/components/back-link";
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
 import { saveEntry } from "@/lib/actions";
 import { ErrorNotice, PageHeader } from "./page";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 
 export function CatalogForm({
   kind,
@@ -14,9 +15,11 @@ export function CatalogForm({
   kind: "owners" | "tags";
   entry: components["schemas"]["CatalogEntry"] | null;
 }) {
+  const [icon, setIcon] = useState(entry?.icon ?? "auto");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const router = useRouter();
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -29,8 +32,9 @@ export function CatalogForm({
         .map((value) => value.trim())
         .filter(Boolean);
       await saveEntry({
-        data: { kind, id: entry?.id ?? "", value: { name, aliases } },
+        data: { kind, id: entry?.id ?? "", value: { name, aliases, icon } },
       });
+      await router.invalidate({ sync: true });
       await navigate({ to: "/settings/$catalog", params: { catalog: kind } });
     } catch (error) {
       setError(
@@ -81,6 +85,7 @@ export function CatalogForm({
             />
           </label>
         )}
+        {kind === "tags" && <TagIconPicker value={icon} onChange={setIcon} />}
         <ErrorNotice message={error} />
         <div className="flex items-center gap-4">
           <Button type="submit" disabled={pending}>
@@ -89,7 +94,7 @@ export function CatalogForm({
           <Link
             to="/settings/$catalog"
             params={{ catalog: kind }}
-            className="text-xs underline"
+            className={buttonVariants({ variant: "ghost" })}
           >
             Cancel
           </Link>

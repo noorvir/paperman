@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { getTagIcon } from "@/lib/catalog-icons";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { catalogKind, getCatalog } from "@/lib/queries";
 import { ActionButton, EmptyState, PageHeader } from "@/components/page";
@@ -6,6 +8,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { OwnerLabel } from "@/components/collection";
 import { Badge } from "@/components/ui/badge";
 import { deleteEntry } from "@/lib/actions";
+import { RemoveOwner } from "@/components/remove-owner";
 import {
   Table,
   TableHeader,
@@ -68,7 +71,14 @@ function Catalog() {
                     {kind === "owners" ? (
                       <OwnerLabel name={entry.name} />
                     ) : (
-                      <Badge variant="secondary">{entry.name}</Badge>
+                      <Badge variant="secondary">
+                        <HugeiconsIcon
+                          icon={getTagIcon(entry)}
+                          size={14}
+                          aria-hidden="true"
+                        />
+                        {entry.name}
+                      </Badge>
                     )}
                   </TableCell>
                   {kind === "owners" && (
@@ -83,7 +93,10 @@ function Catalog() {
                       >
                         Edit
                       </Link>
-                      {entry.id !== "unknown" && (
+                      {kind === "owners" && entry.id !== "unknown" && (
+                        <RemoveOwner owner={entry} owners={entries} />
+                      )}
+                      {kind === "tags" && (
                         <ActionButton
                           action={() =>
                             deleteEntry({ data: { kind, id: entry.id } })

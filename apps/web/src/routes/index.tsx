@@ -4,26 +4,30 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload04Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import {
   getDashboard,
+  getCatalog,
   getDocuments,
   getScans,
   documentSearch,
   scanSearch,
 } from "@/lib/queries";
 import { PageHeader, PageLoading, formatDate } from "@/components/page";
-import { FileMark, ScanStatus } from "@/components/collection";
+import { DocumentMark } from "@/components/document-mark";
+import { ScanStatus } from "@/components/collection";
 import { buttonVariants } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 export const Route = createFileRoute("/")({
   loader: async () => {
-    const [state, documents, review, failed] = await Promise.all([
+    const [state, documents, review, failed, catalog] = await Promise.all([
       getDashboard(),
       getDocuments({ data: documentSearch.parse({}) }),
       getScans({ data: scanSearch.parse({ status: "review" }) }),
       getScans({ data: scanSearch.parse({ status: "failed" }) }),
+      getCatalog(),
     ]);
     return {
       state,
+      catalog,
       documents,
       attention: [...failed.items, ...review.items].slice(0, 5),
     };
@@ -37,7 +41,7 @@ export const Route = createFileRoute("/")({
 });
 function Overview() {
   useLiveData();
-  const { state, documents, attention } = Route.useLoaderData();
+  const { state, documents, attention, catalog } = Route.useLoaderData();
   return (
     <div className="workspace-page max-w-6xl">
       <PageHeader
@@ -153,9 +157,10 @@ function Overview() {
                 key={doc.id}
                 to="/documents/$documentId"
                 params={{ documentId: doc.id }}
+                search={{ preview: true }}
                 className="flex items-center gap-3 py-3 hover:bg-muted/40"
               >
-                <FileMark />
+                <DocumentMark document={doc} catalog={catalog} />
                 <div className="min-w-0 flex-1">
                   <p className="document-link">{doc.title}</p>
                   <p className="document-caption">{doc.summary}</p>
@@ -180,6 +185,7 @@ function Overview() {
                 key={scan.id}
                 to="/scans/$scanId"
                 params={{ scanId: scan.id }}
+                search={{ preview: true }}
                 className="flex flex-col items-start gap-2 py-4 hover:bg-muted/40"
               >
                 <ScanStatus status={scan.status} />

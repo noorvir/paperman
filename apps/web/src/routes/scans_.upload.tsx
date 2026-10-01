@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageHeader } from "@/components/page";
 import { UploadForm } from "@/components/upload-form";
 
-export const Route = createFileRoute("/scans/upload")({
+export const Route = createFileRoute("/scans_/upload")({
   component: UploadScan,
 });
 function UploadScan() {

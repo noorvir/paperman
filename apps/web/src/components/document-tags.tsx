@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { getTagIcon } from "@/lib/catalog-icons";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
@@ -60,6 +62,11 @@ export function DocumentTags({
                   return next;
                 })
               }
+            />
+            <HugeiconsIcon
+              icon={getTagIcon(tag)}
+              size={14}
+              aria-hidden="true"
             />
             {tag.name}
           </label>

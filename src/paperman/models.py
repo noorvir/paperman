@@ -20,10 +20,29 @@ Name = Annotated[
 ]
 
 
+CatalogIcon = Literal[
+    "auto",
+    "file",
+    "receipt",
+    "shield",
+    "bank",
+    "health",
+    "utilities",
+    "contract",
+    "home",
+    "car",
+    "business",
+    "education",
+    "travel",
+    "tax",
+]
+
+
 class CatalogEntry(Record):
     id: Identifier
     name: Name
     aliases: list[str] = Field(default_factory=list)
+    icon: CatalogIcon = "auto"
 
 
 class Catalog(Record):

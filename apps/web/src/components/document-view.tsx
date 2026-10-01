@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
 import { enrichDocument } from "@/lib/actions";
-import { ActionButton, ErrorNotice, DetailLayout } from "./page";
+import { ActionButton, ErrorNotice } from "./page";
 import { PdfPreview } from "./pdf-preview";
 import { DocumentTags } from "./document-tags";
 
@@ -14,62 +14,35 @@ export function DocumentView({
   document: components["schemas"]["Document"];
   text: string;
   catalog: components["schemas"]["Catalog"];
-  view: "pdf" | "text" | "details";
+  view: "pdf" | "text" | "summary" | "details";
 }) {
-  const views: (typeof view)[] = ["pdf", "text", "details"];
+  const views: (typeof view)[] = ["pdf", "text", "summary", "details"];
   return (
-    <DetailLayout
-      toolbar={
-        <nav aria-label="Document view" className="view-tabs">
-          {views.map((tab) => (
-            <Link
-              key={tab}
-              from="/documents/$documentId"
-              to="/documents/$documentId"
-              params={{ documentId: document.id }}
-              search={(previous) => ({ ...previous, view: tab })}
-              replace
-              resetScroll={false}
-              data-active={view === tab}
-              aria-current={view === tab ? "page" : undefined}
-            >
-              {tab === "pdf" ? "PDF" : tab === "text" ? "Text" : "Details"}
-            </Link>
-          ))}
-        </nav>
-      }
-      aside={
-        <>
-          <ErrorNotice message={document.enrichment_error ?? ""} />
-          <section className="space-y-2">
-            <h2 className="workspace-title">Summary</h2>
-            <p className="workspace-description">
-              {document.summary || "No summary yet."}
-            </p>
-          </section>
-          <DocumentTags
-            key={document.id}
-            document={document}
-            catalog={catalog}
-          />
-          <ActionButton
-            disabled={
-              document.enrichment_status === "running" ||
-              document.enrichment_status === "pending"
-            }
-            action={() => enrichDocument({ data: document.id })}
+    <section className="detail-primary flex-1">
+      <nav aria-label="Document view" className="view-tabs">
+        {views.map((tab) => (
+          <Link
+            key={tab}
+            from="/documents/$documentId"
+            to="/documents/$documentId"
+            params={{ documentId: document.id }}
+            search={(previous) => ({ ...previous, view: tab })}
+            replace
+            resetScroll={false}
+            data-active={view === tab}
+            aria-current={view === tab ? "page" : undefined}
           >
-            {document.enrichment_status === "failed"
-              ? "Retry tagging"
-              : "Run tagging again"}
-          </ActionButton>
-          <p className="text-xs text-muted-foreground">
-            Tagging: {document.enrichment_status}. Your saved tag choices take
-            priority.
-          </p>
-        </>
-      }
-    >
+            {
+              {
+                pdf: "PDF",
+                text: "Text",
+                summary: "Summary",
+                details: "Details",
+              }[tab]
+            }
+          </Link>
+        ))}
+      </nav>
       <div className="document-panels">
         <div
           className="document-panel"
@@ -94,6 +67,42 @@ export function DocumentView({
         </div>
         <div
           className="document-panel"
+          data-active={view === "summary"}
+          aria-hidden={view !== "summary"}
+          inert={view !== "summary"}
+        >
+          <div className="flex w-full max-w-xl flex-col gap-4 p-3">
+            <ErrorNotice message={document.enrichment_error ?? ""} />
+            <section className="space-y-2">
+              <h2 className="workspace-title">Summary</h2>
+              <p className="workspace-description">
+                {document.summary || "No summary yet."}
+              </p>
+            </section>
+            <DocumentTags
+              key={document.id}
+              document={document}
+              catalog={catalog}
+            />
+            <ActionButton
+              disabled={
+                document.enrichment_status === "running" ||
+                document.enrichment_status === "pending"
+              }
+              action={() => enrichDocument({ data: document.id })}
+            >
+              {document.enrichment_status === "failed"
+                ? "Retry tagging"
+                : "Run tagging again"}
+            </ActionButton>
+            <p className="text-xs text-muted-foreground">
+              Tagging: {document.enrichment_status}. Your saved tag choices take
+              priority.
+            </p>
+          </div>
+        </div>
+        <div
+          className="document-panel"
           data-active={view === "details"}
           aria-hidden={view !== "details"}
           inert={view !== "details"}
@@ -104,6 +113,7 @@ export function DocumentView({
               <Link
                 to="/scans/$scanId"
                 params={{ scanId: document.scan_id }}
+                search={{ preview: true }}
                 className="underline"
               >
                 Open original batch
@@ -126,6 +136,6 @@ export function DocumentView({
           </dl>
         </div>
       </div>
-    </DetailLayout>
+    </section>
   );
 }

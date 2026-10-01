@@ -62,6 +62,38 @@ def test_catalog_filters_and_review_validation(tmp_path: Path) -> None:
     assert client.get(f"/api/scans/{scan.id}/pdf").content == source.read_bytes()
 
 
+def test_catalog_icons_survive_restart_and_old_catalogs(tmp_path: Path) -> None:
+    FileStorage(tmp_path)
+    (tmp_path / "catalog.toml").write_text(
+        '[[owners]]\nid = "unknown"\nname = "Unknown"\n'
+        '[[tags]]\nid = "invoice"\nname = "Invoice"\n'
+    )
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    catalog = Catalog.model_validate_json(client.get("/api/catalog").content)
+    assert catalog.tags[0].icon == "auto"
+
+    response = client.post(
+        "/api/catalog/tags", json={"name": "Travel", "icon": "travel"}
+    )
+    assert response.status_code == 200
+    tag = CatalogEntry.model_validate_json(response.content)
+    response = client.put(
+        f"/api/catalog/tags/{tag.id}", json={"name": "Travel", "icon": "car"}
+    )
+    assert response.status_code == 200
+    assert (
+        client.put(
+            f"/api/catalog/tags/{tag.id}", json={"name": "Travel", "icon": "invalid"}
+        ).status_code
+        == 422
+    )
+
+    restarted = TestClient(create_app(Settings(data_dir=tmp_path)))
+    catalog = Catalog.model_validate_json(restarted.get("/api/catalog").content)
+    assert next(entry for entry in catalog.tags if entry.id == tag.id).icon == "car"
+    assert 'icon = "car"' in (tmp_path / "catalog.toml").read_text()
+
+
 class CatalogChangingInference(FixtureInference):
     def __init__(self, client: TestClient) -> None:
         self.client = client

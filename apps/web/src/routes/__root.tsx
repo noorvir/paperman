@@ -3,7 +3,11 @@ import {
   HeadContent,
   Outlet,
   Scripts,
+  Link,
 } from "@tanstack/react-router";
+import { EmptyState } from "@/components/page";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "cn";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSettings } from "@/lib/queries";
@@ -21,9 +25,14 @@ export const Route = createRootRoute({
   }),
   component: Root,
   notFoundComponent: () => (
-    <div className="workspace-section">
-      <h1>Page not found</h1>
-      <a href="/">Return to overview</a>
+    <div className="workspace-section items-center">
+      <EmptyState
+        title="Page not found"
+        description="This page does not exist. Return to the overview to continue."
+      />
+      <Link to="/" className={cn(buttonVariants({ variant: "outline" }))}>
+        Return to overview
+      </Link>
     </div>
   ),
 });

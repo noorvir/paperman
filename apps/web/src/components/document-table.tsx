@@ -1,8 +1,11 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { CollectionLink, CollectionRow } from "./collection-workspace";
 import type { components } from "@/lib/schema";
 import type { documentSearch } from "@/lib/queries";
 import type { z } from "zod";
-import { FileMark, OwnerLabel } from "./collection";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { getDocumentTags, getTagIcon } from "@/lib/catalog-icons";
+import { DocumentMark } from "./document-mark";
+import { OwnerLabel } from "./collection";
 import { formatDate } from "./page";
 import { Badge } from "./ui/badge";
 import {
@@ -25,9 +28,7 @@ export function DocumentTable({
   search: z.output<typeof documentSearch>;
   selectedId: string | undefined;
 }) {
-  const navigate = useNavigate();
   const owners = new Map(catalog.owners.map((entry) => [entry.id, entry.name]));
-  const tags = new Map(catalog.tags.map((entry) => [entry.id, entry.name]));
   return (
     <Table>
       <TableHeader>
@@ -35,57 +36,32 @@ export function DocumentTable({
           <TableHead className="w-[68%] md:w-[48%]">Document</TableHead>
           <TableHead className="hidden md:table-cell">Owner</TableHead>
           <TableHead className="hidden xl:table-cell">Tags</TableHead>
-          <TableHead className="text-right">Date</TableHead>
+          <TableHead>Date</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {documents.map((doc) => {
-          const visibleTags = [
-            ...new Set([
-              ...doc.generated_tags.filter(
-                (tag) => !doc.excluded_tags.includes(tag),
-              ),
-              ...doc.user_tags,
-            ]),
-          ];
+          const visibleTags = getDocumentTags(doc, catalog);
           return (
-            <TableRow
+            <CollectionRow
               key={doc.id}
               data-state={selectedId === doc.id ? "selected" : undefined}
-              className="cursor-pointer"
-              onClick={(event) => {
-                if (
-                  event.target instanceof Element &&
-                  event.target.closest("a, button")
-                ) {
-                  return;
-                }
-                void navigate({
-                  to: "/documents/$documentId",
-                  params: { documentId: doc.id },
-                  search: { ...search, preview: true, view: "pdf" },
-                  resetScroll: false,
-                });
-              }}
             >
               <TableCell>
                 <div className="flex items-center gap-3">
-                  <FileMark />
+                  <DocumentMark document={doc} catalog={catalog} />
                   <div className="min-w-0">
-                    <Link
-                      id={`document-${doc.id}`}
+                    <CollectionLink
+                      itemId={doc.id}
+                      selected={selectedId === doc.id}
                       to="/documents/$documentId"
                       params={{ documentId: doc.id }}
                       search={{ ...search, preview: true, view: "pdf" }}
                       resetScroll={false}
                       aria-label={`Preview ${doc.title}`}
-                      aria-haspopup="dialog"
-                      aria-expanded={selectedId === doc.id}
-                      aria-current={selectedId === doc.id ? "true" : undefined}
-                      className="document-link"
                     >
                       {doc.title}
-                    </Link>
+                    </CollectionLink>
                     <p className="document-caption">
                       {doc.summary ||
                         `${doc.source_pages.length} pages · Ready for tagging`}
@@ -101,9 +77,14 @@ export function DocumentTable({
                   {doc.enrichment_status === "failed" ? (
                     <Badge variant="destructive">Tagging failed</Badge>
                   ) : (
-                    visibleTags.slice(0, 2).map((id) => (
-                      <Badge key={id} variant="secondary">
-                        {tags.get(id) ?? id}
+                    visibleTags.slice(0, 2).map((tag) => (
+                      <Badge key={tag.id} variant="secondary">
+                        <HugeiconsIcon
+                          icon={getTagIcon(tag)}
+                          size={12}
+                          aria-hidden="true"
+                        />
+                        {tag.name}
                       </Badge>
                     ))
                   )}
@@ -112,10 +93,10 @@ export function DocumentTable({
                   )}
                 </div>
               </TableCell>
-              <TableCell className="text-right text-muted-foreground tabular-nums">
+              <TableCell className="text-muted-foreground tabular-nums">
                 {formatDate(doc.document_date)}
               </TableCell>
-            </TableRow>
+            </CollectionRow>
           );
         })}
       </TableBody>

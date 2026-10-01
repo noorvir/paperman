@@ -1,5 +1,7 @@
 import { Skeleton } from "./ui/skeleton";
 import { useEffect } from "react";
+import { buttonVariants } from "./ui/button";
+import { cn } from "cn";
 
 export function PdfLoading() {
   return (
@@ -21,11 +23,19 @@ export function PdfError({
 }) {
   useEffect(onReady, [onReady]);
   return (
-    <p className="absolute inset-0 z-20 bg-background p-6 text-sm" role="alert">
-      Preview could not load.{" "}
-      <a href={url} target="_blank" rel="noreferrer" className="underline">
+    <div
+      className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-3 bg-background p-6 text-xs"
+      role="alert"
+    >
+      <p>Preview could not load.</p>
+      <a
+        href={url}
+        target="_blank"
+        rel="noreferrer"
+        className={cn(buttonVariants({ variant: "outline" }))}
+      >
         Open the PDF
       </a>
-    </p>
+    </div>
   );
 }

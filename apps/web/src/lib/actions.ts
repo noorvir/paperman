@@ -1,11 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { client, unwrap } from "./api.server";
+import { catalogIconInput } from "./catalog-icons";
 import { catalogKind } from "./queries";
 
 const entryInput = z.object({
   name: z.string().trim().min(1).max(120),
   aliases: z.array(z.string()),
+  icon: catalogIconInput.default("auto"),
 });
 export const saveEntry = createServerFn({ method: "POST" })
   .validator(z.object({ kind: catalogKind, id: z.string(), value: entryInput }))
@@ -24,10 +26,19 @@ export const saveEntry = createServerFn({ method: "POST" })
     return unwrap(result);
   });
 export const deleteEntry = createServerFn({ method: "POST" })
-  .validator(z.object({ kind: catalogKind, id: z.string() }))
-  .handler(async ({ data: { kind, id } }) => {
+  .validator(
+    z.object({
+      kind: catalogKind,
+      id: z.string(),
+      reassignTo: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data: { kind, id, reassignTo } }) => {
     const result = await client.DELETE("/api/catalog/{kind}/{entry_id}", {
-      params: { path: { kind, entry_id: id } },
+      params: {
+        path: { kind, entry_id: id },
+        query: { reassign_to: reassignTo },
+      },
     });
     return unwrap(result);
   });

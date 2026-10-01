@@ -1,4 +1,4 @@
-import type { FormEvent, ReactNode } from "react";
+import type { FormEvent, ReactNode, ComponentProps } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Search01Icon,
@@ -119,10 +119,14 @@ export function CollectionFooter({
   );
 }
 
-export function FileMark() {
+export function FileMark({
+  icon = File01Icon,
+}: {
+  icon?: ComponentProps<typeof HugeiconsIcon>["icon"];
+}) {
   return (
     <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-      <HugeiconsIcon icon={File01Icon} size={18} />
+      <HugeiconsIcon icon={icon} size={18} aria-hidden="true" />
     </span>
   );
 }

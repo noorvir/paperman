@@ -21,6 +21,21 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 
 ## Current UI milestone
 
+- [x] Complete the app consistency pass: shared Mira calendars in filters and scan review; shared scan/document previews, row clicks, arrow/Enter/Escape navigation, Open controls, and table spacing. Scan documents use the same document table and preview route. Check Overview, lists, preview tabs, review, upload, catalog forms, owner reassignment, and missing-page states at desktop and phone widths. Date selection, keyboard use, mobile filter Apply, types, formatting, and production build pass. Native date/select controls are absent from application code.
+- [x] Replace native dropdowns with shared Mira selects in filters, Settings, owner reassignment, scan review, and PDF zoom. Menus use rounded corners, neutral highlights, and selected-item check marks. Desktop/phone inspection, keyboard selection, filter submission, form values, nested menus, PDF zoom, types, and build pass.
+- [x] Add owner removal: unused owners can be removed directly; used owners require a reassignment dialog with Unknown selected. Update document metadata and scan proposals under the write lock; preserve document IDs, PDFs, and paths. Unknown is reserved, and removal is blocked during active scan processing. Twelve focused tests cover reassignment, invalid targets, worker races, and interrupted filing. Desktop/phone dialog checks, Cancel/Escape, strict types, focused lint/format, and production build pass.
+- [ ] Resolve the reported Add tag React hook crash. Fresh loads, navigation from document preview, and creating/reopening a tag pass. React resolution is now deduplicated, and development errors expose a stack trace and reload action. The original failed tab could not be inspected; the cause and resolution remain unconfirmed.
+- [x] Refine the shared preview: table top border, visible Open action, Summary tab, and list keyboard navigation (arrows select; Enter opens full view).
+- [x] Show document filters inline when space permits; use the compact filter menu on smaller screens. Left-align dates and add sort icons.
+- [x] Save a selectable icon on catalog entries and use tag icons across document lists, summaries, and Settings. Old catalogs use automatic icons. Verified persistence, Save/Cancel, desktop/mobile filters, arrow/Enter/Escape navigation, shared top border, full preview height, and retained PDF rendering across tabs. Three catalog/API tests, strict Python and web types, focused lint/format checks, and the production build pass. Browser console is clear.
+
+```text
+Document/scan list -> selected route: arrow keys select; Enter expands
+Document view -> PDF | Text | Summary | Details: PDF stays mounted
+Scan view -> PDF | Documents | Activity | Details: PDF stays mounted
+Tag editor -> existing catalog API -> TOML: icon = auto | supported icon key
+```
+
 The user has approved local sample data and fake inference for this milestone. Keep sample storage separate from real documents. The fake adapter uses the existing inference interface and makes no network requests.
 
 Document preview: selecting a row opens a panel over the right side of the table, sliding left into view as shown in the user's sketch. The existing document route owns the selected document and PDF/Text/Details state. Expanding changes the same mounted view to full mode; closing restores the list and its filters/scroll position. The list stays usable beside the panel. Keep the PDF mounted across view changes, with one stable loading surface until its first page is ready.
@@ -95,6 +110,7 @@ The worker owns processing decisions and recovery. The storage implementation ow
 - Filename contains the selected document date, scan date/time, title, and a unique identifier. Illustrative shape: `<date>__scanned-<timestamp>__<title>__<id>.pdf`; the implementation uses UTC scan timestamps and the full scan hash plus document number.
 - Each owner has one flat directory of final PDFs and adjacent metadata files. Settle splitting, owner, dates, and filename before publication. Final document identities and paths remain fixed during later processing.
 - Each metadata file identifies its original scan, source pages, and later tags. Review is the supported correction point for owner/name/split. Filed identities and paths are immutable; ordinary enrichment must never relocate files.
+- Removing an owner can reassign filed documents through metadata. Keep their original storage paths and update scan proposals so interrupted filing can resume.
 
 ### 5. Archive the original scan
 
@@ -115,7 +131,7 @@ TOML is the canonical document sidecar and catalog format. JSON holds per-scan c
 
 ```text
 Owner: id, name                         # includes a reserved unknown owner
-Tag: id, name
+Tag: id, name, icon(auto | supported icon key)
 Scan: id, scanned_at, timestamp_source, original_name, content_hash,
       original_location, document_ids, stage_states
 Document: id, scan_id, source_pages, owner_id, title, document_date,

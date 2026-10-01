@@ -1,6 +1,16 @@
+from typing import Literal
+
 from pydantic import Field
 
-from paperman.models import Document, Identifier, Name, Record, Scan, WorkerState
+from paperman.models import (
+    CatalogIcon,
+    Document,
+    Identifier,
+    Name,
+    Record,
+    Scan,
+    WorkerState,
+)
 
 
 class Dashboard(Record):
@@ -32,6 +42,7 @@ class ScanPage(Record):
 
 class EntryInput(Record):
     name: Name
+    icon: CatalogIcon = "auto"
     aliases: list[str] = Field(default_factory=list)
 
 
@@ -41,6 +52,12 @@ class TagSelection(Record):
 
 class ActionResult(Record):
     message: str
+
+
+class EntryRemoval(Record):
+    status: Literal["removed", "in_use"]
+    documents: int
+    scans: int
 
 
 class DocumentDetail(Record):

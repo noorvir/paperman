@@ -5,7 +5,8 @@ import { approveScan } from "@/lib/actions";
 import { ErrorNotice } from "./page";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { NativeSelect, NativeSelectOption } from "./ui/native-select";
+import { SelectField } from "./select-field";
+import { DatePicker } from "./date-picker";
 
 type Proposal = components["schemas"]["Analysis-Output"];
 type Draft = {
@@ -126,29 +127,23 @@ export function ReviewForm({
             <div className="grid grid-cols-2 gap-3">
               <label className="field-label">
                 Owner
-                <NativeSelect
-                  className="w-full"
-                  aria-label={`Document ${index + 1} owner`}
+                <SelectField
+                  label={`Document ${index + 1} owner`}
                   value={draft.owner_id}
-                  onChange={(event) =>
-                    update(index, { owner_id: event.target.value })
-                  }
-                >
-                  {owners.map((owner) => (
-                    <NativeSelectOption key={owner.id} value={owner.id}>
-                      {owner.name}
-                    </NativeSelectOption>
-                  ))}
-                </NativeSelect>
+                  onValueChange={(value) => update(index, { owner_id: value })}
+                  items={owners.map((owner) => ({
+                    value: owner.id,
+                    label: owner.name,
+                  }))}
+                />
               </label>
               <label className="field-label">
                 Document date
-                <Input
-                  type="date"
-                  aria-label={`Document ${index + 1} date`}
+                <DatePicker
+                  label={`Document ${index + 1} date`}
                   value={draft.document_date}
-                  onChange={(event) =>
-                    update(index, { document_date: event.target.value })
+                  onValueChange={(value) =>
+                    update(index, { document_date: value })
                   }
                 />
               </label>

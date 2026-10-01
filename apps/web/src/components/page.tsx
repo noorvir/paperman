@@ -132,7 +132,20 @@ export function RouteError({ error, reset }: ErrorComponentProps) {
           error instanceof Error ? error.message : "Could not load this page"
         }
       />
-      <Button onClick={reset}>Try again</Button>
+      {import.meta.env.DEV && error instanceof Error && error.stack && (
+        <details className="text-xs">
+          <summary className="cursor-pointer">Error details</summary>
+          <pre className="mt-2 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-3">
+            {error.stack}
+          </pre>
+        </details>
+      )}
+      <div className="flex gap-2">
+        <Button onClick={reset}>Try again</Button>
+        <Button variant="outline" onClick={() => window.location.reload()}>
+          Reload page
+        </Button>
+      </div>
     </section>
   );
 }

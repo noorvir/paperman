@@ -5,12 +5,15 @@ import {
   FilterHorizontalIcon,
   ArrowDown01Icon,
   Cancel01Icon,
+  CalendarArrowDownIcon,
+  CalendarArrowUpIcon,
+  SortingAZ01Icon,
 } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
 import { documentSearch } from "@/lib/queries";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
-import { NativeSelect, NativeSelectOption } from "./ui/native-select";
+import { DatePicker } from "./date-picker";
+import { SelectField } from "./select-field";
 import {
   Popover,
   PopoverTrigger,
@@ -51,95 +54,160 @@ export function DocumentFilters({
     setOpen(false);
   }
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger render={<Button variant="outline" />}>
-        <HugeiconsIcon icon={FilterHorizontalIcon} />
-        Filters
+    <>
+      <form
+        className="document-inline-filters hidden items-center gap-2 @min-[80rem]/library:flex"
+        key={JSON.stringify(search)}
+        onSubmit={submit}
+      >
+        <FilterFields
+          search={search}
+          catalog={catalog}
+          onSelect={(name, value) =>
+            onChange(
+              documentSearch.parse({ ...search, [name]: value, page: 1 }),
+            )
+          }
+        />
         {count > 0 && (
-          <span className="rounded-sm bg-muted px-1 text-[10px]">{count}</span>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Reset filters"
+            onClick={() =>
+              onChange(documentSearch.parse({ q: search.q, sort: search.sort }))
+            }
+          >
+            <HugeiconsIcon icon={Cancel01Icon} />
+          </Button>
         )}
-      </PopoverTrigger>
-      <PopoverContent align="start" className="w-80 p-4">
-        <PopoverTitle>Filter documents</PopoverTitle>
-        <form
-          className="flex flex-col gap-4"
-          onSubmit={submit}
-          key={JSON.stringify(search)}
-        >
-          <label className="field-label">
-            Owner
-            <NativeSelect
-              name="owner"
-              defaultValue={search.owner}
-              className="w-full"
+      </form>
+      <div className="@min-[80rem]/library:hidden">
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger render={<Button variant="outline" />}>
+            <HugeiconsIcon icon={FilterHorizontalIcon} />
+            Filters
+            {count > 0 && (
+              <span className="rounded-sm bg-muted px-1 text-[10px]">
+                {count}
+              </span>
+            )}
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-4">
+            <PopoverTitle>Filter documents</PopoverTitle>
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={submit}
+              key={JSON.stringify(search)}
             >
-              <NativeSelectOption value="">All owners</NativeSelectOption>
-              {catalog.owners.map((entry) => (
-                <NativeSelectOption key={entry.id} value={entry.id}>
-                  {entry.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </label>
-          <label className="field-label">
-            Tag
-            <NativeSelect
-              name="tag"
-              defaultValue={search.tag}
-              className="w-full"
-            >
-              <NativeSelectOption value="">All tags</NativeSelectOption>
-              {catalog.tags.map((entry) => (
-                <NativeSelectOption key={entry.id} value={entry.id}>
-                  {entry.name}
-                </NativeSelectOption>
-              ))}
-            </NativeSelect>
-          </label>
-          <div className="grid grid-cols-2 gap-3">
-            <label className="field-label">
-              From
-              <Input type="date" name="after" defaultValue={search.after} />
-            </label>
-            <label className="field-label">
-              Through
-              <Input type="date" name="before" defaultValue={search.before} />
-            </label>
-          </div>
-          <label className="field-label">
-            Tagging
-            <NativeSelect
-              name="status"
-              defaultValue={search.status}
-              className="w-full"
-            >
-              <NativeSelectOption value="">Any status</NativeSelectOption>
-              <NativeSelectOption value="complete">Complete</NativeSelectOption>
-              <NativeSelectOption value="pending">Pending</NativeSelectOption>
-              <NativeSelectOption value="running">
-                Processing
-              </NativeSelectOption>
-              <NativeSelectOption value="failed">Failed</NativeSelectOption>
-            </NativeSelect>
-          </label>
-          <div className="flex justify-between border-t pt-3">
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={() => {
-                onChange(
-                  documentSearch.parse({ q: search.q, sort: search.sort }),
-                );
-                setOpen(false);
-              }}
-            >
-              Reset filters
-            </Button>
-            <Button type="submit">Apply filters</Button>
-          </div>
-        </form>
-      </PopoverContent>
-    </Popover>
+              <FilterFields search={search} catalog={catalog} />
+              <div className="flex justify-between border-t pt-3">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    onChange(
+                      documentSearch.parse({ q: search.q, sort: search.sort }),
+                    );
+                    setOpen(false);
+                  }}
+                >
+                  Reset filters
+                </Button>
+                <Button type="submit">Apply filters</Button>
+              </div>
+            </form>
+          </PopoverContent>
+        </Popover>
+      </div>
+    </>
+  );
+}
+
+function FilterFields({
+  search,
+  catalog,
+  onSelect,
+}: {
+  search: Search;
+  catalog: components["schemas"]["Catalog"];
+  onSelect?: (
+    name: "owner" | "tag" | "status" | "after" | "before",
+    value: string,
+  ) => void;
+}) {
+  return (
+    <>
+      <label className="field-label">
+        <span>Owner</span>
+        <SelectField
+          label="Owner"
+          name="owner"
+          defaultValue={search.owner}
+          onValueChange={(value) => onSelect?.("owner", value)}
+          items={[
+            { value: "", label: "All owners" },
+            ...catalog.owners.map((entry) => ({
+              value: entry.id,
+              label: entry.name,
+            })),
+          ]}
+        />
+      </label>
+      <label className="field-label">
+        <span>Tag</span>
+        <SelectField
+          label="Tag"
+          name="tag"
+          defaultValue={search.tag}
+          onValueChange={(value) => onSelect?.("tag", value)}
+          items={[
+            { value: "", label: "All tags" },
+            ...catalog.tags.map((entry) => ({
+              value: entry.id,
+              label: entry.name,
+            })),
+          ]}
+        />
+      </label>
+      <div className="filter-dates grid grid-cols-2 gap-3">
+        <label className="field-label">
+          <span>From</span>
+          <DatePicker
+            label="From"
+            name="after"
+            defaultValue={search.after}
+            onValueChange={(value) => onSelect?.("after", value)}
+          />
+        </label>
+        <label className="field-label">
+          <span>Through</span>
+          <DatePicker
+            label="Through"
+            name="before"
+            defaultValue={search.before}
+            onValueChange={(value) => onSelect?.("before", value)}
+          />
+        </label>
+      </div>
+      <label className="field-label">
+        <span>Tagging</span>
+        <SelectField
+          label="Tagging"
+          name="status"
+          defaultValue={search.status}
+          onValueChange={(value) => onSelect?.("status", value)}
+          items={[
+            { value: "", label: "Any status" },
+            { value: "complete", label: "Complete" },
+            { value: "pending", label: "Pending" },
+            { value: "running", label: "Processing" },
+            { value: "failed", label: "Failed" },
+          ]}
+        />
+      </label>
+    </>
   );
 }
 
@@ -150,10 +218,10 @@ export function DocumentSort({
   value: Search["sort"];
   onChange: (sort: Search["sort"]) => void;
 }) {
-  const labels = {
-    date_desc: "Newest first",
-    date_asc: "Oldest first",
-    title: "Title A–Z",
+  const options = {
+    date_desc: { label: "Newest first", icon: CalendarArrowDownIcon },
+    date_asc: { label: "Oldest first", icon: CalendarArrowUpIcon },
+    title: { label: "Title A–Z", icon: SortingAZ01Icon },
   };
   return (
     <DropdownMenu>
@@ -161,13 +229,15 @@ export function DocumentSort({
         render={<Button variant="ghost" />}
         aria-label="Sort documents"
       >
-        {labels[value]}
+        <HugeiconsIcon icon={options[value].icon} />
+        {options[value].label}
         <HugeiconsIcon icon={ArrowDown01Icon} />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         {documentSearch.shape.sort.unwrap().options.map((sort) => (
           <DropdownMenuItem key={sort} onClick={() => onChange(sort)}>
-            {labels[sort]}
+            <HugeiconsIcon icon={options[sort].icon} />
+            {options[sort].label}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

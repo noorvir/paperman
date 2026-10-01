@@ -164,6 +164,23 @@
               "pattern": "^[a-zA-Z0-9_-]{1,80}$",
               "title": "Entry Id"
             }
+          },
+          {
+            "name": "reassign_to",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Reassign To"
+            }
           }
         ],
         "responses": {
@@ -172,7 +189,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActionResult"
+                  "$ref": "#/components/schemas/EntryRemoval"
                 }
               }
             }
@@ -970,6 +987,27 @@
             },
             "type": "array",
             "title": "Aliases"
+          },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "file",
+              "receipt",
+              "shield",
+              "bank",
+              "health",
+              "utilities",
+              "contract",
+              "home",
+              "car",
+              "business",
+              "education",
+              "travel",
+              "tax"
+            ],
+            "title": "Icon",
+            "default": "auto"
           }
         },
         "additionalProperties": false,
@@ -977,7 +1015,8 @@
         "required": [
           "id",
           "name",
-          "aliases"
+          "aliases",
+          "icon"
         ],
         "title": "CatalogEntry"
       },
@@ -1350,6 +1389,27 @@
             "minLength": 1,
             "title": "Name"
           },
+          "icon": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "file",
+              "receipt",
+              "shield",
+              "bank",
+              "health",
+              "utilities",
+              "contract",
+              "home",
+              "car",
+              "business",
+              "education",
+              "travel",
+              "tax"
+            ],
+            "title": "Icon",
+            "default": "auto"
+          },
           "aliases": {
             "items": {
               "type": "string"
@@ -1364,6 +1424,34 @@
           "name"
         ],
         "title": "EntryInput"
+      },
+      "EntryRemoval": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "removed",
+              "in_use"
+            ],
+            "title": "Status"
+          },
+          "documents": {
+            "type": "integer",
+            "title": "Documents"
+          },
+          "scans": {
+            "type": "integer",
+            "title": "Scans"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "documents",
+          "scans"
+        ],
+        "title": "EntryRemoval"
       },
       "Event": {
         "properties": {

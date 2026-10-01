@@ -4,6 +4,8 @@ import {
   redirect,
   stripSearchParams,
   Link,
+  Outlet,
+  useMatch,
 } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -11,6 +13,11 @@ import {
   ArrowRight01Icon,
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
+import {
+  CollectionWorkspace,
+  CollectionLink,
+  CollectionRow,
+} from "@/components/collection-workspace";
 import { scanSearch, getScans } from "@/lib/queries";
 import { EmptyState, PageHeader, formatDate } from "@/components/page";
 import {
@@ -20,6 +27,7 @@ import {
   FileMark,
   ScanStatus,
 } from "@/components/collection";
+import { SelectField } from "@/components/select-field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Table,
@@ -30,14 +38,15 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-export const Route = createFileRoute("/scans/")({
+export const Route = createFileRoute("/scans")({
   validateSearch: scanSearch,
   search: { middlewares: [stripSearchParams(scanSearch.parse({}))] },
   loaderDeps: ({ search }) => search,
   loader: async ({ deps }) => {
     const scans = await getScans({ data: deps });
-    if (deps.page > scans.pages)
+    if (deps.page > scans.pages) {
       throw redirect({ to: "/scans", search: { ...deps, page: scans.pages } });
+    }
     return scans;
   },
   component: Scans,
@@ -47,6 +56,8 @@ function Scans() {
   const scans = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const detail = useMatch({ from: "/scans/$scanId", shouldThrow: false });
+  const full = detail !== undefined && !detail.search.preview;
   const labels = {
     "": "All scans",
     review: "Needs review",
@@ -56,7 +67,20 @@ function Scans() {
     complete: "Filed",
   };
   return (
-    <>
+    <CollectionWorkspace
+      full={full}
+      items={scans.items}
+      selectedId={detail?.params.scanId}
+      onNavigate={(scanId, preview) =>
+        navigate({
+          to: "/scans/$scanId",
+          params: { scanId },
+          search: { ...search, preview, view: detail?.search.view ?? "pdf" },
+          resetScroll: false,
+          replace: preview && detail !== undefined,
+        })
+      }
+    >
       <PageHeader
         title="Scans"
         description="From the scanner to your document library."
@@ -67,20 +91,8 @@ function Scans() {
           Upload scan
         </Link>
       </PageHeader>
-      <nav aria-label="Scan status" className="view-tabs">
-        {scanSearch.shape.status.unwrap().options.map((status) => (
-          <Link
-            key={status}
-            to="/scans"
-            search={{ ...search, status, page: 1 }}
-            data-active={search.status === status}
-            aria-current={search.status === status ? "page" : undefined}
-          >
-            {labels[status]}
-          </Link>
-        ))}
-      </nav>
       <Collection
+        preview={<Outlet />}
         toolbar={
           <>
             <SearchField
@@ -88,6 +100,25 @@ function Scans() {
               placeholder="Search scans"
               onSearch={(q) =>
                 void navigate({ search: { ...search, q, page: 1 } })
+              }
+            />
+            <SelectField
+              label="Scan status"
+              className="w-36"
+              value={search.status}
+              items={scanSearch.shape.status.unwrap().options.map((status) => ({
+                value: status,
+                label: labels[status],
+              }))}
+              onValueChange={(status) =>
+                void navigate({
+                  to: "/scans",
+                  search: {
+                    ...search,
+                    status: scanSearch.shape.status.parse(status),
+                    page: 1,
+                  },
+                })
               }
             />
             <span className="ml-auto hidden text-xs text-muted-foreground sm:block">
@@ -136,25 +167,32 @@ function Scans() {
                 <TableHead className="hidden md:table-cell">
                   Documents
                 </TableHead>
-                <TableHead className="hidden text-right sm:table-cell">
-                  Scanned
-                </TableHead>
+                <TableHead className="hidden sm:table-cell">Scanned</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {scans.items.map((scan) => (
-                <TableRow key={scan.id}>
+                <CollectionRow
+                  key={scan.id}
+                  data-state={
+                    detail?.params.scanId === scan.id ? "selected" : undefined
+                  }
+                >
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <FileMark />
                       <div className="min-w-0">
-                        <Link
+                        <CollectionLink
+                          itemId={scan.id}
+                          selected={detail?.params.scanId === scan.id}
+                          aria-label={`Preview ${scan.original_name}`}
                           to="/scans/$scanId"
                           params={{ scanId: scan.id }}
-                          className="document-link"
+                          search={{ ...search, preview: true, view: "pdf" }}
+                          resetScroll={false}
                         >
                           {scan.original_name}
-                        </Link>
+                        </CollectionLink>
                         <p
                           className={`document-caption ${scan.status === "failed" ? "text-destructive" : ""}`}
                         >
@@ -171,15 +209,15 @@ function Scans() {
                   <TableCell className="hidden text-muted-foreground md:table-cell">
                     {scan.document_ids.length || "—"}
                   </TableCell>
-                  <TableCell className="hidden text-right text-muted-foreground tabular-nums sm:table-cell">
+                  <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
                     {formatDate(scan.scanned_at)}
                   </TableCell>
-                </TableRow>
+                </CollectionRow>
               ))}
             </TableBody>
           </Table>
         )}
       </Collection>
-    </>
+    </CollectionWorkspace>
   );
 }
