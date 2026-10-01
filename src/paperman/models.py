@@ -88,13 +88,29 @@ class ModelSettings(Record):
         return value.rstrip("/")
 
 
-class DocumentProposal(Record):
-    pages: list[Annotated[int, Field(ge=1)]] = Field(min_length=1)
-    owner_id: Identifier = "unknown"
-    title: Name
-    document_date: date | None = None
-    confidence: float = Field(ge=0, le=1)
-    review_reason: str = ""
+class DocumentDetails(Record):
+    owner_id: Identifier = Field(
+        default="unknown",
+        description="Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.",
+    )
+    title: Name = Field(
+        description="Short document type and subject, such as Electricity bill. No recipient, reference number, or date."
+    )
+    document_date: date | None = Field(
+        default=None,
+        description="Printed issue date, YYYY-MM-DD. Not a deadline or appointment date. Null if absent or uncertain.",
+    )
+    confidence: float = Field(ge=0, le=1, description="Confidence from 0 to 1.")
+    review_reason: str = Field(
+        default="",
+        description="Only describe uncertainty that needs review. Empty string when clear.",
+    )
+
+
+class DocumentProposal(DocumentDetails):
+    pages: list[Annotated[int, Field(ge=1)]] = Field(
+        min_length=1, description="One-based source page numbers in original order."
+    )
 
 
 class Analysis(Record):
@@ -102,9 +118,25 @@ class Analysis(Record):
 
 
 class Enrichment(Record):
-    tag_ids: list[Identifier]
-    suggested_tags: list[Name] = Field(default_factory=list)
-    summary: str
+    tag_ids: list[Identifier] = Field(
+        description="All relevant tag IDs from the supplied catalog only."
+    )
+    suggested_tags: list[Name] = Field(default_factory=list, max_length=3)
+    summary: str = Field(
+        min_length=1, description="A short factual summary of the document."
+    )
+
+
+def validate_analysis(proposal: Analysis, page_count: int, catalog: Catalog) -> None:
+    pages = [page for document in proposal.documents for page in document.pages]
+    if pages != list(range(1, page_count + 1)):
+        raise ValueError("Every page must occur exactly once, in order, with no gaps")
+    owners = {owner.id for owner in catalog.owners}
+    for document in proposal.documents:
+        if document.owner_id not in owners:
+            raise ValueError(f"Use only these owner IDs: {sorted(owners)}")
+        if not document.title.strip():
+            raise ValueError("Each document needs a title")
 
 
 class Event(Record):

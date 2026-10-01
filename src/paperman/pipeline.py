@@ -4,7 +4,7 @@ from datetime import UTC
 from pathlib import Path
 
 from paperman.inference import Inference
-from paperman.models import Analysis, Catalog, Document, Event, Scan
+from paperman.models import Document, Event, Scan, validate_analysis
 from paperman.pdf import OCR, extract_pages, split_pdf
 from paperman.storage import Storage, atomic_target, safe_path, slug
 
@@ -87,18 +87,6 @@ async def process_scan(
         scan.history.append(Event(stage=scan.phase, message=message))
         with storage.transaction():
             storage.save_scan(scan)
-
-
-def validate_analysis(proposal: Analysis, page_count: int, catalog: Catalog) -> None:
-    pages = [page for document in proposal.documents for page in document.pages]
-    if pages != list(range(1, page_count + 1)):
-        raise ValueError("Every page must occur exactly once, in order, with no gaps")
-    owners = {owner.id for owner in catalog.owners}
-    for document in proposal.documents:
-        if document.owner_id not in owners:
-            raise ValueError("The proposed owner is not in the owner catalog")
-        if not document.title.strip():
-            raise ValueError("Each document needs a title")
 
 
 def file_documents(storage: Storage, scan: Scan) -> None:

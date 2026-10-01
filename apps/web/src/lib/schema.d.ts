@@ -441,45 +441,73 @@ export interface components {
         };
         /** DocumentProposal */
         "DocumentProposal-Input": {
-            /** Pages */
-            pages: number[];
             /**
              * Owner Id
+             * @description Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.
              * @default unknown
              */
             owner_id: string;
-            /** Title */
+            /**
+             * Title
+             * @description Short document type and subject, such as Electricity bill. No recipient, reference number, or date.
+             */
             title: string;
-            /** Document Date */
+            /**
+             * Document Date
+             * @description Printed issue date, YYYY-MM-DD. Not a deadline or appointment date. Null if absent or uncertain.
+             */
             document_date?: string | null;
-            /** Confidence */
+            /**
+             * Confidence
+             * @description Confidence from 0 to 1.
+             */
             confidence: number;
             /**
              * Review Reason
+             * @description Only describe uncertainty that needs review. Empty string when clear.
              * @default
              */
             review_reason: string;
+            /**
+             * Pages
+             * @description One-based source page numbers in original order.
+             */
+            pages: number[];
         };
         /** DocumentProposal */
         "DocumentProposal-Output": {
-            /** Pages */
-            pages: number[];
             /**
              * Owner Id
+             * @description Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.
              * @default unknown
              */
             owner_id: string;
-            /** Title */
+            /**
+             * Title
+             * @description Short document type and subject, such as Electricity bill. No recipient, reference number, or date.
+             */
             title: string;
-            /** Document Date */
+            /**
+             * Document Date
+             * @description Printed issue date, YYYY-MM-DD. Not a deadline or appointment date. Null if absent or uncertain.
+             */
             document_date: string | null;
-            /** Confidence */
+            /**
+             * Confidence
+             * @description Confidence from 0 to 1.
+             */
             confidence: number;
             /**
              * Review Reason
+             * @description Only describe uncertainty that needs review. Empty string when clear.
              * @default
              */
             review_reason: string;
+            /**
+             * Pages
+             * @description One-based source page numbers in original order.
+             */
+            pages: number[];
         };
         /** EntryInput */
         EntryInput: {

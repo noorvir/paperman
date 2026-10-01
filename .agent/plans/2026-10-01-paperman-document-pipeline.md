@@ -17,7 +17,22 @@ Build PaperMan as a standalone repository with a custom web UI and a simple, rel
 - [x] Implement repeatable tagging, full-text search, URL-based routes, and dashboard recovery controls.
 - [ ] Verify real scans, GPU failures, restart recovery, and backup restoration.
 
-The Python worker and API, routed TanStack Start UI, and deployment configuration are implemented. Eleven automated tests and the production build pass. Physical scan delivery, the intended GPU endpoint, a Pi deployment, and a live backup restore remain unverified. Local model testing uses synthetic content only; the installed 0.8B model has returned invalid results.
+The Python worker and API, routed TanStack Start UI, and deployment configuration are implemented. Physical scan delivery, the intended GPU endpoint, a Pi deployment, and a live backup restore remain unverified. Local model testing uses fictional content only.
+
+## Current local AI milestone
+
+- [x] Commit the UI work before the AI changes.
+- [x] Separate boundary detection, recipient/title/date extraction, and enrichment behind the existing inference interface. Validate page coverage and catalog IDs, with bounded retries. Test native JSON, prompted JSON, and tool output.
+- [x] Add an opt-in worker check using fictional mixed mail and temporary storage. It checks model accuracy before approving filing, then checks tagging, provenance, and repeat processing.
+- [x] Verify connection failure and retry through the worker and API. Keep the original and OCR output, show the connection error, and resume to review when Ollama is available. Handle wrapped SDK errors; test connection, timeout, and HTTP failures.
+- [ ] Pass the mixed-mail check with a suitable local model. The installed `qwen3.5:0.8b` merged three letters, missed named owners, and returned an incorrect date or no date. The full worker check failed on 2 October 2026; its proposal stayed in review. A larger model download or another endpoint awaits the user's choice.
+
+```text
+Inference.analyze(page_texts, owner_catalog) -> Analysis
+  start_pages -> consecutive groups -> recipient, title, issue_date per group
+Inference.enrich(document_text, tag_catalog) -> tags, suggestions, summary
+Worker owns review, filing, retries, and state; the adapter owns model calls.
+```
 
 ## Current UI milestone
 

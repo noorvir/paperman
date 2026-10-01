@@ -1268,26 +1268,19 @@
       },
       "DocumentProposal-Input": {
         "properties": {
-          "pages": {
-            "items": {
-              "type": "integer",
-              "minimum": 1.0
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Pages"
-          },
           "owner_id": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_-]{1,80}$",
             "title": "Owner Id",
+            "description": "Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.",
             "default": "unknown"
           },
           "title": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
-            "title": "Title"
+            "title": "Title",
+            "description": "Short document type and subject, such as Electricity bill. No recipient, reference number, or date."
           },
           "document_date": {
             "anyOf": [
@@ -1299,51 +1292,57 @@
                 "type": "null"
               }
             ],
-            "title": "Document Date"
+            "title": "Document Date",
+            "description": "Printed issue date, YYYY-MM-DD. Not a deadline or appointment date. Null if absent or uncertain."
           },
           "confidence": {
             "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Confidence"
+            "title": "Confidence",
+            "description": "Confidence from 0 to 1."
           },
           "review_reason": {
             "type": "string",
             "title": "Review Reason",
+            "description": "Only describe uncertainty that needs review. Empty string when clear.",
             "default": ""
+          },
+          "pages": {
+            "items": {
+              "type": "integer",
+              "minimum": 1.0
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Pages",
+            "description": "One-based source page numbers in original order."
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "pages",
           "title",
-          "confidence"
+          "confidence",
+          "pages"
         ],
         "title": "DocumentProposal"
       },
       "DocumentProposal-Output": {
         "properties": {
-          "pages": {
-            "items": {
-              "type": "integer",
-              "minimum": 1.0
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Pages"
-          },
           "owner_id": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_-]{1,80}$",
             "title": "Owner Id",
+            "description": "Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.",
             "default": "unknown"
           },
           "title": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
-            "title": "Title"
+            "title": "Title",
+            "description": "Short document type and subject, such as Electricity bill. No recipient, reference number, or date."
           },
           "document_date": {
             "anyOf": [
@@ -1355,29 +1354,42 @@
                 "type": "null"
               }
             ],
-            "title": "Document Date"
+            "title": "Document Date",
+            "description": "Printed issue date, YYYY-MM-DD. Not a deadline or appointment date. Null if absent or uncertain."
           },
           "confidence": {
             "type": "number",
             "maximum": 1.0,
             "minimum": 0.0,
-            "title": "Confidence"
+            "title": "Confidence",
+            "description": "Confidence from 0 to 1."
           },
           "review_reason": {
             "type": "string",
             "title": "Review Reason",
+            "description": "Only describe uncertainty that needs review. Empty string when clear.",
             "default": ""
+          },
+          "pages": {
+            "items": {
+              "type": "integer",
+              "minimum": 1.0
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Pages",
+            "description": "One-based source page numbers in original order."
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "pages",
           "owner_id",
           "title",
           "document_date",
           "confidence",
-          "review_reason"
+          "review_reason",
+          "pages"
         ],
         "title": "DocumentProposal"
       },

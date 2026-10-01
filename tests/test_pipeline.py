@@ -13,9 +13,10 @@ from paperman.models import (
     Document,
     DocumentProposal,
     Enrichment,
+    validate_analysis,
 )
 from paperman.pdf import LocalOCR, extract_pages
-from paperman.pipeline import enrich_document, process_scan, validate_analysis
+from paperman.pipeline import enrich_document, process_scan
 from paperman.storage import FileStorage, file_hash, write_record
 
 

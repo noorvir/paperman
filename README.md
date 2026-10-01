@@ -16,6 +16,22 @@ Open <http://127.0.0.1:3001>. This starts the Python API, the independent worker
 
 Upload a PDF on the Scans page, or put one in `data/inbox`. The worker listens for file events and scans periodically. It waits for files to settle, preserves their bytes under a SHA-256 identity, and runs OCR. Scans need review before filing by default. Review all source pages, owners, dates, and titles; approve to file. Failed steps have retry controls. The overview reports an offline worker and failed scans or tagging.
 
+## Local inference
+
+In Settings, select **Ollama**, enter its `/v1` endpoint and an installed model name, and select **Native JSON schema**. For Ollama on the same machine, the endpoint is `http://127.0.0.1:11434/v1`. Reasoning can be set to `none` when the model supports it. Keep **Review all scans before filing** enabled while checking model quality. These values are configuration, not application defaults.
+
+Pydantic AI makes separate requests for document boundaries, each document's recipient/title/issue date, and later tags/summary. Code turns boundaries into consecutive page groups so no pages are lost. Invalid boundaries, owner IDs, tag IDs, or output shapes get at most two validation retries. Valid JSON does not prove that the model understood the document. Review is still required to catch incorrect splits, names, owners, and dates.
+
+Run the opt-in check against the model saved in the selected storage directory:
+
+```sh
+PAPERMAN_DATA_DIR=data uv run python scripts/check_inference.py
+```
+
+The check sends fictional mail through the worker, OCR, real model, review API, filing, and repeat tagging. It uses temporary storage and does not change existing documents, owners, or settings. A pass requires three correct document groups, known and unknown owners, issue dates, missing-date fallback, expected tags, unchanged file paths, and preserved user tags. It exits with an error if any check fails. Only the configured endpoint receives the sample text.
+
+The installed `qwen3.5:0.8b` failed the mixed-mail check on 2 October 2026: it merged separate letters and missed named owners. It can test connectivity, but its filing proposals are not reliable. No larger model has been verified yet.
+
 ## Local demo
 
 ```sh

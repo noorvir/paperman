@@ -17,6 +17,7 @@ dev = [
     "httpx>=0.28",
     "fpdf2>=2.8.9",
     "pillow>=12.3.0",
+    "httpx2>=2.13.1",
 ]
 [build-system]
 requires = ["hatchling"]

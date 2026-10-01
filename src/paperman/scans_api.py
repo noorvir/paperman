@@ -7,8 +7,7 @@ from fastapi.responses import FileResponse
 
 from paperman.api_models import ActionResult, ScanPage
 from paperman.config import Settings
-from paperman.models import Analysis, Event, Identifier, Scan, now
-from paperman.pipeline import validate_analysis
+from paperman.models import Analysis, Event, Identifier, Scan, now, validate_analysis
 from paperman.storage import FileStorage, atomic_target
 
 
