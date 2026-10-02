@@ -1,23 +1,23 @@
 # Public PDF test set
 
 Eight unchanged PDFs, 18 pages, 1.07 MB. Downloaded on 2 October 2026.
-The files are in [the local cache](../../../.cache/public-pdfs/pdfs/).
+The files are in [the local cache](../../../../../.cache/public-pdfs/pdfs/).
 [manifest.toml](manifest.toml) records source URLs, licences, attributions,
 SHA-256 hashes, page counts, text-layer checks, and expected page groups.
 The cache is ignored by Git; the manifest and this guide belong in Git.
 
 ## Contents
 
-| ID | Document | Pages | What it tests |
-| --- | --- | ---: | --- |
-| [01](../../../.cache/public-pdfs/pdfs/01.pdf) | Vendor invoice | 2 | Invoice fields and continuation pages |
-| [02](../../../.cache/public-pdfs/pdfs/02.pdf) | Scanned purchase order | 1 | Image-only OCR, tables, delivery date versus issue date |
-| [03](../../../.cache/public-pdfs/pdfs/03.pdf) | Insurance claim packet | 9 | Six document groups, including two adjacent invoices |
-| [04](../../../.cache/public-pdfs/pdfs/04.pdf) | Sample credit card statement | 1 | Financial tables and an incomplete date |
-| [05](../../../.cache/public-pdfs/pdfs/05.pdf) | Mortgage statement guide | 2 | Multiple columns and a sample statement inside a guide |
-| [06](../../../.cache/public-pdfs/pdfs/06.pdf) | Wikipedia article from an Epson scanner | 1 | Dense scanned text and a contents box |
-| [07](../../../.cache/public-pdfs/pdfs/07.pdf) | Skewed equipment brochure | 1 | Small text, bullets, columns, and deskewing |
-| [08](../../../.cache/public-pdfs/pdfs/08.pdf) | French text with accents | 1 | Accents, ligatures, and language selection |
+| ID                                                  | Document                                | Pages | What it tests                                           |
+| --------------------------------------------------- | --------------------------------------- | ----: | ------------------------------------------------------- |
+| [01](../../../../../.cache/public-pdfs/pdfs/01.pdf) | Vendor invoice                          |     2 | Invoice fields and continuation pages                   |
+| [02](../../../../../.cache/public-pdfs/pdfs/02.pdf) | Scanned purchase order                  |     1 | Image-only OCR, tables, delivery date versus issue date |
+| [03](../../../../../.cache/public-pdfs/pdfs/03.pdf) | Insurance claim packet                  |     9 | Six document groups, including two adjacent invoices    |
+| [04](../../../../../.cache/public-pdfs/pdfs/04.pdf) | Sample credit card statement            |     1 | Financial tables and an incomplete date                 |
+| [05](../../../../../.cache/public-pdfs/pdfs/05.pdf) | Mortgage statement guide                |     2 | Multiple columns and a sample statement inside a guide  |
+| [06](../../../../../.cache/public-pdfs/pdfs/06.pdf) | Wikipedia article from an Epson scanner |     1 | Dense scanned text and a contents box                   |
+| [07](../../../../../.cache/public-pdfs/pdfs/07.pdf) | Skewed equipment brochure               |     1 | Small text, bullets, columns, and deskewing             |
+| [08](../../../../../.cache/public-pdfs/pdfs/08.pdf) | French text with accents                |     1 | Accents, ligatures, and language selection              |
 
 Files 02, 06, 07, and 08 have no extractable text. The other files contain
 selectable text. All 18 pages rendered successfully. The page images and contact

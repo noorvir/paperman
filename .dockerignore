@@ -1,5 +1,6 @@
 .git
 .venv
+**/.venv
 node_modules
 **/node_modules
 **/dist
@@ -9,5 +10,6 @@ data
 .env
 .agent
 __pycache__
+**/__pycache__
 .pytest_cache
 .ruff_cache

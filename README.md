@@ -7,7 +7,7 @@ PaperMan receives PDF scans, creates searchable PDFs, proposes document groups a
 Install Bun 1.3+, uv, and Tesseract with the required language data. On macOS, `brew install tesseract` installs English OCR; use `brew install tesseract-lang` for more languages. Linux packages are `tesseract-ocr` and language packages such as `tesseract-ocr-deu`.
 
 ```sh
-uv sync
+uv sync --project apps/server
 bun install
 bun run dev
 ```
@@ -37,14 +37,14 @@ Pydantic AI makes separate requests for document boundaries, each document's rec
 Run the opt-in check against the model saved in the selected storage directory:
 
 ```sh
-PAPERMAN_DATA_DIR=data uv run python scripts/check_inference.py
+PAPERMAN_DATA_DIR=data uv run --project apps/server python apps/server/scripts/check_inference.py
 ```
 
 The check sends fictional mail through the worker, OCR, real model, review API, filing, and repeat tagging. It uses temporary storage and does not change existing documents, owners, or settings. A pass requires three correct document groups, known and unknown owners, issue dates, missing-date fallback, expected tags, unchanged file paths, and preserved user tags. It exits with an error if any check fails. Only the configured endpoint receives the sample text.
 
 Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
 
-A [public PDF test set](tests/fixtures/public-pdfs/README.md) is cached for the next check: eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a claim packet with known document boundaries. Its manifest records sources, licences, hashes, and expected page groups. These files have not yet been processed through PaperMan.
+A [public PDF test set](apps/server/tests/fixtures/public-pdfs/README.md) is cached for the next check: eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a claim packet with known document boundaries. Its manifest records sources, licences, hashes, and expected page groups. These files have not yet been processed through PaperMan.
 
 ## Local demo
 
@@ -100,14 +100,26 @@ The worker resumes persisted stages after restart. A failed model call does not 
 
 ## Development and checks
 
+```text
+apps/web/                 React web app
+apps/server/paperman/     Python package: API, worker, and pipeline
+apps/server/tests/        Server tests and fixture manifests
+apps/server/scripts/      Demo setup and local model checks
+apps/server/pyproject.toml
+apps/server/uv.lock
+deploy/                   Container configuration
+```
+
+Run the commands below from the repository root. Python dependencies are installed in `apps/server/.venv`. Runtime commands use the root working directory, so `.env`, `data/`, `.demo-data/`, and generated `openapi.json` resolve there.
+
 ```sh
 bun run generate:api  # FastAPI OpenAPI contract and TypeScript client types
 bun run check        # format, lint, strict types, tests, production web build
-uv run paperman index
+uv run --project apps/server paperman index
 bun run build
 # Production: start API and worker, then the web server on its own port.
-uv run paperman serve
-uv run paperman worker
+uv run --project apps/server paperman serve
+uv run --project apps/server paperman worker
 PORT=3001 bun run --filter @paperman/web start
 ```
 

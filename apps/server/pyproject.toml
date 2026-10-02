@@ -28,7 +28,7 @@ paperman = "paperman.cli:main"
 typeCheckingMode = "strict"
 reportAny = "error"
 reportExplicitAny = "error"
-include = ["src", "tests", "scripts"]
+include = ["paperman", "tests", "scripts"]
 [tool.ruff]
 target-version = "py313"
 [tool.ruff.lint]

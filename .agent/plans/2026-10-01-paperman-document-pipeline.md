@@ -12,6 +12,7 @@ Build PaperMan as a standalone repository with a custom web UI and a simple, rel
 - [x] Set up shadcn Mira and Tailwind with shared dense layouts for the inbox and tags.
 - [x] Choose TOML metadata/catalogs/settings, JSON job records, SHA-256 scan IDs, UTC timestamps, review before filing, local OCRmyPDF, FastAPI/OpenAPI, and Pydantic AI. The production model endpoint remains pending.
 - [x] Implement the Python foundation and portable storage/model interfaces.
+- [x] Group the Python server with its tests, scripts, dependency configuration, and lockfile alongside the web app. Root commands, strict types, all 21 tests, API schema generation, Python packaging, and the web build pass. Docker paths are updated; a container build remains unverified because Docker is unavailable locally.
 - [ ] Integrate the inbox and worker with the Homestack deployment.
 - [x] Implement OCR, split proposals, review, ownership, naming, and deterministic filing.
 - [x] Implement repeatable tagging, full-text search, URL-based routes, and dashboard recovery controls.

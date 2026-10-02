@@ -1,5 +1,7 @@
 bun.lock
 node_modules/
+.cache/
+.demo-data/
 dist/
 data/
 .agent/current.md
