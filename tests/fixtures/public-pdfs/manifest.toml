@@ -1,0 +1,282 @@
+version = 1
+downloaded_on = "2026-10-02"
+cache_directory = ".cache/public-pdfs/pdfs"
+original_bytes_preserved = true
+page_numbering = "one-based"
+expected_groups_basis = "DocJev source manifest for 01-03; visual and text inspection for 04-08. These are test expectations, not model results."
+
+[sources.docjev]
+url = "https://github.com/jerryjliu/docjev"
+revision = "c7abe276a970605feb9cb8b27513365b6c10726e"
+license_url = "https://github.com/jerryjliu/docjev/blob/c7abe276a970605feb9cb8b27513365b6c10726e/datasets/LICENSE"
+ground_truth_url = "https://raw.githubusercontent.com/jerryjliu/docjev/c7abe276a970605feb9cb8b27513365b6c10726e/examples/demo-manifest.json"
+note = "Fictional content and labels are CC0. Bundled fonts, third-party software, and marks are excluded. Font notices: datasets/assets/fonts in the pinned source repository."
+
+[sources.cfpb]
+url = "https://www.consumerfinance.gov/"
+license_url = "https://www.consumerfinance.gov/privacy/website-privacy-policy/#legal-notices"
+note = "CFPB-created information is public domain under its published policy. Official marks retain protection. Both selected PDFs are educational examples, not real account records."
+
+[sources.ocrmypdf]
+url = "https://github.com/ocrmypdf/OCRmyPDF"
+revision = "3f5553cf19e5b10e714667a82a502c3b9c48d144"
+license_url = "https://github.com/ocrmypdf/OCRmyPDF/blob/3f5553cf19e5b10e714667a82a502c3b9c48d144/REUSE.toml"
+note = "Per-file licences apply; the software licence does not cover all fixture PDFs. Selected CC licences and source attributions appear on each document."
+
+[[documents]]
+id = "01"
+file = "01.pdf"
+title = "Vendor invoice"
+source = "docjev"
+language = "en"
+kind = "synthetic_native"
+category = "invoice"
+expected_page_groups = [
+    [
+        1,
+        2,
+    ],
+]
+checks = [
+    "Keep the continuation page with its invoice",
+    "Extract issue date 2026-09-01 and reference INV-9400",
+]
+license = "CC0-1.0 (content and labels; fonts excluded)"
+source_url = "https://raw.githubusercontent.com/jerryjliu/docjev/c7abe276a970605feb9cb8b27513365b6c10726e/examples/classify/inbox/d01.pdf"
+sha256 = "443b1fbcf040924f2ed60a4f46578e6d613afe0e8ccaf9f1cd2edc9e9f16ada7"
+bytes = 26122
+pages = 2
+text_characters_per_page = [
+    626,
+    461,
+]
+
+[[documents]]
+id = "02"
+file = "02.pdf"
+title = "Scanned purchase order"
+source = "docjev"
+language = "en"
+kind = "synthetic_scan"
+category = "purchase_order"
+expected_page_groups = [
+    [
+        1,
+    ],
+]
+checks = [
+    "OCR an image-only page with a table",
+    "Do not confuse the requested delivery date with an issue date",
+]
+license = "CC0-1.0 (content and labels; fonts excluded)"
+source_url = "https://raw.githubusercontent.com/jerryjliu/docjev/c7abe276a970605feb9cb8b27513365b6c10726e/examples/classify/inbox/d02.pdf"
+sha256 = "fbaf7a7cd9a68500b126cf945e64e7b48b8b4326f369bbeb757cd6cb8c8aff8f"
+bytes = 83851
+pages = 1
+text_characters_per_page = [
+    0,
+]
+
+[[documents]]
+id = "03"
+file = "03.pdf"
+title = "Property insurance claim packet"
+source = "docjev"
+language = "en"
+kind = "synthetic_native"
+category = "mixed_packet"
+expected_page_groups = [
+    [
+        1,
+        2,
+    ],
+    [
+        3,
+    ],
+    [
+        4,
+        5,
+    ],
+    [
+        6,
+        7,
+    ],
+    [
+        8,
+    ],
+    [
+        9,
+    ],
+]
+expected_categories = [
+    "claim_form",
+    "incident_report",
+    "repair_estimate",
+    "invoice",
+    "invoice",
+    "correspondence",
+]
+checks = [
+    "Split into six documents using upstream ground truth",
+    "Keep the two adjacent invoices separate",
+    "Keep continuation pages with their source documents",
+]
+license = "CC0-1.0 (content and labels; fonts excluded)"
+source_url = "https://raw.githubusercontent.com/jerryjliu/docjev/c7abe276a970605feb9cb8b27513365b6c10726e/examples/split/claim-packet.pdf"
+sha256 = "99df04d93066ae0ba31aa31adfdac26fd4a12ce891ccc4a4d694b6072043c083"
+bytes = 149403
+pages = 9
+text_characters_per_page = [
+    816,
+    491,
+    803,
+    725,
+    484,
+    631,
+    465,
+    621,
+    753,
+]
+
+[[documents]]
+id = "04"
+file = "04.pdf"
+title = "Sample credit card statement"
+source = "cfpb"
+language = "en"
+kind = "educational_native"
+category = "sample_statement"
+expected_page_groups = [
+    [
+        1,
+    ],
+]
+checks = [
+    "Read dense financial tables",
+    "The statement uses XX for the year; do not invent a full statement date",
+    "Susan Doe is a sample recipient, not an existing PaperMan owner",
+]
+license = "Public domain (CFPB-created content; marks excluded)"
+source_url = "https://files.consumerfinance.gov/f/documents/cfpb_building_block_activities_sample-credit-card-statement_handout.pdf"
+sha256 = "755073d4d13732eb9bd9b340c6ff28325741835c369a6c8b58b3f4650ffed52d"
+bytes = 59845
+pages = 1
+text_characters_per_page = [
+    973,
+]
+
+[[documents]]
+id = "05"
+file = "05.pdf"
+title = "How to use your mortgage statement"
+source = "cfpb"
+language = "en"
+kind = "educational_native"
+category = "guide"
+expected_page_groups = [
+    [
+        1,
+        2,
+    ],
+]
+checks = [
+    "Keep this two-page guide together",
+    "Do not treat its embedded sample statement as a separate page group",
+    "Do not assign its example recipient or statement date to the guide itself",
+]
+license = "Public domain (CFPB-created content; marks excluded)"
+source_url = "https://files.consumerfinance.gov/f/201401_cfpb_mortgage_how-to-use-your-mortgage-statement.pdf"
+sha256 = "04ca1c9876aadaf3edf20b1115f0d3cc714d8816ff3c2894a8a7adef82a1b904"
+bytes = 114786
+pages = 2
+text_characters_per_page = [
+    3152,
+    1427,
+]
+
+[[documents]]
+id = "06"
+file = "06.pdf"
+title = "Scanned Wikipedia OCR article"
+source = "ocrmypdf"
+language = "en"
+kind = "scanner_output"
+category = "article_excerpt"
+expected_page_groups = [
+    [
+        1,
+    ],
+]
+checks = [
+    "OCR dense body text and a contents box",
+    "PDF contains one page even though the printed footer says 1 of 9",
+]
+license = "CC-BY-SA-3.0"
+attribution = "Contributors to the Wikipedia article Optical character recognition, as of 2016-09-14"
+attribution_url = "https://en.wikipedia.org/w/index.php?title=Optical_character_recognition&action=history"
+license_url = "https://creativecommons.org/licenses/by-sa/3.0/"
+source_url = "https://raw.githubusercontent.com/ocrmypdf/OCRmyPDF/3f5553cf19e5b10e714667a82a502c3b9c48d144/tests/resources/epson.pdf"
+sha256 = "3fce2d6e5baffec839ffc86b7c91903b139399392ea76a09bdfcca40cb8b5a4d"
+bytes = 79979
+pages = 1
+text_characters_per_page = [
+    0,
+]
+
+[[documents]]
+id = "07"
+file = "07.pdf"
+title = "Skewed LinnSequencer brochure"
+source = "ocrmypdf"
+language = "en"
+kind = "scan_with_simulated_skew"
+category = "brochure"
+expected_page_groups = [
+    [
+        1,
+    ],
+]
+checks = [
+    "Deskew and OCR small text in two columns",
+    "Preserve reading order across bullets and columns",
+]
+license = "CC-BY-SA-3.0 (one of the upstream licence options)"
+attribution = "(C) 1985 Forat Electronics, per OCRmyPDF REUSE.toml; original brochure scan from Wikimedia"
+attribution_url = "https://upload.wikimedia.org/wikipedia/en/b/b7/LinnSequencer_hardware_MIDI_sequencer_brochure_page_2_300dpi.jpg"
+license_url = "https://creativecommons.org/licenses/by-sa/3.0/"
+source_url = "https://raw.githubusercontent.com/ocrmypdf/OCRmyPDF/3f5553cf19e5b10e714667a82a502c3b9c48d144/tests/resources/skew.pdf"
+sha256 = "6be6b54d49df71351974774404e299b756d8d3cbeb2c4a31f15fae8dd983d72f"
+bytes = 76013
+pages = 1
+text_characters_per_page = [
+    0,
+]
+
+[[documents]]
+id = "08"
+file = "08.pdf"
+title = "French text with accents"
+source = "ocrmypdf"
+language = "fr"
+kind = "synthetic_raster"
+category = "text_sample"
+expected_page_groups = [
+    [
+        1,
+    ],
+]
+checks = [
+    "Preserve French accents and ligatures",
+    "Needs French OCR language data (fra) for a fair Tesseract test",
+    "No document issue date or recipient is stated",
+]
+license = "CC-BY-SA-4.0"
+attribution = "(C) 2025 James R. Barlow, per OCRmyPDF REUSE.toml"
+license_url = "https://creativecommons.org/licenses/by-sa/4.0/"
+source_url = "https://raw.githubusercontent.com/ocrmypdf/OCRmyPDF/3f5553cf19e5b10e714667a82a502c3b9c48d144/tests/resources/francais.pdf"
+sha256 = "600c27f8dd2ef085a94d3500f6ccdb3b37f4b89aa8ffdf9a00a06a1367887e8b"
+bytes = 483256
+pages = 1
+text_characters_per_page = [
+    0,
+]

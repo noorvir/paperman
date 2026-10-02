@@ -44,6 +44,8 @@ The check sends fictional mail through the worker, OCR, real model, review API, 
 
 Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
 
+A [public PDF test set](tests/fixtures/public-pdfs/README.md) is cached for the next check: eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a claim packet with known document boundaries. Its manifest records sources, licences, hashes, and expected page groups. These files have not yet been processed through PaperMan.
+
 ## Local demo
 
 ```sh

@@ -21,6 +21,7 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 
 ## Current local AI milestone
 
+- [x] Cache eight public PDFs with sources, licences, hashes, and expected page groups. Inspect all 18 rendered pages, including four image-only pages and a six-document claim packet. Pipeline evaluation on this set remains pending.
 - [x] Commit the UI work before the AI changes.
 - [x] Separate boundary detection, recipient/title/date extraction, and enrichment behind the existing inference interface. Validate page coverage and catalog IDs, with bounded retries. Test native JSON, prompted JSON, and tool output.
 - [x] Add an opt-in worker check using fictional mixed mail and temporary storage. It checks model accuracy before approving filing, then checks tagging, provenance, and repeat processing.
