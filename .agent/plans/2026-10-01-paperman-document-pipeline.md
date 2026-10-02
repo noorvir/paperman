@@ -25,7 +25,7 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 - [x] Separate boundary detection, recipient/title/date extraction, and enrichment behind the existing inference interface. Validate page coverage and catalog IDs, with bounded retries. Test native JSON, prompted JSON, and tool output.
 - [x] Add an opt-in worker check using fictional mixed mail and temporary storage. It checks model accuracy before approving filing, then checks tagging, provenance, and repeat processing.
 - [x] Verify connection failure and retry through the worker and API. Keep the original and OCR output, show the connection error, and resume to review when Ollama is available. Handle wrapped SDK errors; test connection, timeout, and HTTP failures.
-- [ ] Pass the mixed-mail check with a suitable local model. The installed `qwen3.5:0.8b` merged three letters, missed named owners, and returned an incorrect date or no date. The full worker check failed on 2 October 2026; its proposal stayed in review. A larger model download or another endpoint awaits the user's choice.
+- [x] Pass the mixed-mail check with the installed Gemma 4 E2B Q8_0 through the Llama app. Correct groups, owners, issue dates, missing-date fallback, titles, tags, review, filing, original preservation, repeat tagging, and index checks passed on 2 October 2026. Llama and Ollama have separate model lists; the earlier Ollama check missed Llama's installed models. Real mail and longer batches remain unverified.
 
 ```text
 Inference.analyze(page_texts, owner_catalog) -> Analysis
@@ -177,7 +177,7 @@ Keep retry/restart behaviour small: bounded automatic retries where useful, manu
 
 - [ ] A real Pi scan is discovered by events and periodic scans without consuming a partial upload.
 - [x] Originals survive; searchable PDFs preserve pages and map final documents back to their batch.
-- [ ] Mixed mail splits correctly, known owners match, unmatched mail uses unknown, and missing dates use the recorded scan date.
+- [ ] Mixed mail splits correctly, known owners match, unmatched mail uses unknown, and missing dates use the recorded scan date. The fictional Gemma 4 test passes; representative real scans remain unverified.
 - [x] Filenames are consistent and unique; each owner's directory is flat; enrichment leaves paths unchanged.
 - [ ] Duplicate arrival, interrupted filing, and GPU failure produce visible, recoverable outcomes.
 - [x] Repeated tagging/indexing creates no duplicates and preserves user edits; indexes can be rebuilt.

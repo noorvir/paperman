@@ -18,7 +18,19 @@ Upload a PDF on the Scans page, or put one in `data/inbox`. The worker listens f
 
 ## Local inference
 
-In Settings, select **Ollama**, enter its `/v1` endpoint and an installed model name, and select **Native JSON schema**. For Ollama on the same machine, the endpoint is `http://127.0.0.1:11434/v1`. Reasoning can be set to `none` when the model supports it. Keep **Review all scans before filing** enabled while checking model quality. These values are configuration, not application defaults.
+Llama and Ollama are separate apps with separate model lists and endpoints. Check the server for the app that holds the installed model. In Settings, use **Compatible API** for Llama's llama.cpp server or **Ollama** for Ollama, then enter the endpoint and model ID. Select **Native JSON schema** and keep **Review all scans before filing** enabled.
+
+Verified local Llama settings:
+
+| Setting       | Value                               |
+| ------------- | ----------------------------------- |
+| Server type   | Compatible API                      |
+| Endpoint URL  | `http://127.0.0.1:9931/v1`          |
+| Model name    | `ggml-org/gemma-4-E2B-it-GGUF:Q8_0` |
+| Output format | Native JSON schema                  |
+| Reasoning     | none                                |
+
+The Llama app must be running. These settings belong to this local installation; the endpoint and model stay configurable for other hosts. Ollama usually uses `http://127.0.0.1:11434/v1` on the same machine.
 
 Pydantic AI makes separate requests for document boundaries, each document's recipient/title/issue date, and later tags/summary. Code turns boundaries into consecutive page groups so no pages are lost. Invalid boundaries, owner IDs, tag IDs, or output shapes get at most two validation retries. Valid JSON does not prove that the model understood the document. Review is still required to catch incorrect splits, names, owners, and dates.
 
@@ -30,7 +42,7 @@ PAPERMAN_DATA_DIR=data uv run python scripts/check_inference.py
 
 The check sends fictional mail through the worker, OCR, real model, review API, filing, and repeat tagging. It uses temporary storage and does not change existing documents, owners, or settings. A pass requires three correct document groups, known and unknown owners, issue dates, missing-date fallback, expected tags, unchanged file paths, and preserved user tags. It exits with an error if any check fails. Only the configured endpoint receives the sample text.
 
-The installed `qwen3.5:0.8b` failed the mixed-mail check on 2 October 2026: it merged separate letters and missed named owners. It can test connectivity, but its filing proposals are not reliable. No larger model has been verified yet.
+Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
 
 ## Local demo
 
