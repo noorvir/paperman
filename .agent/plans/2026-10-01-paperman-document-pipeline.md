@@ -61,6 +61,8 @@ Research: [DocJev architecture](https://github.com/jerryjliu/docjev/blob/main/do
 
 ## Current UI milestone
 
+- [x] Share metadata filter links across tags, owners, and document dates. Keep other filters, sort, and layout; reset pagination. Reuse them in document lists, grids, scan documents, and quick/full document headers. Desktop and phone checks cover combined filters, exact dates, keyboard activation, scan navigation, and layout-preserving reset. Web types and build pass.
+
 - [x] Integrate the file list and first-page grid into Documents and scan details. Show the saved filename, AI title, owner, tags, and folder. Reuse PDF icons and tag links in Overview and document summaries; tag popups use a 200 ms hover delay. Keep the last selection after Escape and show focus on the row background. Desktop/phone navigation, tag filters, list/grid selection, formatting, web types, and production build pass. Existing saved filenames and paths are unchanged; shorter on-disk naming remains a separate decision.
 
 - [x] Match PDF loading controls to the ready toolbar through one shared layout. Use faint static placeholders, remove visible loading text and the guessed page shape, and keep the same background. Desktop and phone geometry checks pass; phone controls fit without overflow. Web types and build pass.

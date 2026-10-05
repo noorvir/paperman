@@ -10,6 +10,7 @@ import { getDocument, documentSearch } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
 import { formatDate } from "@/components/page";
 import { DocumentView } from "@/components/document-view";
+import { DocumentFilterLink } from "@/components/document-filter-link";
 import {
   CollectionPreview,
   OpenPreviewLink,
@@ -38,6 +39,8 @@ function DocumentDetail() {
   const preview = search.preview && !edit;
   const navigate = Route.useNavigate();
   const owner = catalog.owners.find((owner) => owner.id === document.owner_id);
+  const ownerName = owner?.name ?? document.owner_id;
+  const date = formatDate(document.document_date);
   function setEditing(edit: boolean) {
     void navigate({
       search: { ...search, preview: false, edit },
@@ -48,7 +51,30 @@ function DocumentDetail() {
     <CollectionPreview
       id={document.id}
       title={document.title}
-      description={`${owner?.name ?? document.owner_id} · ${formatDate(document.document_date)}`}
+      description={
+        <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
+          <DocumentFilterLink
+            search={search}
+            filter={{ owner: document.owner_id }}
+            aria-label={`Filter by owner: ${ownerName}`}
+            className="h-5"
+          >
+            {ownerName}
+          </DocumentFilterLink>
+          <span aria-hidden="true"> · </span>
+          <DocumentFilterLink
+            search={search}
+            filter={{
+              after: document.document_date,
+              before: document.document_date,
+            }}
+            aria-label={`Filter by document date: ${date}`}
+            className="h-5"
+          >
+            {date}
+          </DocumentFilterLink>
+        </span>
+      }
       preview={preview}
       onClose={() =>
         void navigate({

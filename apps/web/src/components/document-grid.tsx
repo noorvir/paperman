@@ -9,6 +9,7 @@ import type { DocumentTable } from "./document-table";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import wasmUrl from "@embedpdf/pdfium/pdfium.wasm?url";
 import { OwnerLabel } from "./collection";
+import { DocumentFilterLink } from "./document-filter-link";
 
 export default function DocumentGrid({
   documents,
@@ -60,7 +61,14 @@ export default function DocumentGrid({
               {doc.title}
             </p>
             <div className="mt-3 flex items-center justify-between gap-2 text-xs">
-              <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
+              <DocumentFilterLink
+                search={search}
+                filter={{ owner: doc.owner_id }}
+                aria-label={`Filter by owner: ${owners.get(doc.owner_id) ?? doc.owner_id}`}
+                className="-ml-1"
+              >
+                <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
+              </DocumentFilterLink>
               <DocumentTagPopover
                 document={doc}
                 catalog={catalog}

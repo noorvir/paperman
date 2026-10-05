@@ -77,7 +77,13 @@ export function DocumentFilters({
             size="icon"
             aria-label="Reset filters"
             onClick={() =>
-              onChange(documentSearch.parse({ q: search.q, sort: search.sort }))
+              onChange(
+                documentSearch.parse({
+                  q: search.q,
+                  sort: search.sort,
+                  layout: search.layout,
+                }),
+              )
             }
           >
             <HugeiconsIcon icon={Cancel01Icon} />
@@ -109,7 +115,11 @@ export function DocumentFilters({
                   variant="ghost"
                   onClick={() => {
                     onChange(
-                      documentSearch.parse({ q: search.q, sort: search.sort }),
+                      documentSearch.parse({
+                        q: search.q,
+                        sort: search.sort,
+                        layout: search.layout,
+                      }),
                     );
                     setOpen(false);
                   }}

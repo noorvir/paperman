@@ -7,6 +7,7 @@ import { Folder01Icon } from "@hugeicons/core-free-icons";
 import { FileIcon } from "./file-icon";
 import { DocumentTagPopover } from "./document-tag-popover";
 import { OwnerLabel } from "./collection";
+import { DocumentFilterLink } from "./document-filter-link";
 import {
   Table,
   TableHeader,
@@ -76,9 +77,14 @@ export function DocumentTable({
                 </span>
               </TableCell>
               <TableCell>
-                <div className="flex items-center">
+                <DocumentFilterLink
+                  search={search}
+                  filter={{ owner: doc.owner_id }}
+                  aria-label={`Filter by owner: ${owners.get(doc.owner_id) ?? doc.owner_id}`}
+                  className="-ml-1"
+                >
                   <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
-                </div>
+                </DocumentFilterLink>
               </TableCell>
               <TableCell>
                 <DocumentTagPopover

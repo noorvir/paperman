@@ -20,7 +20,7 @@ export function CollectionPreview({
 }: {
   id: string;
   title: string;
-  description: string;
+  description: ReactNode;
   preview: boolean;
   back: ReactNode;
   openLink: ReactNode;

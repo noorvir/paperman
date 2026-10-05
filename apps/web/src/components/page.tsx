@@ -19,7 +19,7 @@ export function PageHeader({
   back,
 }: {
   title: string;
-  description: string;
+  description: ReactNode;
   count?: number;
   children?: ReactNode;
   back?: ReactNode;
@@ -44,7 +44,7 @@ export function PageHeader({
           </div>
           <p
             className="truncate text-xs leading-5 text-muted-foreground"
-            title={description}
+            title={typeof description === "string" ? description : undefined}
           >
             {description}
           </p>
