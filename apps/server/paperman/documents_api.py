@@ -22,14 +22,18 @@ def routes(storage: FileStorage) -> APIRouter:
     @router.get("/api/documents", operation_id="documents")
     def documents(
         q: str = "",
-        owner: str = "",
-        tag: str = "",
+        owner: Annotated[list[str] | None, Query()] = None,
+        tag: Annotated[list[str] | None, Query()] = None,
         status: str = "",
         after: date | None = None,
         before: date | None = None,
         sort: Literal["date_desc", "date_asc", "title"] = "date_desc",
         page: Annotated[int, Query(ge=1)] = 1,
     ) -> DocumentPage:
+        if after and before and after > before:
+            raise HTTPException(422, "The start date must be on or before the end date")
+        owners = set(owner or ()) - {""}
+        tags = set(tag or ()) - {""}
         documents = storage.list_documents()
         index_path = storage.root / "state" / "search.json"
         index = (
@@ -42,8 +46,8 @@ def routes(storage: FileStorage) -> APIRouter:
         items = [
             doc
             for doc in documents
-            if (not owner or doc.owner_id == owner)
-            and (not tag or tag in effective_tags(doc))
+            if (not owners or doc.owner_id in owners)
+            and (not tags or not tags.isdisjoint(effective_tags(doc)))
             and (not status or doc.enrichment_status == status)
             and (not after or doc.document_date >= after)
             and (not before or doc.document_date <= before)

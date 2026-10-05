@@ -20,11 +20,7 @@ import {
   CollectionFooter,
   SearchField,
 } from "@/components/collection";
-import {
-  DocumentFilters,
-  DocumentSort,
-  ActiveFilters,
-} from "@/components/document-filters";
+import { DocumentFilters, DocumentSort } from "@/components/document-filters";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CollectionWorkspace } from "@/components/collection-workspace";
 import { DocumentCollection } from "@/components/document-collection";
@@ -117,11 +113,6 @@ function Documents() {
                 }
               />
             </div>
-            <ActiveFilters
-              search={search}
-              catalog={catalog}
-              onChange={change}
-            />
           </>
         }
         footer={

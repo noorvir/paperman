@@ -55,7 +55,7 @@ function DocumentDetail() {
         <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
           <DocumentFilterLink
             search={search}
-            filter={{ owner: document.owner_id }}
+            filter={{ owner: [document.owner_id] }}
             aria-label={`Filter by owner: ${ownerName}`}
             className="h-5"
           >

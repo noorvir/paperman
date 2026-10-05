@@ -15,7 +15,7 @@ export function TagLink({
     <DocumentFilterLink
       {...props}
       search={search}
-      filter={{ tag: tag.id }}
+      filter={{ tag: [tag.id] }}
       aria-label={`Filter by ${tag.name}`}
     >
       <HugeiconsIcon

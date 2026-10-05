@@ -23,7 +23,13 @@ export function DocumentFilterLink({
     <Link
       {...props}
       to="/documents"
-      search={documentSearch.parse({ ...search, ...filter, page: 1 })}
+      search={documentSearch.parse({
+        ...search,
+        ...filter,
+        owner: [...search.owner, ...(filter.owner ?? [])],
+        tag: [...search.tag, ...(filter.tag ?? [])],
+        page: 1,
+      })}
       className={cn(
         buttonVariants({ variant: "ghost", size: "sm" }),
         "relative justify-start gap-2 px-1 font-normal",

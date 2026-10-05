@@ -2,13 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { client, unwrap } from "./api.server";
 
+const filterValues = z
+  .union([z.string(), z.array(z.string())])
+  .transform((value) => [
+    ...new Set((typeof value === "string" ? [value] : value).filter(Boolean)),
+  ])
+  .default([]);
+
 export const documentSearch = z.object({
   q: z.string().default(""),
-  owner: z.string().default(""),
-  tag: z.string().default(""),
+  owner: filterValues,
+  tag: filterValues,
   status: z.enum(["", "pending", "running", "complete", "failed"]).default(""),
-  after: z.string().default(""),
-  before: z.string().default(""),
+  after: z.union([z.literal(""), z.iso.date()]).default(""),
+  before: z.union([z.literal(""), z.iso.date()]).default(""),
   sort: z.enum(["date_desc", "date_asc", "title"]).default("date_desc"),
   layout: z.enum(["list", "grid"]).default("list"),
   page: z.coerce.number().int().min(1).default(1),

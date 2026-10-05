@@ -1114,8 +1114,8 @@ export interface operations {
         parameters: {
             query?: {
                 q?: string;
-                owner?: string;
-                tag?: string;
+                owner?: string[] | null;
+                tag?: string[] | null;
                 status?: string;
                 after?: string | null;
                 before?: string | null;

@@ -63,7 +63,7 @@ export default function DocumentGrid({
             <div className="mt-3 flex items-center justify-between gap-2 text-xs">
               <DocumentFilterLink
                 search={search}
-                filter={{ owner: doc.owner_id }}
+                filter={{ owner: [doc.owner_id] }}
                 aria-label={`Filter by owner: ${owners.get(doc.owner_id) ?? doc.owner_id}`}
                 className="-ml-1"
               >
