@@ -61,6 +61,8 @@ Research: [DocJev architecture](https://github.com/jerryjliu/docjev/blob/main/do
 
 ## Current UI milestone
 
+- [x] Match PDF loading controls to the ready toolbar through one shared layout. Use faint static placeholders, remove visible loading text and the guessed page shape, and keep the same background. Desktop and phone geometry checks pass; phone controls fit without overflow. Web types and build pass.
+
 - [x] Keep the preview panel mounted when the selected document changes; reset only the document editor draft. Browser checks confirm stable document and scan panels across row clicks and arrow navigation, Enter to full view, and Edit/Cancel. Web types and production build pass.
 
 - [x] Open full-page edit mode from the preview with `edit=true`. Keep quick preview read-only. Save and Cancel return to the full document view. The editor retains its draft during live refresh, uses shared controls, and leaves the PDF mounted. Backend tests cover stale drafts, immediate text search, preserved source bytes, repeated enrichment, and text edits made during inference.

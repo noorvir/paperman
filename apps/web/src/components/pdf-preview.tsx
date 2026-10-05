@@ -21,7 +21,7 @@ export function PdfPreview({ url, title }: { url: string; title: string }) {
   return (
     <div className="pdf-preview relative" aria-busy={!ready}>
       {!ready && (
-        <div className="absolute inset-0 z-10 flex bg-muted">
+        <div className="absolute inset-0 z-10 flex bg-background">
           <PdfLoading />
         </div>
       )}
