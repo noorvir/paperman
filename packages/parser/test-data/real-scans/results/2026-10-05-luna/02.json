@@ -1,0 +1,90 @@
+{
+  "id": "02",
+  "source_sha256": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+  "ocr_languages": "por",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Hair salon invoice",
+        "document_date": "2020-11-04",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Retail credit note for rug return",
+        "document_date": "2020-11-10",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [
+          2
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Retail purchase receipt",
+        "document_date": "2021-05-06",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [],
+        "summary": "A Portuguese simplified invoice from Maria da Glória Cabeleireiros Ltda. lists brushing and washing services, with a total of €12.20 paid in cash. Printed date: 2020-11-04."
+      },
+      "error": "",
+      "seconds": 17.259931874927133
+    },
+    {
+      "pages": [
+        2
+      ],
+      "result": {
+        "tag_ids": [
+          "credit-note"
+        ],
+        "suggested_tags": [],
+        "summary": "Zara Home credit note for a returned rug. The printed date is 10-11-2020. The credit note total is €99.99."
+      },
+      "error": "",
+      "seconds": 12.207697333069518
+    },
+    {
+      "pages": [
+        3
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [],
+        "summary": "A simplified invoice from Tiger Portugal, dated 6 May 2021. It lists one black foldable bag for €3.00, including 23% VAT. Payment method: Multibanco."
+      },
+      "error": "",
+      "seconds": 24.67458862508647
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 79.73663875018246,
+    "total": 133.88015037518926
+  }
+}

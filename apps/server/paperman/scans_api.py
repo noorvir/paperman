@@ -92,7 +92,9 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
                     scan,
                 )
                 scan.filing_revision += 1
-            scan.proposal = Analysis(documents=value.documents)
+            scan.proposal = Analysis(
+                documents=value.documents, blank_pages=value.blank_pages
+            )
             scan.status = "queued"
             scan.phase = "file"
             scan.history.append(

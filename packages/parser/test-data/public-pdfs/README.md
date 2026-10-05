@@ -1,10 +1,12 @@
-# Public PDF test set
+# Public PDF eval set
 
 Eight unchanged PDFs, 18 pages, 1.07 MB. Downloaded on 2 October 2026.
 The files are in [the local cache](../../../../.cache/public-pdfs/pdfs/).
 [manifest.toml](manifest.toml) records source URLs, licences, attributions,
 SHA-256 hashes, page counts, text-layer checks, and expected page groups.
 The cache is ignored by Git; the manifest and this guide belong in Git.
+Keep these basic checks, but use the new [real document candidates](../real-scans/README.md)
+to prepare harder evals. Those files have not yet been scored.
 
 ## Contents
 
@@ -75,7 +77,7 @@ source rights. Do not remove the source notices when sharing derivatives.
 Run from the repository root, with a complete Tesseract data directory that has
 `eng`, `fra`, `osd`, and the standard `configs` directory. Model settings are the
 parser's `InferenceSettings` JSON, supplied explicitly. No expected labels or
-transcripts are sent to the model. Only PDF-derived text and the catalog are sent.
+transcripts are sent to the model. Only rendered PDF page images, stage instructions, page counts, and the catalog are sent. OCR text is saved for scoring and is never sent to the model.
 
 ```sh
 TESSDATA_PREFIX=/path/to/tessdata uv run --project packages/parser python packages/parser/scripts/evaluate.py \
@@ -96,9 +98,11 @@ OCR language hashes, and source-code hashes. API keys are not saved.
 
 ### Codex model comparison
 
+The saved 4–5 October baselines used text input. New runs use page images and must use a new output directory; do not overwrite the earlier results.
+
 The user approved sending this public test set to OpenAI for a model comparison.
 The application still uses its configured local model. The benchmark reuses the
-saved OCR pages and the parser's existing split, field, and tag prompts. It sends
+source PDFs and the parser's image-only split, field, and tag prompts. Cached OCR is kept only for scoring. It sends
 no expected labels or transcripts to the model and does not change the scorer.
 OCR is not rerun, so this measures the model stages only.
 
@@ -106,6 +110,7 @@ OCR is not rerun, so this measures the model stages only.
 uv run --directory packages/parser python -m scripts.benchmark_codex \
   --labels test-data/public-pdfs \
   --source test-data/public-pdfs/results/2026-10-04-instructions-v3 \
+  --pdfs ../../.cache/public-pdfs/pdfs \
   --output ../../.cache/public-pdfs/runs/new-codex-run \
   --model gpt-6-luna
 ```
@@ -114,7 +119,7 @@ Use `gpt-6-sol` for the second model. Both use high reasoning effort. The runner
 uses `codex exec` with the existing ChatGPT login and structured output. It does
 not read or copy credentials. Each request starts in an empty temporary directory
 with shell, web search, apps, hooks, and delegation disabled. Model tool use makes
-the request fail. Saved prompts, schemas, responses, and events permit inspection
+the request fail. Saved prompts, PNG inputs and their hashes, schemas, responses, and events permit inspection
 of the comparison. Codex controls temperature and adds its client context; this
 is a Codex-based benchmark, not a direct API latency or price measurement.
 

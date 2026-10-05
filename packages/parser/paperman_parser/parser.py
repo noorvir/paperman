@@ -22,14 +22,14 @@ async def parse(
     The caller owns review, date fallback, persistence, and later enrichment.
     """
     content = await asyncio.to_thread(ocr.searchable, source, languages)
-    analysis = await inference.analyze(content.pages, catalog)
+    analysis = await inference.analyze(content.pdf, catalog)
     validate_analysis(analysis, len(content.pages), catalog)
     return ParsedDocument(content=content, analysis=analysis)
 
 
 class Inference(Protocol):
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis: ...
-    async def enrich(self, text: str, catalog: Catalog) -> Enrichment: ...
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis: ...
+    async def enrich(self, source: bytes, catalog: Catalog) -> Enrichment: ...
     @property
     def version(self) -> str: ...
 

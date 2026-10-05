@@ -966,14 +966,23 @@
               "$ref": "#/components/schemas/DocumentProposal-Output"
             },
             "type": "array",
-            "minItems": 1,
             "title": "Documents"
+          },
+          "blank_pages": {
+            "items": {
+              "type": "integer",
+              "minimum": 1.0
+            },
+            "type": "array",
+            "title": "Blank Pages",
+            "description": "Confirmed blank source pages omitted from filed documents. Originals retain every page."
           }
         },
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "documents"
+          "documents",
+          "blank_pages"
         ],
         "title": "Analysis"
       },
@@ -1945,8 +1954,16 @@
               "$ref": "#/components/schemas/DocumentProposal-Input"
             },
             "type": "array",
-            "minItems": 1,
             "title": "Documents"
+          },
+          "blank_pages": {
+            "items": {
+              "type": "integer",
+              "minimum": 1.0
+            },
+            "type": "array",
+            "title": "Blank Pages",
+            "description": "Confirmed blank source pages omitted from filed documents. Originals retain every page."
           },
           "document_revisions": {
             "patternProperties": {

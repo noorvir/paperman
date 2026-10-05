@@ -67,18 +67,17 @@ export const retryScan = createServerFn({ method: "POST" })
     return unwrap(result);
   });
 export const proposalInput = z.object({
-  documents: z
-    .array(
-      z.object({
-        pages: z.array(z.number().int().min(1)).min(1),
-        owner_id: z.string(),
-        title: z.string().trim().min(1),
-        document_date: z.string().nullable(),
-        confidence: z.number().min(0).max(1),
-        review_reason: z.string(),
-      }),
-    )
-    .min(1),
+  documents: z.array(
+    z.object({
+      pages: z.array(z.number().int().min(1)).min(1),
+      owner_id: z.string(),
+      title: z.string().trim().min(1),
+      document_date: z.string().nullable(),
+      confidence: z.number().min(0).max(1),
+      review_reason: z.string(),
+    }),
+  ),
+  blank_pages: z.array(z.number().int().min(1)).default([]),
 });
 export const approveScan = createServerFn({ method: "POST" })
   .validator(

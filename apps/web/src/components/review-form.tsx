@@ -36,6 +36,7 @@ export function ReviewForm({
     })),
   );
   const [pending, setPending] = useState(false);
+  const [blankPages, setBlankPages] = useState(proposal.blank_pages.join(", "));
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const router = useRouter();
@@ -59,10 +60,20 @@ export function ReviewForm({
         confidence: 1,
         review_reason: "",
       }));
+      let blankPageNumbers: number[] = [];
+      if (blankPages.trim()) {
+        blankPageNumbers = blankPages
+          .split(",")
+          .map((page) => Number(page.trim()));
+      }
       await approveScan({
         data: {
           id: scan.id,
-          proposal: { documents, document_revisions: revisions },
+          proposal: {
+            documents,
+            blank_pages: blankPageNumbers,
+            document_revisions: revisions,
+          },
         },
       });
       await router.invalidate();
@@ -81,9 +92,29 @@ export function ReviewForm({
       onSubmit={(event) => void submit(event)}
     >
       <p className="text-xs leading-relaxed text-muted-foreground">
-        Account for pages 1 through {scan.page_count}, once each and in order.
-        Keep blank backs with their document. A blank date uses the scan date.
+        Account for pages 1 through {scan.page_count}, once each, in a document
+        group or as a blank page. Keep document pages in source order. A blank
+        date uses the scan date.
       </p>
+      <label className="field-label">
+        Blank pages to omit
+        <Input
+          value={blankPages}
+          disabled={pending}
+          placeholder="For example: 2, 4, 6"
+          onChange={(event) => setBlankPages(event.target.value)}
+        />
+        <span className="text-xs font-normal leading-relaxed text-muted-foreground">
+          Check these pages in the preview. They stay in the original scan. To
+          restore a page, remove its number here and add it to a document group.
+        </span>
+      </label>
+      {drafts.length === 0 && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          No documents will be filed. Confirm that every source page is blank,
+          or add a document group to keep content.
+        </p>
+      )}
       {scan.status === "complete" && (
         <p className="text-xs leading-relaxed text-muted-foreground">
           Changed groups get new documents and new tags. Their old files,
@@ -105,7 +136,7 @@ export function ReviewForm({
                 type="button"
                 variant="ghost"
                 size="sm"
-                disabled={pending || drafts.length === 1}
+                disabled={pending}
                 onClick={() =>
                   setDrafts((drafts) =>
                     drafts.filter((_draft, position) => position !== index),

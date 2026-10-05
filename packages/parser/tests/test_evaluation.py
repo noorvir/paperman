@@ -74,3 +74,28 @@ def test_scores_include_missing_results_and_detect_false_boundaries(
         "false_positive": 1,
         "false_negative": 5,
     }
+
+
+def test_real_scans_exclude_excerpts_from_splits_and_leave_ocr_unscored(
+    tmp_path: Path,
+) -> None:
+    labels = Path(__file__).resolve().parents[1] / "test-data" / "real-scans"
+    score(labels, tmp_path)
+    result = TypeAdapter(dict[str, JsonValue]).validate_json(
+        (tmp_path / "scores.json").read_text()
+    )
+    fields = result["fields"]
+    assert isinstance(fields, dict)
+    assert fields["packets"] == {"correct": 0, "total": 2, "rate": 0}
+    assert fields["groups"] == {"correct": 0, "total": 7, "rate": 0}
+    assert fields["owner"] == {"correct": 0, "total": 10, "rate": 0}
+    assert result["boundaries"] == {
+        "true_positive": 0,
+        "false_positive": 0,
+        "false_negative": 5,
+    }
+    text = result["text"]
+    assert isinstance(text, dict)
+    total = text["all"]
+    assert isinstance(total, dict)
+    assert total["cer"] is None and total["wer"] is None

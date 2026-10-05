@@ -1,0 +1,62 @@
+{
+  "id": "01",
+  "source_sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Invoice",
+        "document_date": "2024-02-24",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "payment_schedule",
+          "transaction_details",
+          "billing_summary"
+        ],
+        "summary": "This document is a multi-page invoice detailing various charges, line items, dates, and payment information for a service or product. It includes sections for remittance addresses, billing details, and a final summary of the total amount due."
+      },
+      "error": "",
+      "seconds": 14.097016375046223
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 33.06599233299494,
+    "total": 47.16401391592808
+  }
+}

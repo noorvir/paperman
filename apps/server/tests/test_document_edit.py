@@ -102,8 +102,8 @@ class EditingInference(FixtureInference):
         self.client = client
         self.document = document
 
-    async def enrich(self, text: str, catalog: Catalog) -> Enrichment:
-        assert text == "Original OCR"
+    async def enrich(self, source: bytes, catalog: Catalog) -> Enrichment:
+        assert source.startswith(b"%PDF-")
         doc = self.document
         value = DocumentEdit(
             revision=doc.revision,
@@ -117,15 +117,15 @@ class EditingInference(FixtureInference):
         self.client.put(
             f"/api/documents/{doc.id}", json=value.model_dump(mode="json")
         ).raise_for_status()
-        return Enrichment(tag_ids=["invoice"], summary="Stale result")
+        return Enrichment(tag_ids=["invoice"], summary="Summary from page images")
 
 
-def test_text_edit_during_inference_discards_stale_result(tmp_path: Path) -> None:
+def test_text_edit_during_inference_preserves_corrections(tmp_path: Path) -> None:
     store = FileStorage(tmp_path)
     doc = create_document(store)
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     asyncio.run(enrich_document(store, EditingInference(client, doc), doc))
     updated = store.get_document(doc.id)
-    assert updated.enrichment_status == "pending"
-    assert updated.summary == "Generated summary"
+    assert updated.enrichment_status == "complete"
+    assert updated.summary == "Summary from page images"
     assert store.document_text(updated) == "New corrected input"

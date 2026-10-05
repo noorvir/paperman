@@ -8,7 +8,7 @@ from paperman_parser.ocr import OCR
 from paperman.filing import file_documents
 from paperman.models import Document, Event, Scan
 from paperman.pdf import extract_pages, prepare_pdf
-from paperman.storage import Storage
+from paperman.storage import Storage, safe_path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,8 @@ async def process_scan(
         if scan.phase == "analyze":
             pages = await asyncio.to_thread(extract_pages, searchable)
             catalog = storage.catalog()
-            proposal = await inference.analyze(pages, catalog)
+            source = await asyncio.to_thread(searchable.read_bytes)
+            proposal = await inference.analyze(source, catalog)
             empty_pages = {
                 number for number, text in enumerate(pages, 1) if not text.strip()
             }
@@ -54,7 +55,7 @@ async def process_scan(
                     warning = (
                         "No readable text on pages "
                         + ", ".join(map(str, unchecked))
-                        + ". Check for blank backs or missed OCR."
+                        + ". Content was retained. Check for unreadable text or missed OCR."
                     )
                     document.review_reason = " ".join(
                         filter(None, [document.review_reason, warning])
@@ -69,6 +70,7 @@ async def process_scan(
             requires_review = (
                 storage.settings().review_before_filing
                 or bool(validation_error)
+                or not proposal.documents
                 or any(
                     doc.confidence < 0.9
                     or doc.review_reason
@@ -78,13 +80,13 @@ async def process_scan(
             )
             if requires_review:
                 scan.status = "review"
-                scan.history.append(
-                    Event(
-                        stage="analyze",
-                        message=validation_error
-                        or "Confirm document groups and filing details",
-                    )
-                )
+                if validation_error:
+                    message = validation_error
+                elif not proposal.documents:
+                    message = "All pages were marked blank. Check the original before completing this scan"
+                else:
+                    message = "Confirm document groups, blank pages, and filing details"
+                scan.history.append(Event(stage="analyze", message=message))
                 with storage.transaction():
                     storage.save_scan(scan)
                 return
@@ -121,9 +123,11 @@ async def enrich_document(
             document.enrichment_status = "running"
             document.enrichment_error = ""
             storage.save_document(document)
-        text = storage.document_text(document)
+        source = await asyncio.to_thread(
+            safe_path(storage.root, document.final_path).read_bytes
+        )
         catalog = storage.catalog()
-        result = await inference.enrich(text, catalog)
+        result = await inference.enrich(source, catalog)
         tag_ids = {tag.id for tag in catalog.tags}
         if not set(result.tag_ids) <= tag_ids:
             raise ValueError("The model returned a tag outside the catalog")
@@ -134,10 +138,6 @@ async def enrich_document(
                     "The tag catalog changed during processing. Retry tagging"
                 )
             document = storage.get_document(document.id)
-            if storage.document_text(document) != text:
-                document.enrichment_status = "pending"
-                storage.save_document(document)
-                return
             generated_tags = sorted(set(result.tag_ids))
             suggested_tags = sorted(set(result.suggested_tags))
             summary = document.summary if document.summary_edited else result.summary

@@ -55,8 +55,8 @@ export function SettingsForm({
     >
       <h2 className="workspace-title">Model connection</h2>
       <p className="workspace-description">
-        Choose a local demo or connect your own model server. Real document text
-        is sent only to the endpoint you set.
+        Choose a local demo or connect a model server that accepts page images.
+        Document images are sent only to the endpoint you set.
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="field-label">

@@ -309,6 +309,11 @@ export interface components {
         Analysis: {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Output"][];
+            /**
+             * Blank Pages
+             * @description Confirmed blank source pages omitted from filed documents. Originals retain every page.
+             */
+            blank_pages: number[];
         };
         /** Body_upload */
         Body_upload: {
@@ -739,6 +744,11 @@ export interface components {
         ScanReview: {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Input"][];
+            /**
+             * Blank Pages
+             * @description Confirmed blank source pages omitted from filed documents. Originals retain every page.
+             */
+            blank_pages?: number[];
             /** Document Revisions */
             document_revisions?: {
                 [key: string]: number;

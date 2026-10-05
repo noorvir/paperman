@@ -1,0 +1,50 @@
+{
+  "id": "02",
+  "source_sha256": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+  "ocr_languages": "por",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "maria-gloria",
+        "title": "Invoice",
+        "document_date": "2020-11-04",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1,
+          2,
+          3
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1,
+        2,
+        3
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Tax document",
+          "Commercial transaction",
+          "VAT invoice"
+        ],
+        "summary": "The document consists of multiple pages, appearing to be invoices or tax documents in Portuguese. The pages detail items, quantities, taxes (IVA), and total amounts for various transactions, referencing specific dates and legal provisions. One section mentions a 'Nota de Crédito' (Credit Note)."
+      },
+      "error": "",
+      "seconds": 16.16725966683589
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 18.816792791942134,
+    "total": 34.984850167063996
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "id": "03",
+  "source_sha256": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "george-barody",
+        "title": "Confidential fax cover sheet",
+        "document_date": "1998-12-10",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "Fax cover sheet"
+        ],
+        "summary": "A confidential fax cover sheet from the Ohio Attorney General's Office is addressed to George Baroody. It gives the date as 12/10/98, names June Flynn for Eric Brown as the sender, and lists three pages including the cover sheet."
+      },
+      "error": "",
+      "seconds": 27.540357707999647
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 27.261289042187855,
+    "total": 54.80248237517662
+  }
+}

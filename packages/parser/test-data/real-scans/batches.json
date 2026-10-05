@@ -1,0 +1,97 @@
+[
+  {
+    "id": "01",
+    "sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+    "sources": [
+      {
+        "source_id": "01",
+        "pages": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "source_id": "02",
+        "pages": [
+          5
+        ]
+      },
+      {
+        "source_id": "03",
+        "pages": [
+          6,
+          7
+        ]
+      },
+      {
+        "source_id": "04",
+        "pages": [
+          8,
+          9
+        ]
+      }
+    ]
+  },
+  {
+    "id": "02",
+    "sha256": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+    "sources": [
+      {
+        "source_id": "08",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "source_id": "09",
+        "pages": [
+          2
+        ]
+      },
+      {
+        "source_id": "10",
+        "pages": [
+          3
+        ]
+      }
+    ]
+  },
+  {
+    "id": "03",
+    "sha256": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+    "sources": [
+      {
+        "source_id": "05",
+        "pages": [
+          1
+        ]
+      }
+    ]
+  },
+  {
+    "id": "04",
+    "sha256": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d",
+    "sources": [
+      {
+        "source_id": "06",
+        "pages": [
+          1
+        ]
+      }
+    ]
+  },
+  {
+    "id": "05",
+    "sha256": "5b378fccd8d7ebea1b3433dd0bc7cb63b106aec20d71afc4c11145bf5eda1edd",
+    "sources": [
+      {
+        "source_id": "07",
+        "pages": [
+          1
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,49 @@
+{
+  "started_at": "2026-10-05T15:20:22.492457+00:00",
+  "model": "gpt-6-luna",
+  "settings": {
+    "reasoning_effort": "high"
+  },
+  "transport": "codex exec",
+  "auth": "existing ChatGPT login; no API key",
+  "codex_version": "codex-cli 0.156.1",
+  "source_run": null,
+  "ocr": "not run; no transcript ground truth",
+  "model_input": "rendered PDF page images only",
+  "pdf_sha256": {
+    "01.pdf": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+    "02.pdf": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+    "03.pdf": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+    "04.pdf": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d",
+    "05.pdf": "5b378fccd8d7ebea1b3433dd0bc7cb63b106aec20d71afc4c11145bf5eda1edd"
+  },
+  "source_sha256": {},
+  "frozen_sha256": "2ec88c0477be99b85d28ea4467c2bd6811385885e110e54212c4dc3b264e1f24",
+  "annotations": {
+    "version": 1,
+    "created_on": "2026-10-05",
+    "files": {
+      "catalog.json": "b456cb310e5fef45eaa31abaefcdfc1b6444cdfea46c5174a58daeff95b85e4c",
+      "ground-truth.json": "dcc75a464edd637a0eb71a7531b1a841220938b9207c5c18e12d0a465443ff99",
+      "batches.json": "83d156b0ff138c0ba4d33b1c6b9a5b681c3950946497eb9e603436d0ccd4c165",
+      "manifest.json": "4fc51280019aa1554824d69dace4fb21dda7812af773596ed459049b27332698"
+    }
+  },
+  "poppler": "pdftoppm version 26.05.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
+  "parser_sha256": {
+    "paperman_parser/__init__.py": "5796e7a41d5cd3ee822a17c9ac3ee9c7b2dc6510e16c5991dd2058c2b5fd0864",
+    "paperman_parser/demo_inference.py": "094843e1b249851c9d81114bf18ff9b5e5b6ede5e8a97532690f1663f1fa657e",
+    "paperman_parser/inference.py": "d803ae6eb6c8fc9d572b14d0e8065d9a37dbc3f9eed9cc10e19e4a76ad841a27",
+    "paperman_parser/models.py": "1e57e4c99ef1026e6da65697ceefce8d87161f64ac4c1dd35ccde6acd66aeef7",
+    "paperman_parser/ocr.py": "e5b99ba4b5c70829c022ef0183b2fdbc39a61505a80b0ce6251890477a6a98f9",
+    "paperman_parser/parser.py": "56f537bdbf9b4ff100719b40d968d5d6689350f176ae1a00c8c687b46b526bab",
+    "paperman_parser/pdf.py": "cfa671e4a0c67ad86375a4efa648bbd6b04974c6d5c5d9a0065df1d9452e8068",
+    "paperman_parser/prompt/__init__.py": "ce4c0c04f186b2d21a291edba077a3cb3f10f27642f0d8878ecace08a5206bc5",
+    "paperman_parser/prompt/details.py": "c50e3492bcce5b05a4c26f22372152509e7a0973caa278ae7a73a129c9ef45aa",
+    "paperman_parser/prompt/enrich.py": "0ff2a4f9e4e5f57c8096509b21da633661665c7731a1d159bdba606f5f1aefde",
+    "paperman_parser/prompt/split.py": "afdd96a7ca0a1659c8fa02799cb417d899e0914df42b4f18640183ce442226d1"
+  },
+  "runner_sha256": "fda4be0bf6fbc795416a5d141233c1efa1dfa3465908ca8dfcc816b1a1dabd82",
+  "scorer_sha256": "70a0eec7f8c1078cdce59d6c6c33ade20ab7042d66cdbf9d5332dac4459a62c0",
+  "notes": "Render source PDFs. Cached OCR is used only for scoring, never as model input. No previous model output or labels are sent. Same production stage prompts. No tools, repository access, or answer labels in model input. Temperature uses Codex default. Up to two schema/domain validation retries. Four independent PDFs at a time for Codex; one at a time for the local endpoint."
+}

@@ -22,6 +22,14 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 
 ## Current local AI milestone
 
+- [x] Rerun all eight public PDFs with Luna and image-only inputs. Exact groups, owners, and dates: 13/13. Title keywords: 12/13. Tag precision: 18/19; recall: 18/18. No failures. OCR was reused, not rerun; local model and Sol were not rerun. Keep frozen labels and saved evidence. Use "evals" for these model checks.
+- [x] Find and visually inspect ten real inputs with 15 pages from VRDU, FUNSD, and published personal receipts. Cache original files and upstream labels; record sources, hashes, and rights. These improve scan realism but do not cover modern German household mail.
+- [x] Freeze agent-checked labels for 10 real documents (15 pages) and run Gemma 4, Luna, and Sol on identical image inputs. Two constructed batches: Gemma 0/7 exact groups; Luna and Sol 7/7. Owners: 3/10, 10/10, 10/10. Dates: 2/10, 9/10, 10/10. Luna and Sol match all required tags; no processing failures. Exclude three excerpts from complete-document split metrics. OCR and blank-page accuracy remain unmeasured. Keep restricted source data outside Git.
+
+- [x] Remove visually confirmed blank pages from final documents in the same image request used for splitting. Keep all original pages and their source numbers. Review can restore omitted pages; all-blank scans and retained pages without OCR text require review. Sixteen parser tests and fourteen focused server tests pass, including repeat filing, restoration, and invalid omission checks. A two-PDF Luna image check omitted all expected blanks and retained pen-only content with a review reason. Strict types and web build pass. The review form was not visually checked in this turn. Real scanner noise and the local model remain unverified. Keep positioned local OCR until an image OCR adapter can supply a verified searchable text layer.
+
+- [x] Use rendered page images alone for all model stages. Extract split, details, and enrichment prompts into typed Python functions in one prompt package. Keep OCR text for search only. Update worker, standalone parser, benchmark tools, and checks; preserve recorded text-only baselines. Strict types, lint, 13 parser tests, and 16 server tests pass. A two-PDF Luna check used images only and recovered the missing issue-date distinction. The full Luna image eval is recorded above; local-model vision support remains unmeasured.
+
 - [x] Benchmark GPT-6 Luna with the signed-in Codex account on the fixed public test set, then GPT-6 Sol because Luna was below 100%. Identical OCR text, prompts, catalogs, and scoring; no label changes. Luna: 94.7% tag precision, 100% recall, all owners correct. Sol: 85.0% precision, 94.4% recall, 12/13 owners correct. Both dates: 12/13; both groups: 13/13. A separate Luna image check recovered the date label lost by OCR. Saved predictions and request evidence; flag ambiguous tag and synthetic-document rules for review. This cloud approval covers public test data only; application processing stays local.
 - [x] Finish the local pipeline end to end with the current model; defer Jev. Printer-to-Pi delivery and live polling integration remain outside this milestone.
 - [x] Pass the final quality checks: formatting, lint, strict Python and web types, 11 parser tests, 16 server tests, and the production web build. Check edit and page-group controls in the browser at desktop and phone widths.
@@ -40,10 +48,11 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 - [x] Pass the mixed-mail check with the installed Gemma 4 E2B Q8_0 through the Llama app. Correct groups, owners, issue dates, missing-date fallback, titles, tags, review, filing, original preservation, repeat tagging, and index checks passed on 2 October 2026. Llama and Ollama have separate model lists; the earlier Ollama check missed Llama's installed models. Real mail and longer batches remain unverified.
 
 ```text
-Inference.analyze(page_texts, owner_catalog) -> Analysis
-  start_pages -> consecutive groups -> recipient, title, issue_date per group
-Inference.enrich(document_text, tag_catalog) -> tags, suggestions, summary
-Worker owns review, filing, retries, and state; the adapter owns model calls.
+Inference.analyze(PDF bytes, owner_catalog) -> Analysis
+  start_pages + blank_pages -> ordered retained groups -> recipient, title, issue_date per group
+Inference.enrich(document PDF bytes, tag_catalog) -> tags, suggestions, summary
+Worker owns review, filing, retries, and state; the adapter owns PDF rendering and model calls.
+Model input: ordered page images, instructions, page count, and catalogs; no OCR text.
 ```
 
 Standalone parser contract:
@@ -51,8 +60,9 @@ Standalone parser contract:
 ```text
 parse(PDF bytes, catalog, injected OCR, injected inference, OCR languages)
   -> searchable PDF bytes, ordered page text, validated document proposals
-proposal = source pages, recipient ID, title, optional issue date, confidence, review reason
-enrich(document text, catalog) -> tags, suggestions, summary
+proposal = documents[source pages, recipient ID, title, optional issue date, confidence, review reason], blank_pages
+every source page = retained once in order OR explicitly marked blank
+enrich(document PDF bytes, catalog) -> tags, suggestions, summary
 ```
 
 The parser has no server, intake, saved-state, or clock dependency. OCR may use temporary files which are removed after each call. Inputs can come from a scanner, an upload, or a future API. The server supplies catalogs and provider settings, saves checkpoints, applies the recorded intake date when an issue date is absent, and publishes files. Enrichment remains separate so it can run again without OCR or new splits. Repeated parsing has no persistent side effects; model output is not guaranteed to be identical. Evaluation records must identify input hashes, catalogs, OCR settings, model settings, and code revision.
@@ -148,11 +158,12 @@ The worker owns processing decisions and recovery. The storage implementation ow
 
 - Run the basic OCR stage before AI document organisation, using the configured local/self-hosted model or selected OCR pipeline.
 - Produce a PDF with embedded searchable/selectable text that follows the visible pages. Extracted text or Markdown alone does not meet this requirement. Preserve the unmodified source separately.
-- Validate page count, readability, and text extraction. Retain page identifiers for later splitting. Keep existing text, run automatic rotation during OCR, and retain blank pages with their document. Reject OCR output that changes page count or has no readable text.
+- Validate page count, readability, and text extraction. Keep existing text and source page numbers; run automatic rotation during OCR. Reject OCR errors and changed page counts. Allow pages without extracted text to reach visual analysis.
 
 ### 3. Split and assign owners
 
 - AI groups the batch into logical documents, preserving page order and multi-page letters. Validate that every source page is accounted for, including pages explicitly marked blank or requiring review.
+- Detect blank pages in that same image request. Omit confirmed blanks only from final documents; originals and the searchable scan retain every page. Keep signatures, stamps, photos, forms, faint text, and uncertain content. A text-bearing page cannot be automatically omitted. Record omitted source numbers; review can restore them. All-blank scans require confirmation before completion with no filed documents.
 - Assign each document one owner from a filesystem catalog. Start with names: likely the user, his wife, and possibly his company. Use a defined unknown/miscellaneous owner when none matches; do not force a match.
 - Resolve uncertain splits or filing details before final publication. Use one catalog owner per document. Review all scans by default; always review uncertain groups, invalid coverage, and unknown owners.
 

@@ -4,6 +4,7 @@ from io import BytesIO
 from pathlib import Path
 
 import pytest
+from fastapi.testclient import TestClient
 from fpdf import FPDF
 from paperman_parser.models import (
     Analysis,
@@ -16,6 +17,9 @@ from paperman_parser.models import (
 from paperman_parser.ocr import SearchableDocument
 from pypdf import PdfReader, PdfWriter
 
+from paperman.api import create_app
+from paperman.api_models import ScanReview
+from paperman.config import Settings
 from paperman.models import Document
 from paperman.pipeline import enrich_document, process_scan
 from paperman.storage import FileStorage, file_hash, write_record
@@ -30,7 +34,7 @@ class FixtureOCR:
 class FixtureInference:
     version = "test-v1"
 
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         return Analysis(
             documents=[
                 DocumentProposal(
@@ -48,7 +52,7 @@ class FixtureInference:
             ]
         )
 
-    async def enrich(self, text: str, catalog: Catalog) -> Enrichment:
+    async def enrich(self, source: bytes, catalog: Catalog) -> Enrichment:
         return Enrichment(
             tag_ids=["invoice"],
             suggested_tags=["Home"],
@@ -57,7 +61,7 @@ class FixtureInference:
 
 
 class FailingInference(FixtureInference):
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         raise ConnectionError("GPU offline")
 
 
@@ -169,10 +173,17 @@ def test_review_requires_exact_page_coverage() -> None:
         )
         with pytest.raises(ValueError, match="Every page"):
             validate_analysis(proposal, 3, Catalog())
+    for blanks in ([2, 2], [1, 2], [4], []):
+        proposal = Analysis(
+            documents=[DocumentProposal(pages=[1, 3], title="Test", confidence=1)],
+            blank_pages=blanks,
+        )
+        with pytest.raises(ValueError, match="Every page"):
+            validate_analysis(proposal, 3, Catalog())
 
 
 class InvalidInference(FixtureInference):
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         return Analysis(
             documents=[
                 DocumentProposal(
@@ -183,7 +194,7 @@ class InvalidInference(FixtureInference):
 
 
 class ConfidentInference(FixtureInference):
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         return Analysis(
             documents=[
                 DocumentProposal(
@@ -219,6 +230,120 @@ def test_empty_page_requires_review_even_with_confident_analysis(
     assert "No readable text on pages 2" in result.proposal.documents[0].review_reason
     assert result.proposal.documents[0].pages == [1, 2, 3]
     assert not store.list_documents()
+
+
+def test_blank_removal_filing_restart_and_manual_restoration(tmp_path: Path) -> None:
+    class BlankInference(FixtureInference):
+        async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
+            return Analysis(
+                documents=[
+                    DocumentProposal(
+                        pages=[2, 4], owner_id="alice", title="Invoice", confidence=1
+                    )
+                ],
+                blank_pages=[1, 3, 5],
+            )
+
+    store = FileStorage(tmp_path)
+    catalog = store.catalog()
+    catalog.owners.append(CatalogEntry(id="alice", name="Alice"))
+    write_record(tmp_path / "catalog.toml", catalog)
+    settings = store.settings()
+    settings.review_before_filing = False
+    write_record(tmp_path / "settings.toml", settings)
+    source = tmp_path / "inbox" / "mail.pdf"
+    create_pdf(source)
+    reader = PdfReader(source)
+    writer = PdfWriter()
+    writer.add_blank_page(width=595, height=842)
+    writer.add_page(reader.pages[0])
+    writer.add_blank_page(width=595, height=842)
+    writer.add_page(reader.pages[1])
+    writer.add_blank_page(width=595, height=842)
+    writer.write(source)
+    original_hash = file_hash(source)
+    scan = store.ingest(source)
+    asyncio.run(process_scan(store, BlankInference(), FixtureOCR(), scan))
+
+    restarted = FileStorage(tmp_path)
+    complete = restarted.get_scan(scan.id)
+    assert complete.status == "complete"
+    assert complete.proposal is not None
+    assert complete.proposal.blank_pages == [1, 3, 5]
+    document = restarted.list_documents()[0]
+    assert document.source_pages == [2, 4]
+    filed = PdfReader(tmp_path / document.final_path)
+    assert len(filed.pages) == 2
+    assert "Total 150" in filed.pages[1].extract_text()
+    assert len(PdfReader(restarted.scan_path(scan.id, "searchable.pdf")).pages) == 5
+    assert file_hash(restarted.scan_path(scan.id, "original.pdf")) == original_hash
+    assert "1, 3, 5" in complete.history[-1].message
+    complete.status = "queued"
+    complete.phase = "file"
+    restarted.save_scan(complete)
+    asyncio.run(process_scan(restarted, BlankInference(), FixtureOCR(), complete))
+    assert len(restarted.list_documents()) == 1
+
+    # Restore one omitted source page through the public review operation.
+    proposal = complete.proposal.model_copy(deep=True)
+    proposal.documents[0].pages = [2, 3, 4]
+    proposal.blank_pages = [1, 5]
+    review = ScanReview(
+        documents=proposal.documents,
+        blank_pages=proposal.blank_pages,
+        document_revisions={document.id: document.revision},
+    )
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    client.put(
+        f"/api/scans/{scan.id}/review", json=review.model_dump(mode="json")
+    ).raise_for_status()
+    asyncio.run(process_scan(restarted, BlankInference(), FixtureOCR(), complete))
+    updated = restarted.get_scan(scan.id)
+    assert updated.proposal is not None
+    assert updated.proposal.blank_pages == [1, 5]
+    restored = restarted.list_documents()[0]
+    assert restored.source_pages == [2, 3, 4]
+    assert len(PdfReader(tmp_path / restored.final_path).pages) == 3
+    assert file_hash(restarted.scan_path(scan.id, "original.pdf")) == original_hash
+
+
+def test_all_blank_scan_requires_confirmation_and_preserves_original(
+    tmp_path: Path,
+) -> None:
+    class BlankInference(FixtureInference):
+        async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
+            return Analysis(documents=[], blank_pages=[1, 2])
+
+    store = FileStorage(tmp_path)
+    settings = store.settings()
+    settings.review_before_filing = False
+    write_record(tmp_path / "settings.toml", settings)
+    source = tmp_path / "inbox" / "empty.pdf"
+    writer = PdfWriter()
+    for _ in range(2):
+        writer.add_blank_page(width=595, height=842)
+    writer.write(source)
+    original_hash = file_hash(source)
+    scan = store.ingest(source)
+    asyncio.run(process_scan(store, BlankInference(), FixtureOCR(), scan))
+    review = store.get_scan(scan.id)
+    assert review.status == "review"
+    assert review.proposal is not None
+    assert "All pages were marked blank" in review.history[-1].message
+    assert not store.list_documents()
+
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    client.put(
+        f"/api/scans/{scan.id}/review", json=review.proposal.model_dump(mode="json")
+    ).raise_for_status()
+    asyncio.run(process_scan(store, BlankInference(), FixtureOCR(), review))
+    complete = store.get_scan(scan.id)
+    assert complete.status == "complete"
+    assert not complete.document_ids
+    assert not store.list_documents()
+    store.archive(complete)
+    assert not source.exists()
+    assert file_hash(store.scan_path(scan.id, "original.pdf")) == original_hash
 
 
 def test_invalid_model_proposal_is_reviewable_without_filing(tmp_path: Path) -> None:

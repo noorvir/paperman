@@ -108,7 +108,11 @@ class DocumentProposal(DocumentDetails):
 
 
 class Analysis(Record):
-    documents: list[DocumentProposal] = Field(min_length=1)
+    documents: list[DocumentProposal]
+    blank_pages: list[Annotated[int, Field(ge=1)]] = Field(
+        default_factory=list,
+        description="Confirmed blank source pages omitted from filed documents. Originals retain every page.",
+    )
 
 
 class Enrichment(Record):
@@ -123,8 +127,17 @@ class Enrichment(Record):
 
 def validate_analysis(proposal: Analysis, page_count: int, catalog: Catalog) -> None:
     pages = [page for document in proposal.documents for page in document.pages]
-    if pages != list(range(1, page_count + 1)):
-        raise ValueError("Every page must occur exactly once, in order, with no gaps")
+    blanks = proposal.blank_pages
+    source_pages = list(range(1, page_count + 1))
+    if (
+        page_count < 1
+        or blanks != sorted(set(blanks))
+        or not set(blanks) <= set(source_pages)
+        or pages != [page for page in source_pages if page not in blanks]
+    ):
+        raise ValueError(
+            "Every page must occur exactly once, in order, in a document or in blank_pages"
+        )
     owners = {owner.id for owner in catalog.owners}
     for document in proposal.documents:
         if document.owner_id not in owners:

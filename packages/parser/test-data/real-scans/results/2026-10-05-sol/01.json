@@ -1,0 +1,136 @@
+{
+  "id": "01",
+  "source_sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "bluewest",
+        "title": "Television advertising invoice",
+        "document_date": "2020-03-01",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "owner_id": "buying-time",
+        "title": "Television advertising invoice",
+        "document_date": "2020-02-09",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          5
+        ]
+      },
+      {
+        "owner_id": "assembly",
+        "title": "Political advertising invoice",
+        "document_date": "2020-02-23",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          6,
+          7
+        ]
+      },
+      {
+        "owner_id": "groundswell",
+        "title": "Television advertising confirmation contract",
+        "document_date": "2020-02-20",
+        "confidence": 0.92,
+        "review_reason": "",
+        "pages": [
+          8,
+          9
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Television advertising",
+          "Political advertising"
+        ],
+        "summary": "KCNC-TV invoice 220018567, dated March 1, 2020, bills Bluewest Media for Bernie 2020 television ads aired on February 24–25, 2020. The net amount due is $9,273.50 after an agency commission."
+      },
+      "error": "",
+      "seconds": 22.575384834082797
+    },
+    {
+      "pages": [
+        5
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Broadcast advertising",
+          "Political advertising"
+        ],
+        "summary": "KPTH invoice 1336165-2, dated 02/09/20, bills Buying Time, LLC for one 30-second television advertisement for Tom Steyer for President. The net amount due is $34.00 after a $6.00 agency commission."
+      },
+      "error": "",
+      "seconds": 23.13569250004366
+    },
+    {
+      "pages": [
+        6,
+        7
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Television advertising",
+          "Political campaign advertising"
+        ],
+        "summary": "KMSP Fox 9 invoice 950658-1, dated February 23, 2020, bills Assembly Media for 18 political advertising spots for Michael Bloomberg 2020, Inc. The net amount due is $4,781.25."
+      },
+      "error": "",
+      "seconds": 14.967146709095687
+    },
+    {
+      "pages": [
+        8,
+        9
+      ],
+      "result": {
+        "tag_ids": [
+          "contract"
+        ],
+        "suggested_tags": [
+          "Broadcast advertising",
+          "Political advertising"
+        ],
+        "summary": "Two-page confirmation contract for 41 political advertising spots on WZTV Nashville for Amy Klobuchar for President, placed through Groundswell Public Strategies. The schedule dates are February 21–25, 2020, and the grand total is $9,110.00."
+      },
+      "error": "",
+      "seconds": 14.360998458927497
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 90.30632374994457,
+    "total": 165.34721870790236
+  }
+}

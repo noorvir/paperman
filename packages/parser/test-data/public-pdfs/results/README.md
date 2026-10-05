@@ -1,11 +1,47 @@
-# Public PDF results
+# Public PDF eval results
 
 Eight PDFs, 18 pages, 13 logical documents. The agent read every page image and
 saved the labels before the first model run. There was no human label review.
 Jev was not used. The 4 October runs used the local Llama app. On 5 October,
 the user approved an OpenAI comparison using this public test set.
 
-## OpenAI comparison — 5 October 2026
+## Image input eval on 5 October 2026
+
+Reran all eight PDFs with `gpt-6-luna`, high reasoning effort, and the current
+image-only stage prompts. This includes the blank-page output contract. The
+18 source pages, catalog, frozen labels, and scorer were unchanged. OCR was
+reused for scoring and was not sent to the model or rerun.
+
+| Measure | Result |
+| --- | ---: |
+| Exact PDF grouping | 8/8 |
+| Exact document groups | 13/13 |
+| Correct owner and group | 13/13 |
+| Correct issue date or absence and group | 13/13 |
+| Title keyword check and group | 12/13 |
+| Tag precision | 18/19 (94.7%) |
+| Required tag recall | 18/18 (100%) |
+| Processing failures | 0/8 |
+
+All five split boundaries were correct. The image input recovered the issue-date
+distinction in sample 02. The extra tag is still `claim` on the claim letter;
+the existing reference excludes it. Sample 08 was titled "Literary text excerpt",
+which misses the frozen French/pangram/sample keyword rule. The labels were not
+changed to improve the score. No page in this set was marked blank; the separate
+blank-page checks do not increase this set's size.
+
+This is one run on a small, known set with agent-written labels and no human
+label review. It does not establish accuracy on real incoming mail. The current
+local model and Sol were not rerun in this image eval. Application model settings
+were not changed.
+
+Predictions, scores, and input/source hashes are in
+`2026-10-05-luna-images-eval/`. The exact prompts, page images, responses, and
+client events remain in `.cache/public-pdfs/runs/2026-10-05-luna-images-eval/`.
+Source rights in the parent guide also apply to reproduced text in these records.
+The next candidate set is [real scanned documents](../../real-scans/README.md).
+
+## Text input comparison on 5 October 2026
 
 Luna ran first. Its scores were below 100%, so Sol ran next, as requested.
 Both used the existing Codex ChatGPT login, with no API key read or copied.

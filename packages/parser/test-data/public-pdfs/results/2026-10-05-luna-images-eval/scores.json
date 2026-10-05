@@ -1,0 +1,428 @@
+{
+  "fields": {
+    "packets": {
+      "correct": 8,
+      "total": 8,
+      "rate": 1.0
+    },
+    "groups": {
+      "correct": 13,
+      "total": 13,
+      "rate": 1.0
+    },
+    "owner": {
+      "correct": 13,
+      "total": 13,
+      "rate": 1.0
+    },
+    "date": {
+      "correct": 13,
+      "total": 13,
+      "rate": 1.0
+    },
+    "title_keywords": {
+      "correct": 12,
+      "total": 13,
+      "rate": 0.9230769230769231
+    }
+  },
+  "boundaries": {
+    "true_positive": 5,
+    "false_positive": 0,
+    "false_negative": 0
+  },
+  "tags": {
+    "true_positive": 18,
+    "false_positive": 1,
+    "false_negative": 0
+  },
+  "text": {
+    "native": {
+      "characters": 12438,
+      "character_errors": 2687,
+      "words": 1900,
+      "word_errors": 463,
+      "actual_words": 1893,
+      "matching_words": 1888,
+      "cer": 0.2160315163209519,
+      "wer": 0.24368421052631578,
+      "word_coverage": 0.9936842105263158
+    },
+    "scanned": {
+      "characters": 7852,
+      "character_errors": 1804,
+      "words": 1213,
+      "word_errors": 420,
+      "actual_words": 1241,
+      "matching_words": 1165,
+      "cer": 0.22975038206826287,
+      "wer": 0.3462489694971146,
+      "word_coverage": 0.9604286892003298
+    }
+  },
+  "failures": [],
+  "samples": [
+    {
+      "id": "01",
+      "groups": [
+        {
+          "pages": [
+            1,
+            2
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "quarry-lane",
+          "actual_owner": "quarry-lane",
+          "expected_date": "2026-09-01",
+          "actual_date": "2026-09-01",
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": [
+            "invoice"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 13.407846249872819,
+        "total": 21.569631540914997
+      }
+    },
+    {
+      "id": "02",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "willow-ridge",
+          "actual_owner": "willow-ridge",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "purchase-order"
+          ],
+          "actual_tags": [
+            "purchase-order"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 17.05255587492138,
+        "total": 25.40175549988635
+      }
+    },
+    {
+      "id": "03",
+      "groups": [
+        {
+          "pages": [
+            1,
+            2
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "parker-quinn",
+          "actual_owner": "parker-quinn",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "insurance",
+            "claim"
+          ],
+          "actual_tags": [
+            "claim",
+            "insurance"
+          ]
+        },
+        {
+          "pages": [
+            3
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "incident-report"
+          ],
+          "actual_tags": [
+            "incident-report"
+          ]
+        },
+        {
+          "pages": [
+            4,
+            5
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "morgan-wren",
+          "actual_owner": "morgan-wren",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "estimate"
+          ],
+          "actual_tags": [
+            "estimate"
+          ]
+        },
+        {
+          "pages": [
+            6,
+            7
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "2026-09-22",
+          "actual_date": "2026-09-22",
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": [
+            "invoice"
+          ]
+        },
+        {
+          "pages": [
+            8
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "cedar-bay",
+          "actual_owner": "cedar-bay",
+          "expected_date": "2026-09-25",
+          "actual_date": "2026-09-25",
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": [
+            "invoice"
+          ]
+        },
+        {
+          "pages": [
+            9
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "casey-rowan",
+          "actual_owner": "casey-rowan",
+          "expected_date": "2026-09-03",
+          "actual_date": "2026-09-03",
+          "expected_tags": [
+            "insurance",
+            "correspondence"
+          ],
+          "actual_tags": [
+            "claim",
+            "correspondence",
+            "insurance"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 87.2137706251815,
+        "total": 139.09994924999774
+      }
+    },
+    {
+      "id": "04",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "banking",
+            "reference"
+          ],
+          "actual_tags": [
+            "banking",
+            "reference"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 16.538239124929532,
+        "total": 24.777270457940176
+      }
+    },
+    {
+      "id": "05",
+      "groups": [
+        {
+          "pages": [
+            1,
+            2
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "banking",
+            "reference"
+          ],
+          "actual_tags": [
+            "banking",
+            "reference"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 21.060560499783605,
+        "total": 37.57006329181604
+      }
+    },
+    {
+      "id": "06",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "reference"
+          ],
+          "actual_tags": [
+            "reference"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 25.684282541042194,
+        "total": 41.65349945798516
+      }
+    },
+    {
+      "id": "07",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "reference",
+            "music"
+          ],
+          "actual_tags": [
+            "music",
+            "reference"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 35.18358900002204,
+        "total": 44.54708291706629
+      }
+    },
+    {
+      "id": "08",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": false
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": [
+            "reference"
+          ],
+          "actual_tags": [
+            "reference"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 14.897762832930312,
+        "total": 27.605044625001028
+      }
+    }
+  ],
+  "policy": "All 8 packets and all 13 expected documents remain in the denominator. Field scores require an exact page-group match. Title is a frozen keyword rubric, not a semantic quality score. CER/WER include reading-order errors; word coverage ignores order. NFKC, case, curly quotes, dash and whitespace normalization; decorative bullets ignored. Optional tags count neither for nor against the score. No human label review; no held-out set."
+}

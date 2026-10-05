@@ -1,0 +1,133 @@
+{
+  "id": "01",
+  "source_sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "bluewest",
+        "title": "Broadcast advertising invoice",
+        "document_date": "2020-03-01",
+        "confidence": 0.98,
+        "review_reason": "",
+        "pages": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "owner_id": "buying-time",
+        "title": "Broadcast advertising invoice",
+        "document_date": "2020-02-09",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          5
+        ]
+      },
+      {
+        "owner_id": "assembly",
+        "title": "Broadcast advertising invoice",
+        "document_date": "2020-02-23",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          6,
+          7
+        ]
+      },
+      {
+        "owner_id": "groundswell",
+        "title": "Television advertising contract",
+        "document_date": "2020-02-20",
+        "confidence": 0.93,
+        "review_reason": "",
+        "pages": [
+          8,
+          9
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Broadcast advertising"
+        ],
+        "summary": "A four-page KCNC-TV invoice to Bluewest Media for broadcast advertising. Invoice date: 03/01/20. The invoice lists a gross total of $10,910.00, agency commission of $1,636.50, and net amount due of $9,273.50, with payment terms of 30 days."
+      },
+      "error": "",
+      "seconds": 13.03061041701585
+    },
+    {
+      "pages": [
+        5
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Broadcast advertising"
+        ],
+        "summary": "KPTH invoice dated 02/09/20 for one 30-second radio spot for Tom Steyer for President-D. The spot aired 02/03/20. Gross total: $40.00; agency commission: $6.00; net amount due: $34.00. Payment is due within 30 days."
+      },
+      "error": "",
+      "seconds": 9.5820010418538
+    },
+    {
+      "pages": [
+        6,
+        7
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Broadcast advertising",
+          "Political campaign"
+        ],
+        "summary": "KMSP invoice 950658-1 to Assembly Media for 18 broadcast political-advertising spots for Michael Bloomberg 2020, Inc. Invoice date: 02/23/20. Net amount due: $4,781.25, with 30-day payment terms."
+      },
+      "error": "",
+      "seconds": 20.74306704220362
+    },
+    {
+      "pages": [
+        8,
+        9
+      ],
+      "result": {
+        "tag_ids": [
+          "contract"
+        ],
+        "suggested_tags": [
+          "Broadcast advertising order"
+        ],
+        "summary": "A two-page confirmation contract for television advertising by Amy Klobuchar for President-D on Nashville station WZTV. Contract 4251728 lists ad schedules, spots, rates, and a total of $9,110 before a $1,366.50 commission; the net total is $7,743.50. Schedule dates are February 21–25, 2020."
+      },
+      "error": "",
+      "seconds": 10.618424833053723
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 81.92076195799746,
+    "total": 135.89670970803127
+  }
+}

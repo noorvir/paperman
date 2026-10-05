@@ -95,7 +95,7 @@ def score(labels: Path, run: Path) -> None:
         for name in ("packets", "groups", "owner", "date", "title_keywords")
     }
     boundaries, tags = Detection(), Detection()
-    text_scores = {kind: TextScore() for kind in ("native", "scanned")}
+    text_scores = {"all": TextScore()}
     sample_results: list[dict[str, object]] = []
     failures: list[str] = []
 
@@ -120,12 +120,13 @@ def score(labels: Path, run: Path) -> None:
         actual = prediction.analysis.documents if prediction.analysis else []
         expected_groups = [item.pages for item in sample.expected]
         actual_groups = [item.pages for item in actual]
-        fields["packets"].total += 1
-        fields["packets"].correct += expected_groups == actual_groups
-        boundaries.add(
-            {str(item.pages[0]) for item in sample.expected[1:]},
-            {str(item.pages[0]) for item in actual[1:]},
-        )
+        if sample.complete_documents:
+            fields["packets"].total += 1
+            fields["packets"].correct += expected_groups == actual_groups
+            boundaries.add(
+                {str(item.pages[0]) for item in sample.expected[1:]},
+                {str(item.pages[0]) for item in actual[1:]},
+            )
         group_results: list[dict[str, object]] = []
         for expected in sample.expected:
             matched = next(
@@ -150,6 +151,8 @@ def score(labels: Path, run: Path) -> None:
                 ),
             }
             for name, correct in checks.items():
+                if name == "groups" and not sample.complete_documents:
+                    continue
                 fields[name].total += 1
                 fields[name].correct += correct
             actual_tags: set[str] = set(enrichment.tag_ids) if enrichment else set()
@@ -172,14 +175,13 @@ def score(labels: Path, run: Path) -> None:
             if enrichment.pages not in expected_groups and enrichment.result:
                 tags.false_positive += len(set(enrichment.result.tag_ids))
 
-        kind = "scanned" if sample.id in {"02", "06", "07", "08"} else "native"
         for page in sample.pages:
             actual_text = (
                 prediction.pages[page.page - 1]
                 if page.page <= len(prediction.pages)
                 else ""
             )
-            text_scores[kind].add((labels / page.transcript).read_text(), actual_text)
+            text_scores["all"].add((labels / page.transcript).read_text(), actual_text)
         sample_results.append(
             {"id": sample.id, "groups": group_results, "seconds": prediction.seconds}
         )
@@ -194,15 +196,19 @@ def score(labels: Path, run: Path) -> None:
         "text": {
             kind: {
                 **value.model_dump(),
-                "cer": value.character_errors / value.characters,
-                "wer": value.word_errors / value.words,
-                "word_coverage": value.matching_words / value.words,
+                "cer": value.character_errors / value.characters
+                if value.characters
+                else None,
+                "wer": value.word_errors / value.words if value.words else None,
+                "word_coverage": value.matching_words / value.words
+                if value.words
+                else None,
             }
             for kind, value in text_scores.items()
         },
         "failures": failures,
         "samples": sample_results,
-        "policy": "All 8 packets and all 13 expected documents remain in the denominator. Field scores require an exact page-group match. Title is a frozen keyword rubric, not a semantic quality score. CER/WER include reading-order errors; word coverage ignores order. NFKC, case, curly quotes, dash and whitespace normalization; decorative bullets ignored. Optional tags count neither for nor against the score. No human label review; no held-out set.",
+        "policy": "All expected documents remain in the field denominator, including failures. Incomplete source excerpts are excluded from packet, group and boundary scores. OCR is unscored when transcripts are absent. Field scores require an exact page-group match. Title is a frozen keyword rubric, not a semantic quality score. CER/WER include reading-order errors; word coverage ignores order. NFKC, case, curly quotes, dash and whitespace normalization; decorative bullets ignored. Optional tags count neither for nor against the score. No human label review; no held-out set.",
     }
     (run / "scores.json").write_text(json.dumps(result, indent=2) + "\n")
     print(

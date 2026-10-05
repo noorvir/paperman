@@ -1,0 +1,99 @@
+{
+  "id": "02",
+  "source_sha256": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+  "ocr_languages": "por",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Hair salon invoice",
+        "document_date": "2020-11-04",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Rug return credit note",
+        "document_date": "2020-11-10",
+        "confidence": 0.96,
+        "review_reason": "",
+        "pages": [
+          2
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Retail bag purchase invoice",
+        "document_date": "2021-05-06",
+        "confidence": 0.98,
+        "review_reason": "",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice",
+          "receipt"
+        ],
+        "suggested_tags": [
+          "Hair salon services",
+          "Cash payment"
+        ],
+        "summary": "A simplified invoice from Maria da Glória Cabeleireiros for brushing and washing services. It shows 4 November 2020, a €12.20 cash payment, and 23% VAT."
+      },
+      "error": "",
+      "seconds": 31.63515870901756
+    },
+    {
+      "pages": [
+        2
+      ],
+      "result": {
+        "tag_ids": [
+          "credit-note"
+        ],
+        "suggested_tags": [
+          "Product return"
+        ],
+        "summary": "Zara Home credit note dated 10-11-2020 for a returned rug. The credit total is €99.99."
+      },
+      "error": "",
+      "seconds": 25.621556584024802
+    },
+    {
+      "pages": [
+        3
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "Simplified invoice",
+          "Retail purchase"
+        ],
+        "summary": "Tiger Portugal’s simplified invoice, dated 6 May 2021, lists one foldable bag for EUR 3.00. It shows Multibanco as the payment method."
+      },
+      "error": "",
+      "seconds": 22.95844025001861
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 90.31038362486288,
+    "total": 170.52694533299655
+  }
+}

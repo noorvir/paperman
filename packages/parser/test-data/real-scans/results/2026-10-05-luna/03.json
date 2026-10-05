@@ -1,0 +1,44 @@
+{
+  "id": "03",
+  "source_sha256": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "george-barody",
+        "title": "Fax cover sheet",
+        "document_date": "1998-12-10",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "fax cover sheet"
+        ],
+        "summary": "A confidential fax cover sheet from the Ohio Attorney General’s office to George Baroody. The form lists December 10, 1998 as the fax date and says the transmission has three pages, including the cover sheet."
+      },
+      "error": "",
+      "seconds": 17.17114783404395
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 33.182044042041525,
+    "total": 50.35386008420028
+  }
+}

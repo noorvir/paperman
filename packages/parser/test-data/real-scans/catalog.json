@@ -1,0 +1,122 @@
+{
+  "owners": [
+    {
+      "id": "unknown",
+      "name": "Unknown",
+      "aliases": []
+    },
+    {
+      "id": "assembly",
+      "name": "Assembly Media",
+      "aliases": []
+    },
+    {
+      "id": "betty-montgomery",
+      "name": "Betty D. Montgomery",
+      "aliases": []
+    },
+    {
+      "id": "bluewest",
+      "name": "Bluewest Media",
+      "aliases": []
+    },
+    {
+      "id": "bernie-2020",
+      "name": "Bernie 2020",
+      "aliases": []
+    },
+    {
+      "id": "buying-time",
+      "name": "Buying Time, LLC",
+      "aliases": []
+    },
+    {
+      "id": "george-barody",
+      "name": "George Barody",
+      "aliases": []
+    },
+    {
+      "id": "groundswell",
+      "name": "Groundswell Public Strategies",
+      "aliases": []
+    },
+    {
+      "id": "kcnc",
+      "name": "KCNC-TV",
+      "aliases": []
+    },
+    {
+      "id": "kelli-scruggs",
+      "name": "Kelli Scruggs",
+      "aliases": []
+    },
+    {
+      "id": "lynnette-stevens",
+      "name": "Lynnette Stevens",
+      "aliases": []
+    },
+    {
+      "id": "mike-mozina",
+      "name": "Mike Mozina",
+      "aliases": []
+    },
+    {
+      "id": "susan-smith",
+      "name": "Susan Smith",
+      "aliases": []
+    },
+    {
+      "id": "zara-home",
+      "name": "Zara Home",
+      "aliases": []
+    },
+    {
+      "id": "flying-tiger",
+      "name": "Flying Tiger",
+      "aliases": []
+    },
+    {
+      "id": "maria-gloria",
+      "name": "Maria da Glória Cabeleireiros Lda.",
+      "aliases": []
+    }
+  ],
+  "tags": [
+    {
+      "id": "invoice",
+      "name": "Invoice"
+    },
+    {
+      "id": "receipt",
+      "name": "Payment receipt"
+    },
+    {
+      "id": "credit-note",
+      "name": "Credit note"
+    },
+    {
+      "id": "contract",
+      "name": "Contract"
+    },
+    {
+      "id": "correspondence",
+      "name": "Correspondence"
+    },
+    {
+      "id": "order",
+      "name": "Order or internal campaign request"
+    },
+    {
+      "id": "insurance",
+      "name": "Insurance"
+    },
+    {
+      "id": "tax",
+      "name": "Tax"
+    },
+    {
+      "id": "banking",
+      "name": "Banking"
+    }
+  ]
+}

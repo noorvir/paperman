@@ -1,0 +1,8 @@
+{
+  "provider": "compatible",
+  "reasoning_effort": "none",
+  "base_url": "http://127.0.0.1:9931/v1",
+  "model": "ggml-org/gemma-4-E2B-it-GGUF:Q8_0",
+  "timeout_seconds": 300,
+  "output_mode": "native"
+}

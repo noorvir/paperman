@@ -1,0 +1,50 @@
+{
+  "id": "05",
+  "source_sha256": "04ca1c9876aadaf3edf20b1115f0d3cc714d8816ff3c2894a8a7adef82a1b904",
+  "ocr_languages": "eng",
+  "pages": [
+    "4. My interest rate?\nCompare your rate to current interest rates. You can \nfind local rates online or in the business section of your \nnewspaper. If current rates are much lower than your \nrate, you might look into refinancing.\n5. A prepayment penalty?\nCheck this before you pay off your mortgage \ncompletely—by refinancing or selling your home, or \nanother way. It might cost more than you realize.\n6. Fees and charges?\nKeep an eye on these. For example, if you see a late fee \nand think you paid on time, call your loan servicer. All \ncharges should be listed under the transaction activity \nsection. Make sure you know what these are for.\nA new look to your statement doesn’t mean your \nmortgage has changed. It just means your mortgage \ncompany is now required to send you a statement with \ndetails about your loan. You might have a payment \ncoupon book instead of a statement. \nWhat should I do with my mortgage \nstatements?\nLook them over every month. If you have questions or \nsee mistakes, call your servicer right away. Generally, \nkeep mortgage statements in your files for at least three \nyears, on paper or electronically.\nHow should I use the information about:\n1. Customer service?\nKeep this handy so you can get answers from the right \nsource. Different companies can be involved in your \nmortgage—the one that appears on your statement is a \ngood place to start when you have questions. \n2. Amount due?\nSee where your money will go. “Principal” is the amount \nthat repays what you originally borrowed. “Interest” is \nthe cost of borrowing the money. “Escrow” is the amount \nheld in a separate account, typically to pay for property \ntaxes and homeowners insurance. If the escrow amount \nis $0, you pay these costs yourself.\n3. My outstanding principal?\nSee how much you still owe. Subtract this amount from \nyour home’s current market value, and what’s left is your \nequity—that is, how many dollars’ worth of your home \nyou own. \nAccount Number\nPayment Due Date\nExplanation of Amount Due\nPrincipal\nInterest\nEscrow (for Taxes and Insurance)\n    Regular Monthly Payment\nTotal Fees Charged\n     Total Amount Due\n$386.46\n$1,048.07\n$235.18\n$1,669.71\n$172.00\n$1,841.71\nIf payment is received after 4/15/14, $160 late fee will be charged.\n1234567\n4/1/2014\nAmount Due $1,841.71\nMortgage Statement\nStatement Date: 3/20/2014\nSpringside Mortgage\nCustomer Service: 1-800-555-1234\nwww.springsidemortgage.com\nJordan and Dana Smith\n4700 Jones Drive\nMemphis, TN 38109\nAccount Information\nOutstanding Principal\nInterest Rate (Until October 2014)\nPrepayment Penalty\n$264,776.43\n4.75%\nYes\nPast Payment Breakdowns\nPrincipal\nInterest\nEscrow (Taxes and Insurance)\nFees\nTotal\nPaid Last\nMonth  \n$384.93\n$1,049.60\n$235.18\n$0.00\n$1,669.71\nPaid Year\nto Date  \n$1,150.25\n$3,153.34\n$705.54\n$0.00\n$5,009.13\nTransaction Activity (2/20 to 3/19)\nDate\n3/16/14\n3/17/14\n3/19/14\nDescription\nLate Fee (charged because full payment not received by 3/15/2014)\nPayment Received – Thank you\nProperty Inspection Fee\nCharges\n$160.00\n$12.00\nPayments\n$1,669.71\n1\n3 2\n4\n5\n6\nHow to use your\nmortgage statement\nYour mortgage statement might \nbe new, even if your mortgage isn’t\n1 of 2",
+    "Visit us online at consumerfinance.gov\nContact us  \nWebsite\nconsumerfinance.gov/mortgage\nGeneral inquiries\nConsumer Financial Protection Bureau\n1700 G Street NW\nWashington DC 20552\nSubmit a complaint by phone\n855-411-CFPB (2372)  \nTTY/TDD 855-729-CFPB (2372)\nSubmit a complaint online\nconsumerfinance.gov/complaint\nDoes your statement look different?  \nYour statement may be personalized to your situation.\nDid you make a partial payment? \nYou might not see a decrease in principal or interest \nowed. Your mortgage doesn’t work like a credit card. \nIf you pay less than your full monthly payment, it might \nnot be subtracted from what you owe. Instead, you \ncould see a delinquency notice, with the money held \nseparately until you make the rest of the payment.\nDo you see a delinquency notice? \nThat’s for missed payments. Check the information \nagainst your own records to see if anything doesn’t \nmatch. Talk to your servicer right away if you’re having \ntrouble paying your loan. And call a HUD-approved \nhousing counselor (find one at 888-995-HOPE (4673) \nor on the CFPB site, at consumerfinance.gov/find-a-\nhousing-counselor). You may have options that could \nkeep you from losing your home, or help you get out of it. \nDoes your loan have multiple \npayment options?\nYou’ll see each one spelled out. Take a look at what \nhappens to your loan balance under each payment \noption, as you decide which payment to make.\n2 of 2"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Mortgage statement guide",
+        "document_date": null,
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          1,
+          2
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1,
+        2
+      ],
+      "result": {
+        "tag_ids": [
+          "reference",
+          "banking"
+        ],
+        "suggested_tags": [
+          "mortgage"
+        ],
+        "summary": "A two-page Consumer Financial Protection Bureau guide explains how to read a mortgage statement, review payments and fees, and respond to delinquency notices."
+      },
+      "error": "",
+      "seconds": 16.508237791014835
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 21.060560499783605,
+    "total": 37.57006329181604
+  }
+}

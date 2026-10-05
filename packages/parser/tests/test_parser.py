@@ -10,6 +10,7 @@ from paperman_parser import parse
 from paperman_parser.demo_inference import DemoInference
 from paperman_parser.models import Analysis, Catalog, CatalogEntry, DocumentProposal
 from paperman_parser.ocr import LocalOCR
+from paperman_parser.pdf import select_pages
 
 
 def test_parse_pdf_bytes_and_enrich_without_server_state() -> None:
@@ -43,7 +44,9 @@ def test_parse_pdf_bytes_and_enrich_without_server_state() -> None:
     assert "Electricity invoice" in first.content.pages[0]
     assert first.content.pages == second.content.pages
 
-    tags = asyncio.run(inference.enrich("\n".join(first.content.pages[:2]), catalog))
+    tags = asyncio.run(
+        inference.enrich(select_pages(first.content.pdf, [1, 2]), catalog)
+    )
     assert set(tags.tag_ids) == {"invoice", "utilities"}
 
 
@@ -65,8 +68,31 @@ def test_image_scan_gets_searchable_text() -> None:
     assert "150" in PdfReader(BytesIO(result.pdf)).pages[0].extract_text()
 
 
+def test_blank_scan_reaches_analysis_after_local_ocr() -> None:
+    class BlankInference(DemoInference):
+        async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
+            assert len(PdfReader(BytesIO(source)).pages) == 2
+            return Analysis(documents=[], blank_pages=[1, 2])
+
+    image = Image.new("RGB", (1240, 1754), "white")
+    buffer = BytesIO()
+    image.save(buffer, "PDF", resolution=150, save_all=True, append_images=[image])
+    result = asyncio.run(
+        parse(
+            buffer.getvalue(),
+            catalog=Catalog(),
+            ocr=LocalOCR(),
+            inference=BlankInference(),
+        )
+    )
+    assert result.analysis.blank_pages == [1, 2]
+    assert result.analysis.documents == []
+    assert not any(text.strip() for text in result.content.pages)
+    assert len(PdfReader(BytesIO(result.content.pdf)).pages) == 2
+
+
 class InvalidInference(DemoInference):
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         return Analysis(
             documents=[DocumentProposal(pages=[1, 1], title="Invoice", confidence=1)]
         )

@@ -99,7 +99,7 @@ class CatalogChangingInference(FixtureInference):
     def __init__(self, client: TestClient) -> None:
         self.client = client
 
-    async def enrich(self, text: str, catalog: Catalog) -> Enrichment:
+    async def enrich(self, source: bytes, catalog: Catalog) -> Enrichment:
         response = self.client.delete("/api/catalog/tags/invoice")
         response.raise_for_status()
         return Enrichment(tag_ids=["invoice"], summary="New summary")
@@ -124,6 +124,7 @@ def test_enrichment_preserves_state_when_catalog_changes(tmp_path: Path) -> None
         summary="Previous summary",
     )
     store.save_document(document)
+    create_pdf(tmp_path / document.final_path)
     (tmp_path / document.final_path).with_suffix(".txt").write_text(
         "Invoice for 150 EUR"
     )

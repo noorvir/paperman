@@ -20,6 +20,7 @@ export const Route = createFileRoute("/scans_/$scanId/review")({
     );
     if (scan.status === "complete") {
       proposal = {
+        blank_pages: scan.proposal?.blank_pages ?? [],
         documents: details.map(({ document }) => {
           return {
             pages: document.source_pages,

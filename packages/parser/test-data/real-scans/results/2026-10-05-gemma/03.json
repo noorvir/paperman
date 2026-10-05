@@ -1,0 +1,46 @@
+{
+  "id": "03",
+  "source_sha256": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "george-barody",
+        "title": "Confidential Transmission Cover Sheet",
+        "document_date": "1998-12-10",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "legal_notice",
+          "confidential_information",
+          "mailing_instructions"
+        ],
+        "summary": "The document appears to be a formal correspondence, likely a legal or official notice, containing sender/recipient information, fax numbers, dates, and instructions regarding the handling of confidential information."
+      },
+      "error": "",
+      "seconds": 2.8361552499700338
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 4.0718429170083255,
+    "total": 6.908548875013366
+  }
+}

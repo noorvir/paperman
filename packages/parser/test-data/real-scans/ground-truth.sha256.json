@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "created_on": "2026-10-05",
+  "files": {
+    "catalog.json": "b456cb310e5fef45eaa31abaefcdfc1b6444cdfea46c5174a58daeff95b85e4c",
+    "ground-truth.json": "dcc75a464edd637a0eb71a7531b1a841220938b9207c5c18e12d0a465443ff99",
+    "batches.json": "83d156b0ff138c0ba4d33b1c6b9a5b681c3950946497eb9e603436d0ccd4c165",
+    "manifest.json": "4fc51280019aa1554824d69dace4fb21dda7812af773596ed459049b27332698"
+  }
+}

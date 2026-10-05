@@ -1,0 +1,46 @@
+{
+  "id": "04",
+  "source_sha256": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "kelli-scruggs",
+        "title": "Coupon",
+        "document_date": "2021-06-21",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "order"
+        ],
+        "suggested_tags": [
+          "coupon",
+          "voucher",
+          "promotional_material"
+        ],
+        "summary": "The document appears to be a form or record related to a coupon or voucher, containing fields for sender, recipient, dates, signatures, and control information."
+      },
+      "error": "",
+      "seconds": 2.538006959017366
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 3.5139563330449164,
+    "total": 6.052465915912762
+  }
+}

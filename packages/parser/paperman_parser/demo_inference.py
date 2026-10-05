@@ -1,3 +1,7 @@
+from io import BytesIO
+
+from pypdf import PdfReader
+
 from paperman_parser.models import Analysis, Catalog, DocumentProposal, Enrichment
 
 
@@ -8,7 +12,8 @@ class DemoInference:
     def version(self) -> str:
         return "demo-v1"
 
-    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+    async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
+        pages = [page.extract_text() for page in PdfReader(BytesIO(source)).pages]
         documents: list[DocumentProposal] = []
         for number, text in enumerate(pages, 1):
             title = next(
@@ -37,7 +42,10 @@ class DemoInference:
                 )
         return Analysis(documents=documents)
 
-    async def enrich(self, text: str, catalog: Catalog) -> Enrichment:
+    async def enrich(self, source: bytes, catalog: Catalog) -> Enrichment:
+        text = "\n".join(
+            page.extract_text() for page in PdfReader(BytesIO(source)).pages
+        )
         keywords = {
             "invoice": ("invoice", "bill", "receipt"),
             "utilities": ("electricity", "water", "internet", "gas", "phone"),

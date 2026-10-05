@@ -102,6 +102,15 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
     completed.history.append(
         Event(stage="file", message=f"Filed {len(document_ids)} documents")
     )
+    if proposal.blank_pages:
+        completed.history.append(
+            Event(
+                stage="file",
+                message="Omitted blank source pages: "
+                + ", ".join(map(str, proposal.blank_pages))
+                + ". All pages remain in the original scan",
+            )
+        )
     with storage.transaction():
         storage.save_scan(completed)
     return completed

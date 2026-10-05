@@ -23,6 +23,7 @@ from paperman_parser.models import (
     validate_analysis,
 )
 from paperman_parser.ocr import LocalOCR
+from paperman_parser.pdf import select_pages
 
 
 class ExpectedDocument(Record):
@@ -46,6 +47,7 @@ class Sample(Record):
     ocr_languages: str
     pages: list[ExpectedPage]
     expected: list[ExpectedDocument]
+    complete_documents: bool = True
 
 
 class GroundTruth(Record):
@@ -113,12 +115,16 @@ async def evaluate(
     metadata = {
         "started_at": datetime.now(UTC).isoformat(),
         "settings": settings.model_dump(mode="json"),
+        "model_input": "rendered PDF page images only; OCR text retained for scoring",
         "revision": subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=package, text=True
         ).strip(),
+        "poppler": subprocess.check_output(
+            ["pdftoppm", "-v"], stderr=subprocess.STDOUT, text=True
+        ).strip(),
         "parser_sha256": {
             str(path.relative_to(package)): digest(path)
-            for path in sorted((package / "paperman_parser").glob("*.py"))
+            for path in sorted((package / "paperman_parser").rglob("*.py"))
         },
         "frozen_sha256": digest(labels / "ground-truth.sha256.json"),
         "annotations": frozen.model_dump(mode="json"),
@@ -165,7 +171,7 @@ async def evaluate(
             phase = "analyze"
             stage_started = perf_counter()
             print(f"{sample.id}: split and fields", flush=True)
-            prediction.analysis = await inference.analyze(content.pages, catalog)
+            prediction.analysis = await inference.analyze(content.pdf, catalog)
             validate_analysis(prediction.analysis, len(content.pages), catalog)
             prediction.seconds[phase] = perf_counter() - stage_started
             save(result_path, prediction)
@@ -176,8 +182,10 @@ async def evaluate(
                 result = EnrichedGroup(pages=group.pages)
                 group_started = perf_counter()
                 try:
-                    text = "\n\n".join(content.pages[page - 1] for page in group.pages)
-                    result.result = await inference.enrich(text, catalog)
+                    document = await asyncio.to_thread(
+                        select_pages, content.pdf, group.pages
+                    )
+                    result.result = await inference.enrich(document, catalog)
                 except Exception as error:
                     result.error = f"{type(error).__name__}: {error}"
                 result.seconds = perf_counter() - group_started

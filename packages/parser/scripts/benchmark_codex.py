@@ -1,4 +1,4 @@
-"""Compare Codex models using saved OCR and the parser's existing model prompts."""
+"""Compare Codex models using rendered PDF pages and the parser's existing model prompts."""
 
 import argparse
 import asyncio
@@ -15,8 +15,52 @@ from pydantic import BaseModel, ConfigDict
 
 from paperman_parser.inference import EndpointInference
 from paperman_parser.models import Catalog, InferenceSettings, Record
-from scripts.evaluate import EnrichedGroup, FrozenFiles, Prediction, digest, save
+from paperman_parser.pdf import select_pages
+from paperman_parser.prompt import Prompt
+from scripts.evaluate import (
+    EnrichedGroup,
+    FrozenFiles,
+    GroundTruth,
+    Prediction,
+    digest,
+    save,
+)
 from scripts.score import score
+
+
+class RecordedEndpointInference(EndpointInference):
+    def __init__(self, settings: InferenceSettings, output: Path) -> None:
+        super().__init__(settings, "local")
+        self.output = output
+        self.request_count = 0
+
+    async def _request[T: BaseModel](
+        self,
+        output: type[T],
+        prompt: Prompt,
+        validate: Callable[[T], None] | None = None,
+    ) -> T:
+        self.request_count += 1
+        request = self.output / f"{self.request_count:02}-{output.__name__}"
+        request.mkdir(parents=True)
+        (request / "instructions.txt").write_text(prompt.instructions + "\n")
+        (request / "prompt.txt").write_text(prompt.text + "\n")
+        (request / "schema.json").write_text(
+            json.dumps(output.model_json_schema(mode="serialization"), indent=2) + "\n"
+        )
+        hashes = {}
+        for number, content in enumerate(prompt.images, 1):
+            path = request / f"page-{number:04}.png"
+            path.write_bytes(content)
+            hashes[path.name] = digest(path)
+        (request / "images.json").write_text(json.dumps(hashes, indent=2) + "\n")
+        try:
+            result = await super()._request(output, prompt, validate)
+        except Exception as error:
+            (request / "error.txt").write_text(f"{type(error).__name__}: {error}\n")
+            raise
+        (request / "response.json").write_text(result.model_dump_json(indent=2) + "\n")
+        return result
 
 
 class CodexInference(EndpointInference):
@@ -30,8 +74,7 @@ class CodexInference(EndpointInference):
     async def _request[T: BaseModel](
         self,
         output: type[T],
-        instructions: str,
-        prompt: str,
+        prompt: Prompt,
         validate: Callable[[T], None] | None = None,
     ) -> T:
         self.request_count += 1
@@ -39,8 +82,16 @@ class CodexInference(EndpointInference):
         request.mkdir(parents=True)
         schema = output.model_json_schema(mode="serialization")
         (request / "schema.json").write_text(json.dumps(schema, indent=2) + "\n")
-        (request / "instructions.txt").write_text(instructions + "\n")
-        (request / "prompt.txt").write_text(prompt + "\n")
+        (request / "instructions.txt").write_text(prompt.instructions + "\n")
+        (request / "prompt.txt").write_text(prompt.text + "\n")
+        images: list[Path] = []
+        for number, image in enumerate(prompt.images, 1):
+            path = request / f"page-{number:04}.png"
+            path.write_bytes(image)
+            images.append(path)
+        (request / "images.json").write_text(
+            json.dumps({path.name: digest(path) for path in images}, indent=2) + "\n"
+        )
         # The client owns authentication. Never read or copy its stored credentials.
         environment = os.environ.copy()
         environment.pop("OPENAI_API_KEY", None)
@@ -88,8 +139,10 @@ class CodexInference(EndpointInference):
                     "--json",
                     "-o",
                     str(result_path),
-                    "-",
                 ]
+                for image in images:
+                    command.extend(["--image", str(image)])
+                command.extend(["--", "-"])
                 process = await asyncio.create_subprocess_exec(
                     *command,
                     stdin=asyncio.subprocess.PIPE,
@@ -99,7 +152,8 @@ class CodexInference(EndpointInference):
                 )
                 try:
                     stdout, stderr = await asyncio.wait_for(
-                        process.communicate((prompt + feedback).encode()), timeout=300
+                        process.communicate((prompt.text + feedback).encode()),
+                        timeout=300,
                     )
                 except TimeoutError:
                     process.kill()
@@ -143,7 +197,14 @@ class Event(BaseModel):
     item: EventItem | None = None
 
 
-async def benchmark(labels: Path, source: Path, output: Path, model: str) -> None:
+async def benchmark(
+    labels: Path,
+    source: Path | None,
+    pdfs: Path,
+    output: Path,
+    model: str,
+    settings: InferenceSettings | None = None,
+) -> None:
     frozen = FrozenFiles.model_validate_json(
         (labels / "ground-truth.sha256.json").read_text()
     )
@@ -151,69 +212,101 @@ async def benchmark(labels: Path, source: Path, output: Path, model: str) -> Non
         if digest(labels / filename) != expected:
             raise ValueError(f"Frozen annotation changed: {filename}")
     catalog = Catalog.model_validate_json((labels / "catalog.json").read_text())
-    sources = [path for path in sorted(source.glob("*.json")) if path.stem.isdecimal()]
-    if not sources:
-        raise ValueError("No saved OCR predictions in source directory")
+    truth = GroundTruth.model_validate_json((labels / "ground-truth.json").read_text())
+    sources: list[Prediction] = []
+    for sample in truth.documents:
+        cached = Prediction(
+            id=sample.id,
+            source_sha256=sample.sha256,
+            ocr_languages=sample.ocr_languages,
+        )
+        if source is not None:
+            cached = Prediction.model_validate_json(
+                (source / f"{sample.id}.json").read_text()
+            )
+        if (
+            cached.source_sha256 != sample.sha256
+            or digest(pdfs / f"{sample.id}.pdf") != sample.sha256
+        ):
+            raise ValueError(f"Source PDF changed: {sample.id}")
+        sources.append(cached)
     output.mkdir(parents=True, exist_ok=False)
     package = Path(__file__).resolve().parents[1]
     metadata = {
         "started_at": datetime.now(UTC).isoformat(),
         "model": model,
-        "reasoning_effort": "high",
-        "transport": "codex exec",
-        "auth": "existing ChatGPT login; no API key",
+        "settings": settings.model_dump(mode="json")
+        if settings
+        else {"reasoning_effort": "high"},
+        "transport": "compatible endpoint" if settings else "codex exec",
+        "auth": "local endpoint" if settings else "existing ChatGPT login; no API key",
         "codex_version": subprocess.check_output(
             ["codex", "--version"], text=True
         ).strip(),
-        "source_run": str(source),
-        "source_sha256": {path.name: digest(path) for path in sources},
+        "source_run": str(source) if source is not None else None,
+        "ocr": "cached"
+        if source is not None
+        else "not run; no transcript ground truth",
+        "model_input": "rendered PDF page images only",
+        "pdf_sha256": {f"{sample.id}.pdf": sample.source_sha256 for sample in sources},
+        "source_sha256": {
+            f"{sample.id}.json": digest(source / f"{sample.id}.json")
+            for sample in sources
+        }
+        if source
+        else {},
         "frozen_sha256": digest(labels / "ground-truth.sha256.json"),
         "annotations": frozen.model_dump(mode="json"),
+        "poppler": subprocess.check_output(
+            ["pdftoppm", "-v"], stderr=subprocess.STDOUT, text=True
+        ).strip(),
         "parser_sha256": {
             str(path.relative_to(package)): digest(path)
-            for path in sorted((package / "paperman_parser").glob("*.py"))
+            for path in sorted((package / "paperman_parser").rglob("*.py"))
         },
         "runner_sha256": digest(Path(__file__)),
         "scorer_sha256": digest(package / "scripts/score.py"),
-        "notes": "Reuse OCR pages only, not previous model output or labels. Same production stage prompts. No tools, repository access, or answer labels in model input. Temperature uses Codex default. Up to two schema/domain validation retries. Four independent PDFs at a time.",
+        "notes": "Render source PDFs. Cached OCR is used only for scoring, never as model input. No previous model output or labels are sent. Same production stage prompts. No tools, repository access, or answer labels in model input. Temperature uses Codex default. Up to two schema/domain validation retries. Four independent PDFs at a time for Codex; one at a time for the local endpoint.",
     }
     (output / "run.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    semaphore = asyncio.Semaphore(4)
+    semaphore = asyncio.Semaphore(1 if settings else 4)
 
-    async def run_sample(path: Path) -> None:
+    async def run_sample(cached: Prediction) -> None:
         async with semaphore:
-            cached = Prediction.model_validate_json(path.read_text())
             prediction = Prediction(
                 id=cached.id,
                 source_sha256=cached.source_sha256,
                 ocr_languages=cached.ocr_languages,
                 pages=cached.pages,
             )
-            inference = CodexInference(model, output / "requests" / cached.id)
+            request_path = output / "requests" / cached.id
+            inference = (
+                RecordedEndpointInference(settings, request_path)
+                if settings
+                else CodexInference(model, request_path)
+            )
             started = perf_counter()
             print(f"{cached.id}: starting", flush=True)
             try:
-                prediction.analysis = await inference.analyze(prediction.pages, catalog)
+                pdf = (pdfs / f"{cached.id}.pdf").read_bytes()
+                prediction.analysis = await inference.analyze(pdf, catalog)
                 prediction.seconds["analyze"] = perf_counter() - started
-                save(output / path.name, prediction)
+                save(output / f"{cached.id}.json", prediction)
                 for group in prediction.analysis.documents:
                     group_started = perf_counter()
-                    text = "\n\n".join(
-                        prediction.pages[page - 1] for page in group.pages
-                    )
-                    enrichment = await inference.enrich(text, catalog)
-                    prediction.enriched.append(
-                        EnrichedGroup(
-                            pages=group.pages,
-                            result=enrichment,
-                            seconds=perf_counter() - group_started,
-                        )
-                    )
-                    save(output / path.name, prediction)
+                    document = await asyncio.to_thread(select_pages, pdf, group.pages)
+                    enrichment = EnrichedGroup(pages=group.pages)
+                    try:
+                        enrichment.result = await inference.enrich(document, catalog)
+                    except Exception as error:
+                        enrichment.error = f"{type(error).__name__}: {error}"
+                    enrichment.seconds = perf_counter() - group_started
+                    prediction.enriched.append(enrichment)
+                    save(output / f"{cached.id}.json", prediction)
             except Exception as error:
                 prediction.error = f"{type(error).__name__}: {error}"
             prediction.seconds["total"] = perf_counter() - started
-            save(output / path.name, prediction)
+            save(output / f"{cached.id}.json", prediction)
             print(
                 f"{cached.id}: {prediction.seconds['total']:.1f}s {prediction.error or 'done'}",
                 flush=True,
@@ -226,22 +319,34 @@ async def benchmark(labels: Path, source: Path, output: Path, model: str) -> Non
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--labels", type=Path, required=True)
-    parser.add_argument("--source", type=Path, required=True)
+    parser.add_argument("--source", type=Path)
+    parser.add_argument("--pdfs", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
-    parser.add_argument("--model", choices=["gpt-6-luna", "gpt-6-sol"], required=True)
+    transport = parser.add_mutually_exclusive_group(required=True)
+    transport.add_argument("--model", choices=["gpt-6-luna", "gpt-6-sol"])
+    transport.add_argument("--settings", type=Path)
 
     class Arguments(Record):
         labels: Path
-        source: Path
+        source: Path | None
+        pdfs: Path
         output: Path
-        model: str
+        model: str | None
+        settings: Path | None
 
     args = Arguments.model_validate(vars(parser.parse_args()))
+    settings = (
+        InferenceSettings.model_validate_json(args.settings.read_text())
+        if args.settings
+        else None
+    )
     asyncio.run(
         benchmark(
             args.labels.resolve(),
-            args.source.resolve(),
+            args.source.resolve() if args.source else None,
+            args.pdfs.resolve(),
             args.output.resolve(),
-            args.model,
+            settings.model if settings else args.model or "",
+            settings,
         )
     )

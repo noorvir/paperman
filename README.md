@@ -4,7 +4,7 @@ PaperMan receives PDF scans, creates searchable PDFs, proposes document groups a
 
 ## Run
 
-Install Bun 1.3+, uv, and Tesseract with the required language data. On macOS, `brew install tesseract` installs English OCR; use `brew install tesseract-lang` for more languages. Linux packages are `tesseract-ocr` and language packages such as `tesseract-ocr-deu`.
+Install Bun 1.3+, uv, Poppler, and Tesseract with the required language data. Poppler renders the page images sent to the model (`brew install poppler` on macOS; `poppler-utils` on Linux). On macOS, `brew install tesseract` installs English OCR; use `brew install tesseract-lang` for more languages. Linux packages are `tesseract-ocr` and language packages such as `tesseract-ocr-deu`.
 
 ```sh
 uv sync --project apps/server
@@ -43,7 +43,7 @@ PAPERMAN_DATA_DIR=data uv run --project apps/server python apps/server/scripts/c
 
 The check sends fictional mail through the worker, OCR, real model, review API, filing, and repeat tagging. It uses temporary storage and does not change existing documents, owners, or settings. A pass requires three correct document groups, known and unknown owners, issue dates, missing-date fallback, expected tags, unchanged file paths, and preserved user tags. It exits with an error if any check fails. Only the configured endpoint receives the sample text.
 
-Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
+The earlier text-input pipeline with Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
 
 The [public PDF test set](packages/parser/test-data/public-pdfs/README.md) has eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a six-document claim packet. Ground truth was written from page images before evaluation. Both the standalone parser evaluation and the application upload/review/filing checks are complete. See [accuracy, workflow checks, and limits](packages/parser/test-data/public-pdfs/results/README.md). The current model still needs review for owners, dates, and tags.
 
@@ -96,13 +96,13 @@ state/search.json                 rebuildable full-text index
 state/worker.json                 worker heartbeat
 ```
 
-A document date means the date printed on the document. If absent, the UTC scan date is used and marked as a fallback. Final filenames contain that date, the UTC scan timestamp, a normalized title, and a unique document ID. Every source page must occur exactly once in the review proposal. Blank pages stay with their document. Pages with no readable text require review, even when automatic filing is enabled. Unknown is a reserved owner.
+A document date means the date printed on the document. If absent, the UTC scan date is used and marked as a fallback. Final filenames contain that date, the UTC scan timestamp, a normalized title, and a unique document ID. Every source page must occur exactly once in a document group or in the proposal's blank-page list. The split model identifies blank pages from images; filed documents omit them, while originals retain all pages. Retained pages with no readable text and entirely blank scans require review, even when automatic filing is enabled. Review can restore omitted pages. Unknown is a reserved owner.
 
 The worker resumes persisted stages after restart. A failed model call does not lose OCR output. Filing has deterministic IDs and paths, and publishes each file atomically. The original is removed from the inbox only after filing succeeds; its preserved copy remains in scan history. Exact duplicates link to the same scan. Later tagging replaces generated tags and preserves explicit user choices. Search currently uses a derived JSON text index; semantic embeddings are not required for the first pipeline.
 
 Use **Edit page groups** from a full document editor or a filed scan to correct splits and merges. The review form starts with current document metadata. Save validates page coverage and checks that no document changed while the form was open. Unchanged page groups keep their IDs, file paths, tags, summaries, and text corrections. Changed groups get new IDs and pending tagging; their old PDFs, text, and metadata move to scan history after publication. The previous document set stays visible if filing fails. Retry resumes the approved revision. Metadata edits do not rename or move files.
 
-`Storage`, `OCR`, and `Inference` define the worker's boundaries. OCR and inference live in the standalone parser package, which accepts PDF bytes and returns searchable content and proposals. The server saves checkpoints and publishes approved files. The first implementations use a configured directory, OCRmyPDF/Tesseract, and Pydantic AI with an explicit compatible endpoint. Compute provisioning and mount setup belong to deployment configuration. The app does not require a Pi or Homestack.
+`Storage`, `OCR`, and `Inference` define the worker's boundaries. OCR and inference live in the standalone parser package, which accepts PDF bytes and returns searchable content and proposals. The server saves checkpoints and publishes approved files. The first implementations use a configured directory, OCRmyPDF/Tesseract, and Pydantic AI with an explicit compatible endpoint. Model requests use only rendered PDF page images plus instructions and catalogs; OCR text stays local for search and review. The configured model must accept multiple images. Compute provisioning and mount setup belong to deployment configuration. The app does not require a Pi or Homestack.
 
 ## Development and checks
 

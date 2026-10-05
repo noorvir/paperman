@@ -1,0 +1,45 @@
+{
+  "id": "05",
+  "source_sha256": "5b378fccd8d7ebea1b3433dd0bc7cb63b106aec20d71afc4c11145bf5eda1edd",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "mike-mozina",
+        "title": "Fax about store count data",
+        "document_date": "1998-08-31",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "Fax cover sheet",
+          "Market research"
+        ],
+        "summary": "A Lorillard Tobacco Company fax note dated August 31, 1998, from Susan Smith to Mike Mozina at MSA says it sends approval for a quarterly store-count database and a table about convenience stores."
+      },
+      "error": "",
+      "seconds": 16.599587500095367
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 32.344592625042424,
+    "total": 48.944697374943644
+  }
+}

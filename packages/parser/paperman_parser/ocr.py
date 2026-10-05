@@ -65,8 +65,4 @@ class LocalOCR:
             if len(result.pages) != len(original.pages):
                 raise ValueError("OCR changed the page count")
             pages = [page.extract_text() for page in result.pages]
-            if not any(text.strip() for text in pages):
-                raise ValueError(
-                    "OCR found no readable text. Check the scan and OCR language"
-                )
             return SearchableDocument(pdf=pdf, pages=pages)
