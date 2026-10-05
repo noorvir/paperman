@@ -448,6 +448,54 @@
             }
           }
         }
+      },
+      "post": {
+        "summary": "Revise Scan",
+        "operationId": "revise_scan",
+        "parameters": [
+          {
+            "name": "scan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "title": "Scan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScanFeedback"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Analysis-Output"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
       }
     },
     "/api/uploads": {
@@ -470,7 +518,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ActionResult"
+                  "$ref": "#/components/schemas/Scan"
                 }
               }
             }
@@ -999,7 +1047,33 @@
         ],
         "title": "ActionResult"
       },
-      "Analysis": {
+      "Analysis-Input": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentProposal-Input"
+            },
+            "type": "array",
+            "title": "Documents"
+          },
+          "blank_pages": {
+            "items": {
+              "type": "integer",
+              "minimum": 1.0
+            },
+            "type": "array",
+            "title": "Blank Pages",
+            "description": "Confirmed blank source pages omitted from filed documents. Originals retain every page."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "title": "Analysis"
+      },
+      "Analysis-Output": {
         "properties": {
           "documents": {
             "items": {
@@ -1769,7 +1843,7 @@
           "review_before_filing": {
             "type": "boolean",
             "title": "Review Before Filing",
-            "default": true
+            "default": false
           },
           "ocr_languages": {
             "type": "string",
@@ -1835,7 +1909,7 @@
           "review_before_filing": {
             "type": "boolean",
             "title": "Review Before Filing",
-            "default": true
+            "default": false
           },
           "ocr_languages": {
             "type": "string",
@@ -2146,7 +2220,7 @@
           "proposal": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Analysis"
+                "$ref": "#/components/schemas/Analysis-Output"
               },
               {
                 "type": "null"
@@ -2273,7 +2347,7 @@
           "proposal": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Analysis"
+                "$ref": "#/components/schemas/Analysis-Output"
               },
               {
                 "type": "null"
@@ -2335,6 +2409,26 @@
           "pipeline"
         ],
         "title": "ScanDetail"
+      },
+      "ScanFeedback": {
+        "properties": {
+          "proposal": {
+            "$ref": "#/components/schemas/Analysis-Input"
+          },
+          "instructions": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Instructions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "proposal",
+          "instructions"
+        ],
+        "title": "ScanFeedback"
       },
       "ScanPage": {
         "properties": {

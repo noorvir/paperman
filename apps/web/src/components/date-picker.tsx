@@ -12,12 +12,14 @@ export function DatePicker({
   value,
   defaultValue = "",
   onValueChange,
+  attention,
 }: {
   label: string;
   name?: string;
   value?: string;
   defaultValue?: string;
   onValueChange?: (value: string) => void;
+  attention?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(defaultValue);
@@ -35,6 +37,8 @@ export function DatePicker({
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger
           aria-label={label}
+          aria-description={attention}
+          data-attention={Boolean(attention)}
           render={
             <Button
               variant="outline"

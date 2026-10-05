@@ -164,7 +164,9 @@ export function SettingsForm({
         Review all scans before filing
       </label>
       <p className="workspace-description">
-        Uncertain groups and unknown owners always need review.
+        Clear scans are filed automatically when this is off. Uncertain page
+        groups or details still need review. A clearly absent owner or date can
+        use Unknown or the scan date.
       </p>
       <ErrorNotice message={error} />
       <div className="flex items-center gap-3">

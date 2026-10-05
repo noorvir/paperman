@@ -97,6 +97,21 @@ export const approveScan = createServerFn({ method: "POST" })
     });
     return unwrap(result);
   });
+export const reviseScan = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string(),
+      proposal: proposalInput,
+      instructions: z.string().trim().min(1).max(4000),
+    }),
+  )
+  .handler(async ({ data: { id, proposal, instructions } }) => {
+    const result = await client.POST("/api/scans/{scan_id}/review", {
+      params: { path: { scan_id: id } },
+      body: { proposal, instructions },
+    });
+    return unwrap(result);
+  });
 export const enrichDocument = createServerFn({ method: "POST" })
   .validator(z.string())
   .handler(async ({ data }) => {

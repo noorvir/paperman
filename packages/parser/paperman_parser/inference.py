@@ -36,6 +36,7 @@ from paperman_parser.pdf import pages_with_text, render_pdf
 from paperman_parser.prompt import Prompt
 from paperman_parser.prompt.details import details
 from paperman_parser.prompt.enrich import enrich
+from paperman_parser.prompt.revise import revise
 from paperman_parser.prompt.split import split
 
 
@@ -46,7 +47,7 @@ class EndpointInference:
 
     @property
     def version(self) -> str:
-        return f"organization-v5-blank-pages:{self.settings.base_url}:{self.settings.model}"
+        return f"organization-v6-selective-review:{self.settings.base_url}:{self.settings.model}"
 
     async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         pages = await asyncio.to_thread(render_pdf, source)
@@ -129,6 +130,24 @@ class EndpointInference:
 
         return await self._request(
             Enrichment, enrich(pages, catalog.tags), validate_tags
+        )
+
+    async def revise(
+        self, source: bytes, catalog: Catalog, proposal: Analysis, instructions: str
+    ) -> Analysis:
+        pages = await asyncio.to_thread(render_pdf, source)
+        text_pages = await asyncio.to_thread(pages_with_text, source)
+        validate_analysis(proposal, len(pages), catalog)
+
+        def validate_revision(result: Analysis) -> None:
+            validate_analysis(result, len(pages), catalog)
+            if text_pages.intersection(result.blank_pages):
+                raise ValueError(
+                    "Pages with a text layer cannot be omitted as blank. Keep them in a document"
+                )
+
+        return await self._request(
+            Analysis, revise(pages, catalog, proposal, instructions), validate_revision
         )
 
     async def _request[T: BaseModel](

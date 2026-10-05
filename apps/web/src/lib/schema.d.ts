@@ -134,7 +134,8 @@ export interface paths {
         get?: never;
         /** Approve Scan */
         put: operations["approve_scan"];
-        post?: never;
+        /** Revise Scan */
+        post: operations["revise_scan"];
         delete?: never;
         options?: never;
         head?: never;
@@ -306,7 +307,17 @@ export interface components {
             message: string;
         };
         /** Analysis */
-        Analysis: {
+        "Analysis-Input": {
+            /** Documents */
+            documents: components["schemas"]["DocumentProposal-Input"][];
+            /**
+             * Blank Pages
+             * @description Confirmed blank source pages omitted from filed documents. Originals retain every page.
+             */
+            blank_pages?: number[];
+        };
+        /** Analysis */
+        "Analysis-Output": {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Output"][];
             /**
@@ -625,7 +636,7 @@ export interface components {
             output_mode: "prompted" | "native" | "tool";
             /**
              * Review Before Filing
-             * @default true
+             * @default false
              */
             review_before_filing: boolean;
             /**
@@ -671,7 +682,7 @@ export interface components {
             output_mode: "prompted" | "native" | "tool";
             /**
              * Review Before Filing
-             * @default true
+             * @default false
              */
             review_before_filing: boolean;
             /**
@@ -801,7 +812,7 @@ export interface components {
              * @default 0
              */
             attempts: number;
-            proposal: components["schemas"]["Analysis"] | null;
+            proposal: components["schemas"]["Analysis-Output"] | null;
             /** Document Ids */
             document_ids: string[];
             /**
@@ -859,7 +870,7 @@ export interface components {
              * @default 0
              */
             attempts: number;
-            proposal: components["schemas"]["Analysis"] | null;
+            proposal: components["schemas"]["Analysis-Output"] | null;
             /** Document Ids */
             document_ids: string[];
             /**
@@ -875,6 +886,12 @@ export interface components {
             history: components["schemas"]["Event"][];
             /** Pipeline */
             pipeline: components["schemas"]["PipelineStep"][];
+        };
+        /** ScanFeedback */
+        ScanFeedback: {
+            proposal: components["schemas"]["Analysis-Input"];
+            /** Instructions */
+            instructions: string;
         };
         /** ScanPage */
         ScanPage: {
@@ -1234,6 +1251,41 @@ export interface operations {
             };
         };
     };
+    revise_scan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScanFeedback"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Analysis-Output"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     upload: {
         parameters: {
             query?: never;
@@ -1253,7 +1305,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ActionResult"];
+                    "application/json": components["schemas"]["Scan"];
                 };
             };
             /** @description Validation Error */

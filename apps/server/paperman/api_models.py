@@ -114,3 +114,8 @@ class DocumentEdit(Record):
 
 class ScanReview(Analysis):
     document_revisions: dict[Identifier, int] = Field(default_factory=dict)
+
+
+class ScanFeedback(Record):
+    proposal: Analysis
+    instructions: Annotated[str, Field(min_length=1, max_length=4000)]

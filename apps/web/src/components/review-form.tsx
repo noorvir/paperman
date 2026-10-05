@@ -1,12 +1,13 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
-import { approveScan } from "@/lib/actions";
+import { approveScan, reviseScan } from "@/lib/actions";
 import { ErrorNotice } from "./page";
 import { Input } from "./ui/input";
 import { Button, buttonVariants } from "./ui/button";
 import { SelectField } from "./select-field";
 import { DatePicker } from "./date-picker";
+import { ReviewFeedback } from "./review-feedback";
 
 type Proposal = NonNullable<components["schemas"]["Scan"]["proposal"]>;
 type Draft = {
@@ -15,6 +16,7 @@ type Draft = {
   title: string;
   document_date: string;
   review_reason: string;
+  confidence: number;
 };
 export function ReviewForm({
   scan,
@@ -27,51 +29,71 @@ export function ReviewForm({
   owners: components["schemas"]["CatalogEntry"][];
   documentRevisions: Record<string, number>;
 }) {
-  const [drafts, setDrafts] = useState<Draft[]>(
-    proposal.documents.map((document) => ({
-      ...document,
-      pages: document.pages.join(", "),
-      document_date: document.document_date ?? "",
-      review_reason: document.review_reason ?? "",
-    })),
-  );
+  const [drafts, setDrafts] = useState<Draft[]>(toDrafts(proposal));
   const [pending, setPending] = useState(false);
   const [blankPages, setBlankPages] = useState(proposal.blank_pages.join(", "));
   const [error, setError] = useState("");
+  const [previous, setPrevious] = useState<{
+    drafts: Draft[];
+    blankPages: string;
+  } | null>(null);
   const navigate = useNavigate();
   const router = useRouter();
   const [revisions] = useState(documentRevisions);
   function update(index: number, patch: Partial<Draft>) {
+    setPrevious(null);
     setDrafts((drafts) =>
       drafts.map((draft, position) =>
         position === index ? { ...draft, ...patch } : draft,
       ),
     );
   }
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setPending(true);
-    setError("");
-    try {
-      const documents = drafts.map((draft) => ({
+  function getProposal() {
+    return {
+      documents: drafts.map((draft) => ({
         ...draft,
         pages: draft.pages.split(",").map((page) => Number(page.trim())),
         document_date: draft.document_date || null,
+      })),
+      blank_pages: blankPages.trim()
+        ? blankPages.split(",").map((page) => Number(page.trim()))
+        : [],
+    };
+  }
+  async function revise(instructions: string) {
+    setPending(true);
+    setError("");
+    try {
+      const result = await reviseScan({
+        data: { id: scan.id, proposal: getProposal(), instructions },
+      });
+      setPrevious({ drafts, blankPages });
+      setDrafts(toDrafts(result));
+      setBlankPages(result.blank_pages.join(", "));
+    } finally {
+      setPending(false);
+    }
+  }
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (pending) {
+      return;
+    }
+    setPending(true);
+    setError("");
+    try {
+      const current = getProposal();
+      const documents = current.documents.map((document) => ({
+        ...document,
         confidence: 1,
         review_reason: "",
       }));
-      let blankPageNumbers: number[] = [];
-      if (blankPages.trim()) {
-        blankPageNumbers = blankPages
-          .split(",")
-          .map((page) => Number(page.trim()));
-      }
       await approveScan({
         data: {
           id: scan.id,
           proposal: {
             documents,
-            blank_pages: blankPageNumbers,
+            blank_pages: current.blank_pages,
             document_revisions: revisions,
           },
         },
@@ -94,15 +116,31 @@ export function ReviewForm({
       <p className="text-xs leading-relaxed text-muted-foreground">
         Account for pages 1 through {scan.page_count}, once each, in a document
         group or as a blank page. Keep document pages in source order. A blank
-        date uses the scan date.
+        date uses the scan date. Check the fields marked in amber.
       </p>
+      <ReviewFeedback
+        disabled={pending}
+        onRevise={revise}
+        onUndo={
+          previous
+            ? () => {
+                setDrafts(previous.drafts);
+                setBlankPages(previous.blankPages);
+                setPrevious(null);
+              }
+            : undefined
+        }
+      />
       <label className="field-label">
         Blank pages to omit
         <Input
           value={blankPages}
           disabled={pending}
           placeholder="For example: 2, 4, 6"
-          onChange={(event) => setBlankPages(event.target.value)}
+          onChange={(event) => {
+            setPrevious(null);
+            setBlankPages(event.target.value);
+          }}
         />
         <span className="text-xs font-normal leading-relaxed text-muted-foreground">
           Check these pages in the preview. They stay in the original scan. To
@@ -137,18 +175,25 @@ export function ReviewForm({
                 variant="ghost"
                 size="sm"
                 disabled={pending}
-                onClick={() =>
+                onClick={() => {
+                  setPrevious(null);
                   setDrafts((drafts) =>
                     drafts.filter((_draft, position) => position !== index),
-                  )
-                }
+                  );
+                }}
               >
                 Remove group
               </Button>
             </div>
             {draft.review_reason && (
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-amber-800 dark:text-amber-300">
                 {draft.review_reason}
+              </p>
+            )}
+            {!draft.review_reason && draft.confidence < 0.9 && (
+              <p className="text-xs text-amber-800 dark:text-amber-300">
+                The model has low confidence in this document. Check its pages
+                and details.
               </p>
             )}
             <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-3">
@@ -182,6 +227,11 @@ export function ReviewForm({
                 <SelectField
                   label={`Document ${index + 1} owner`}
                   value={draft.owner_id}
+                  attention={
+                    draft.owner_id === "unknown"
+                      ? "Owner not identified. Select an owner or keep Unknown."
+                      : undefined
+                  }
                   onValueChange={(value) => update(index, { owner_id: value })}
                   items={owners.map((owner) => ({
                     value: owner.id,
@@ -194,6 +244,11 @@ export function ReviewForm({
                 <DatePicker
                   label={`Document ${index + 1} date`}
                   value={draft.document_date}
+                  attention={
+                    !draft.document_date
+                      ? "No document date identified. Set a date or leave blank to use the scan date."
+                      : undefined
+                  }
                   onValueChange={(value) =>
                     update(index, { document_date: value })
                   }
@@ -208,7 +263,8 @@ export function ReviewForm({
           type="button"
           variant="outline"
           disabled={pending}
-          onClick={() =>
+          onClick={() => {
+            setPrevious(null);
             setDrafts((drafts) => [
               ...drafts,
               {
@@ -217,9 +273,10 @@ export function ReviewForm({
                 owner_id: "unknown",
                 document_date: "",
                 review_reason: "",
+                confidence: 1,
               },
-            ])
-          }
+            ]);
+          }}
         >
           Add document group
         </Button>
@@ -232,15 +289,21 @@ export function ReviewForm({
             Cancel
           </Link>
           <Button type="submit" disabled={pending}>
-            {pending
-              ? "Saving"
-              : scan.status === "complete"
-                ? "Save page groups"
-                : "Approve and file"}
+            {scan.status === "complete"
+              ? "Save page groups"
+              : "Approve and file"}
           </Button>
         </div>
       </div>
       <ErrorNotice message={error} />
     </form>
   );
+}
+
+function toDrafts(proposal: Proposal): Draft[] {
+  return proposal.documents.map((document) => ({
+    ...document,
+    pages: document.pages.join(", "),
+    document_date: document.document_date ?? "",
+  }));
 }

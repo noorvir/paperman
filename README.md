@@ -15,11 +15,13 @@ bun run dev
 
 Open <http://127.0.0.1:3001>. This starts the Python API, the independent worker, and the web server. In Settings, add owner names and aliases, then set the model endpoint and name. The endpoint must support the OpenAI Chat Completions protocol. Ollama uses an endpoint such as `http://gpu-host:11434/v1`. Real inference requires an endpoint; PaperMan never selects a cloud fallback. A required endpoint credential belongs in `PAPERMAN_MODEL_API_KEY`, not in a committed config file.
 
-Upload a PDF on the Scans page, or put one in `data/inbox`. The worker listens for file events and scans periodically. It waits for files to settle, preserves their bytes under a SHA-256 identity, and runs OCR. Scans need review before filing by default. Review all source pages, owners, dates, and titles; approve to file. Failed steps have retry controls. The overview reports an offline worker and failed scans or tagging.
+Upload a PDF on the Scans page, or put one in `data/inbox`. The worker listens for file events and scans periodically. It waits for files to settle, preserves their bytes under a SHA-256 identity, and runs OCR. Clear scans are filed automatically by default. Model confidence below 0.9, an explicit review reason, invalid page coverage, unreadable retained pages, and all-blank scans require review. A clearly absent owner or date can use Unknown or the scan date. Failed steps have retry controls. The overview reports an offline worker and failed scans or tagging.
 
 ## Local inference
 
-Llama and Ollama are separate apps with separate model lists and endpoints. Check the server for the app that holds the installed model. In Settings, use **Compatible API** for Llama's llama.cpp server or **Ollama** for Ollama, then enter the endpoint and model ID. Select **Native JSON schema** and keep **Review all scans before filing** enabled.
+Llama and Ollama are separate apps with separate model lists and endpoints. Check the server for the app that holds the installed model. In Settings, use **Compatible API** for Llama's llama.cpp server or **Ollama** for Ollama, then enter the endpoint and model ID. Select **Native JSON schema**. Enable **Review all scans before filing** if every scan must be checked. Existing saved settings are retained.
+
+On the review page, use the manual controls or **Describe changes** to give instructions in plain English. **Update proposal** uses the configured model and the current draft to revise page groups and document details. The result stays in the form and can be undone; **Approve and file** saves it. The same controls can correct page groups after filing. Model confidence is a self-reported estimate, not measured accuracy.
 
 Verified local Llama settings:
 

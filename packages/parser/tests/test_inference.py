@@ -1,4 +1,5 @@
 import asyncio
+import json
 from collections.abc import Callable
 from datetime import date
 from io import BytesIO
@@ -21,7 +22,13 @@ from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
 from paperman_parser.inference import EndpointInference
-from paperman_parser.models import Catalog, CatalogEntry, InferenceSettings
+from paperman_parser.models import (
+    Analysis,
+    Catalog,
+    CatalogEntry,
+    DocumentProposal,
+    InferenceSettings,
+)
 from paperman_parser.pdf import render_pdf, select_pages
 
 
@@ -171,6 +178,78 @@ def test_invalid_model_output_stops_after_bounded_retries(
     with pytest.raises(ValueError, match="valid data after validation retries"):
         asyncio.run(inference.analyze(pdf_bytes(["Only one page"]), Catalog()))
     assert attempts == 3
+
+
+def test_feedback_uses_current_draft_and_validates_page_coverage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    proposal = Analysis(
+        documents=[
+            DocumentProposal(pages=[1], title="My title", confidence=1),
+            DocumentProposal(pages=[2], title="Terms", confidence=1),
+        ],
+        blank_pages=[3],
+    )
+    instructions = "Keep all three pages together and preserve My title."
+    responses = iter(
+        [
+            Analysis(
+                documents=[
+                    DocumentProposal(pages=[1, 1, 2], title="My title", confidence=1)
+                ]
+            ),
+            Analysis(
+                documents=[
+                    DocumentProposal(pages=[1, 3], title="My title", confidence=1)
+                ],
+                blank_pages=[2],
+            ),
+            Analysis(
+                documents=[
+                    DocumentProposal(pages=[1, 2, 3], title="My title", confidence=1)
+                ]
+            ),
+        ]
+    )
+    requests = 0
+
+    def respond(messages: list[ModelMessage], _info: AgentInfo) -> ModelResponse:
+        nonlocal requests
+        requests += 1
+        for message in messages:
+            for part in message.parts:
+                if isinstance(part, UserPromptPart):
+                    assert not isinstance(part.content, str)
+                    images = [
+                        item for item in part.content if isinstance(item, BinaryContent)
+                    ]
+                    assert len(images) == 3
+                    text = next(item for item in part.content if isinstance(item, str))
+                    assert '"user_feedback": ' + json.dumps(instructions) in text
+                    assert '"title": "My title"' in text
+                    assert "OCR-SENTINEL" not in text
+        return ModelResponse(parts=[TextPart(next(responses).model_dump_json())])
+
+    replace_model(monkeypatch, respond)
+    inference = EndpointInference(
+        InferenceSettings(
+            base_url="http://model.test/v1", model="test", output_mode="native"
+        ),
+        "local",
+    )
+    result = asyncio.run(
+        inference.revise(
+            pdf_bytes(["OCR-SENTINEL Letter", "OCR-SENTINEL Terms", ""]),
+            Catalog(),
+            proposal,
+            instructions,
+        )
+    )
+    assert requests == 3
+    assert [document.pages for document in result.documents] == [[1, 2, 3]]
+    assert result.documents[0].title == "My title"
+    assert result.blank_pages == []
+    assert [document.pages for document in proposal.documents] == [[1], [2]]
 
 
 @pytest.mark.parametrize(

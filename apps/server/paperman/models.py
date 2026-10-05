@@ -12,7 +12,7 @@ def now() -> datetime:
 
 
 class ModelSettings(InferenceSettings):
-    review_before_filing: bool = True
+    review_before_filing: bool = False
     ocr_languages: str = "eng"
 
 

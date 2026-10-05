@@ -204,6 +204,10 @@
   }
 }
 
+[data-slot][data-attention="true"] {
+  @apply border-amber-500 bg-amber-50 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 dark:border-amber-600 dark:bg-amber-950/40;
+}
+
 @layer components {
   .collection {
     @apply flex min-h-64 flex-1 flex-col gap-3;

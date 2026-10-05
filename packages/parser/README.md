@@ -50,6 +50,11 @@ Each prompt is a typed Python function in `paperman_parser/prompt/`:
 - `split.py`: `split(pages: list[bytes]) -> Prompt` identifies document boundaries and blank pages.
 - `details.py`: `details(pages: list[bytes], owners: list[CatalogEntry]) -> Prompt` extracts owner, title, and issue date.
 - `enrich.py`: `enrich(pages: list[bytes], tags: list[CatalogEntry]) -> Prompt` assigns tags and a summary.
+- `revise.py`: `revise(pages, catalog, proposal, instructions) -> Prompt` applies user feedback to the current proposal.
+
+`Inference.revise(source, catalog, proposal, instructions) -> Analysis` returns a revised draft without saving state. It uses the whole scan's page images and validates page coverage, catalog owners, and blank-page omissions. The caller owns approval and filing. Demo inference does not support feedback.
+
+Split confidence and detail confidence are combined using their minimum for each document. `review_reason` can explicitly ask for a decision about an uncertain boundary or field. A clearly absent recipient or issue date does not by itself imply uncertainty. Confidence is a model estimate, not a calibrated accuracy measure; the application owns review policy.
 
 `Prompt` carries instructions, catalog/page context, and ordered PNG bytes. The
 transport adds the images as image inputs, never as OCR text. These same functions

@@ -1,5 +1,6 @@
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
+import { z } from "zod";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Upload04Icon,
@@ -11,7 +12,7 @@ import { ErrorNotice } from "./page";
 
 export function UploadForm() {
   const [pending, setPending] = useState(false);
-  const [complete, setComplete] = useState(false);
+  const [scanId, setScanId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState("");
@@ -19,18 +20,26 @@ export function UploadForm() {
   const router = useRouter();
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!file) return;
+    if (!file || pending) {
+      return;
+    }
     setPending(true);
     setError("");
     const body = new FormData();
     body.set("file", file);
     try {
       const response = await fetch("/api/uploads", { method: "POST", body });
-      if (!response.ok)
+      const result: unknown = await response.json();
+      if (!response.ok) {
+        const error = z.object({ detail: z.string() }).safeParse(result);
         throw new Error(
-          "Upload failed. Use a PDF within the upload limit and try again.",
+          error.success
+            ? error.data.detail
+            : "Upload failed. Use a PDF within the upload limit and try again.",
         );
-      setComplete(true);
+      }
+      const scan = z.object({ id: z.string().min(1) }).parse(result);
+      setScanId(scan.id);
       await router.invalidate();
     } catch (error) {
       setError(error instanceof Error ? error.message : "Upload failed");
@@ -38,7 +47,7 @@ export function UploadForm() {
       setPending(false);
     }
   }
-  if (complete)
+  if (scanId)
     return (
       <section
         className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 py-16 text-center"
@@ -49,16 +58,21 @@ export function UploadForm() {
         </span>
         <h2 className="text-lg font-semibold">Scan received</h2>
         <p className="workspace-description">
-          {file?.name} is in the inbox. It will appear in Scans after the worker
-          picks it up.
+          {file?.name} is saved. Open the scan to see its processing status and
+          review its documents.
         </p>
-        <Link to="/scans" search={{}} className={buttonVariants()}>
-          View scans
+        <Link
+          to="/scans/$scanId"
+          params={{ scanId }}
+          search={{ preview: false, view: "pdf" }}
+          className={buttonVariants()}
+        >
+          View progress
         </Link>
         <Button
           variant="ghost"
           onClick={() => {
-            setComplete(false);
+            setScanId(null);
             setFile(null);
           }}
         >

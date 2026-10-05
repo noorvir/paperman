@@ -75,6 +75,20 @@ Research: [DocJev architecture](https://github.com/jerryjliu/docjev/blob/main/do
 
 ## Current UI milestone
 
+- [x] Disable native image dragging and browser image selection in the shared PDF viewer so they cannot interrupt PDF text selection. Keep page interactions with the PDF selection layer across previews, full documents, scans, and review. Web types, formatting, and the production build pass. The drag gesture remains for the user to check in the browser.
+
+- [x] Use selective review by default: model confidence below 0.9, an explicit uncertainty reason, or a validation/OCR problem stops filing. Clear absence of an owner or date can use the existing fallback. Plain-English corrections update the review draft, with Undo and explicit approval before filing. Ten parser and eighteen server checks pass, plus strict types, lint, and the web build. Model accuracy and browser interactions remain unmeasured for this feature.
+
+```text
+Review draft + user instructions -> configured parser adapter -> revised Analysis
+Input: saved searchable PDF, current draft, owner catalog, user instructions
+Output: validated page groups, blank pages, owners, titles, dates, confidence, review reasons
+The parser owns inference; the API validates scan state and page coverage.
+Feedback updates the browser draft only. Approve owns saved changes and filing.
+```
+
+- [x] Register uploaded PDFs before returning success and link directly to their scan progress. Preserve duplicate scan state and reject invalid uploads before intake. Mark Unknown owners and missing dates with shared amber field styling and accessible review hints. Seven upload/API/progress tests, strict types, lint, and the web build pass. Browser layout remains for the user to check.
+
 - [x] Store processed PDFs as `YYYY-MM-DD-title-with-dashes-<milliseconds>.pdf`. Reserve paths before publication and resolve collisions without overwrites. Renamed 87 local processed documents, including both demo libraries, with a backup and resumable migration. IDs, PDF/text contents, metadata, and source scans are preserved. All 36 live PDF links pass. Thirteen filing, rename, recovery, and ownership tests, strict types, lint, and the web build pass. Rows show only the filename below the title; browser layout remains for the user to check.
 
 - [x] Share the processed-document table across Overview, Documents, and scan results. Show the title above the saved output path, followed by Owner and Tags. Remove separate Title and Location columns. Status results carry the document record for the same table; retain panel bounds and existing preview/filter actions. Five API tests, strict types, lint, and the production build pass. The live API confirms saved output paths and metadata. Browser layout remains for the user to check.
@@ -181,7 +195,7 @@ The worker owns processing decisions and recovery. The storage implementation ow
 - AI groups the batch into logical documents, preserving page order and multi-page letters. Validate that every source page is accounted for, including pages explicitly marked blank or requiring review.
 - Detect blank pages in that same image request. Omit confirmed blanks only from final documents; originals and the searchable scan retain every page. Keep signatures, stamps, photos, forms, faint text, and uncertain content. A text-bearing page cannot be automatically omitted. Record omitted source numbers; review can restore them. All-blank scans require confirmation before completion with no filed documents.
 - Assign each document one owner from a filesystem catalog. Start with names: likely the user, his wife, and possibly his company. Use a defined unknown/miscellaneous owner when none matches; do not force a match.
-- Resolve uncertain splits or filing details before final publication. Use one catalog owner per document. Review all scans by default; always review uncertain groups, invalid coverage, and unknown owners.
+- Resolve uncertain splits or filing details before final publication. Use one catalog owner per document. Selective review is the default; review confidence below 0.9, explicit uncertainty, invalid coverage, and unreadable retained pages. A clearly absent owner or date can use Unknown or the scan date. Keep an option to review all scans.
 
 ### 4. Date, name, and file
 
@@ -249,7 +263,7 @@ Keep retry/restart behaviour small: bounded automatic retries where useful, manu
 
 ## Implementation choices and remaining verification
 
-TOML sidecars are canonical document metadata; each scan has a JSON checkpoint/history. SHA-256 identifies exact scan bytes. Dates use the printed document issue date, with a recorded UTC scan-date fallback. Owner IDs include a readable name and stable suffix. Unknown is reserved. Every scan is reviewed by default; invalid page coverage, uncertain output, and unknown ownership always require review. Approved paths are fixed. User tag choices override generated tags. A JSON full-text index is derived from text/PDFs and can be rebuilt. Semantic embeddings remain optional.
+TOML sidecars are canonical document metadata; each scan has a JSON checkpoint/history. SHA-256 identifies exact scan bytes. Dates use the printed document issue date, with a recorded UTC scan-date fallback. Owner IDs include a readable name and stable suffix. Unknown is reserved. Selective review is the default; invalid coverage, unreadable retained pages, and uncertain output require review. Approved paths are fixed. User tag choices override generated tags. A JSON full-text index is derived from text/PDFs and can be rebuilt. Semantic embeddings remain optional.
 
 OCRmyPDF with local Tesseract embeds the searchable text layer. Pydantic AI supports configured compatible and Ollama endpoints, output modes, and reasoning controls. Network/model failures are visible, with manual retry; structured output has bounded validation retries. No automatic external fallback exists.
 

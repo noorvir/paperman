@@ -73,3 +73,8 @@ class DemoInference:
         )
         suggested_tags = ["Membership"] if "membership" in text.lower() else []
         return Enrichment(tag_ids=tags, summary=summary, suggested_tags=suggested_tags)
+
+    async def revise(
+        self, source: bytes, catalog: Catalog, proposal: Analysis, instructions: str
+    ) -> Analysis:
+        raise ValueError("Connect a model in Settings to use review feedback")

@@ -1,14 +1,17 @@
+import asyncio
 from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
+from paperman_parser.inference import EndpointInference
 from paperman_parser.models import Analysis, Identifier, validate_analysis
 
-from paperman.api_models import ActionResult, ScanDetail, ScanPage, ScanReview
+from paperman.api_models import ScanDetail, ScanFeedback, ScanPage, ScanReview
 from paperman.config import Settings
 from paperman.models import Event, Scan, now
+from paperman.pdf import validate_scan
 from paperman.progress import scan_progress
 from paperman.storage import FileStorage, atomic_target, write_record
 
@@ -117,25 +120,67 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
             (storage.root / "state" / "wake").touch()
         return scan
 
+    @router.post("/api/scans/{scan_id}/review", operation_id="revise_scan")
+    async def revise_scan(scan_id: Identifier, value: ScanFeedback) -> Analysis:
+        with storage.transaction():
+            scan = storage.get_scan(scan_id)
+            if scan.status not in ("review", "complete"):
+                raise HTTPException(
+                    409, "Wait for processing to finish before changing the proposal"
+                )
+            catalog = storage.catalog()
+            settings = storage.settings()
+        if settings.provider == "demo":
+            raise HTTPException(
+                422, "Connect a model in Settings to use review feedback"
+            )
+        if not value.instructions.strip():
+            raise HTTPException(422, "Describe the changes you want")
+        validate_analysis(value.proposal, scan.page_count, catalog)
+        source = await asyncio.to_thread(
+            storage.scan_path(scan.id, "searchable.pdf").read_bytes
+        )
+        inference = EndpointInference(settings, config.model_api_key)
+        result = await inference.revise(
+            source, catalog, value.proposal, value.instructions
+        )
+        with storage.transaction():
+            current = storage.get_scan(scan_id)
+            if (current.status, current.attempts, current.filing_revision) != (
+                scan.status,
+                scan.attempts,
+                scan.filing_revision,
+            ):
+                raise HTTPException(
+                    409, "This scan changed. Reload before updating the proposal"
+                )
+            validate_analysis(result, current.page_count, storage.catalog())
+        return result
+
     @router.post("/api/uploads", operation_id="upload")
-    async def upload(file: UploadFile) -> ActionResult:
+    def upload(file: UploadFile) -> Scan:
         if not file.filename or Path(file.filename).suffix.lower() != ".pdf":
             raise HTTPException(422, "Select a PDF file")
         filename = f"{now().strftime('%Y%m%dT%H%M%S')}-{uuid4().hex[:12]}-{Path(file.filename).name}"
         target = storage.root / "inbox" / filename
         size = 0
-        with atomic_target(target) as temporary:
-            with temporary.open("wb") as output:
-                while chunk := await file.read(1024 * 1024):
-                    size += len(chunk)
-                    if size > config.max_upload_mb * 1024 * 1024:
-                        raise HTTPException(413, "PDF exceeds the upload limit")
-                    output.write(chunk)
-            with temporary.open("rb") as source:
-                if source.read(5) != b"%PDF-":
-                    raise HTTPException(422, "This file is not a PDF")
-        return ActionResult(
-            message="PDF received. It will appear after the worker checks the upload"
-        )
+        with storage.transaction():
+            with atomic_target(target) as temporary:
+                with temporary.open("wb") as output:
+                    while chunk := file.file.read(1024 * 1024):
+                        size += len(chunk)
+                        if size > config.max_upload_mb * 1024 * 1024:
+                            raise HTTPException(413, "PDF exceeds the upload limit")
+                        output.write(chunk)
+                with temporary.open("rb") as source:
+                    if source.read(5) != b"%PDF-":
+                        raise HTTPException(422, "This file is not a PDF")
+                validate_scan(temporary)
+            scan = storage.ingest(target)
+            if scan.original_name == filename:
+                scan.timestamp_source = "upload"
+                storage.save_scan(scan)
+        (storage.root / "state" / "wake").touch()
+        return scan
 
     return router

@@ -132,11 +132,14 @@ export default function PdfViewer({
                             <PagePointerProvider
                               documentId={activeDocumentId}
                               pageIndex={pageIndex}
+                              className="select-none"
                             >
                               <RenderLayer
                                 documentId={activeDocumentId}
                                 pageIndex={pageIndex}
                                 aria-label={`Page ${pageIndex + 1}`}
+                                draggable={false}
+                                className="pointer-events-none"
                               />
                               <SearchLayer
                                 documentId={activeDocumentId}
@@ -145,6 +148,7 @@ export default function PdfViewer({
                               <SelectionLayer
                                 documentId={activeDocumentId}
                                 pageIndex={pageIndex}
+                                background="Highlight"
                               />
                             </PagePointerProvider>
                           </Rotate>

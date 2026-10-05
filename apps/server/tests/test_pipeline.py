@@ -34,6 +34,11 @@ class FixtureOCR:
 class FixtureInference:
     version = "test-v1"
 
+    async def revise(
+        self, source: bytes, catalog: Catalog, proposal: Analysis, instructions: str
+    ) -> Analysis:
+        raise NotImplementedError("This test adapter does not revise proposals")
+
     async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         return Analysis(
             documents=[
@@ -202,6 +207,59 @@ class ConfidentInference(FixtureInference):
                 )
             ]
         )
+
+
+@pytest.mark.parametrize(
+    ("confidence", "reason", "review_all", "expected_status"),
+    [
+        (1, "", False, "complete"),
+        (1, " ", False, "complete"),
+        (0.9, "", False, "complete"),
+        (0.89, "", False, "review"),
+        (0.99, "Is page 3 a separate document?", False, "review"),
+        (1, "", True, "review"),
+    ],
+)
+def test_selective_review_distinguishes_absence_from_uncertainty(
+    tmp_path: Path,
+    confidence: float,
+    reason: str,
+    review_all: bool,
+    expected_status: str,
+) -> None:
+    class ReviewInference(FixtureInference):
+        async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
+            return Analysis(
+                documents=[
+                    DocumentProposal(
+                        pages=[1, 2, 3],
+                        owner_id="unknown",
+                        title="Guide",
+                        document_date=None,
+                        confidence=confidence,
+                        review_reason=reason,
+                    )
+                ]
+            )
+
+    store = FileStorage(tmp_path)
+    settings = store.settings()
+    assert not settings.review_before_filing
+    settings.review_before_filing = review_all
+    write_record(tmp_path / "settings.toml", settings)
+    source = tmp_path / "inbox" / "mail.pdf"
+    create_pdf(source)
+    scan = store.ingest(source)
+    asyncio.run(process_scan(store, ReviewInference(), FixtureOCR(), scan))
+    result = store.get_scan(scan.id)
+    assert result.status == expected_status
+    if expected_status == "complete":
+        document = store.list_documents()[0]
+        assert document.owner_id == "unknown"
+        assert document.date_source == "scan_fallback"
+        assert document.document_date == scan.scanned_at.date()
+    else:
+        assert store.list_documents() == []
 
 
 def test_empty_page_requires_review_even_with_confident_analysis(

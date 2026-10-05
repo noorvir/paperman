@@ -12,6 +12,7 @@ export function SelectField({
   label,
   items,
   className,
+  attention,
   onValueChange,
   ...props
 }: {
@@ -22,6 +23,7 @@ export function SelectField({
   defaultValue?: string;
   disabled?: boolean;
   className?: string;
+  attention?: string;
   onValueChange?: (value: string) => void;
 }) {
   return (
@@ -36,6 +38,8 @@ export function SelectField({
     >
       <SelectTrigger
         aria-label={label}
+        aria-description={attention}
+        data-attention={Boolean(attention)}
         className={cn("w-full min-w-0", className)}
       >
         <SelectValue />

@@ -72,9 +72,7 @@ async def process_scan(
                 or bool(validation_error)
                 or not proposal.documents
                 or any(
-                    doc.confidence < 0.9
-                    or doc.review_reason
-                    or doc.owner_id == "unknown"
+                    doc.confidence < 0.9 or doc.review_reason.strip()
                     for doc in proposal.documents
                 )
             )
