@@ -75,6 +75,12 @@ PDF previews use EmbedPDF 2 with Mira controls for pages, zoom, rotation, text s
 
 ## Processing and files
 
+Model images have a 1600-pixel longest edge. Original and searchable PDFs retain their resolution.
+
+Document **Details** shows estimated model API costs by step. Each scan's JSON record keeps the original usage records; each document's TOML sidecar keeps its allocated share. Shared costs are divided across retained pages. Retries add cost records, while repeated filing does not. Local OCR records elapsed time and zero model API charge; hardware, storage, and tax are excluded. Old documents without records show unknown cost.
+
+For cost estimates, add a `pricing` table to `settings.toml`, or supply it through the settings API. It contains `model`, `base_url`, `input_usd_per_million`, `output_usd_per_million`, optional `cached_input_usd_per_million`, `source`, and `checked_on`. See the [GLM eval settings](packages/parser/test-data/real-scans/together-glm-settings.json) for an example. Rates apply only to that model and endpoint and are saved with each call. Missing prices or usage show as unknown. Partial reported costs are shown as a subtotal. These are estimates, not the provider's final bill. Changing unrelated settings preserves the rates; changing the model or endpoint without supplying rates clears them.
+
 Tags have selectable icons in Settings. The catalog stores a stable icon key. Older catalogs use `auto`, which supplies icons for standard tags and a document icon for custom tags. Document rows use a subject tag icon when available.
 
 Dropdowns use shared Mira selects, including their open menus, focus colors, and selection marks. Filters, Settings, owner reassignment, scan review, and PDF zoom use the same control. Date filters and scan review use one Mira calendar with neutral selection colors, keyboard navigation, Clear, and Today actions. Tables share header styling and cell spacing. On phones, the review PDF has a bounded height so the form is accessible below it.

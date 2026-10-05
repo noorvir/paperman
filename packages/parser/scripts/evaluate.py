@@ -8,6 +8,7 @@ import json
 import os
 import subprocess
 from datetime import UTC, date, datetime
+from functools import partial
 from pathlib import Path
 from time import perf_counter
 
@@ -19,6 +20,7 @@ from paperman_parser.models import (
     Catalog,
     Enrichment,
     InferenceSettings,
+    ProcessingUsage,
     Record,
     validate_analysis,
 )
@@ -81,6 +83,7 @@ class Prediction(Record):
     enriched: list[EnrichedGroup] = Field(default_factory=list)
     error: str = ""
     seconds: dict[str, float] = Field(default_factory=dict)
+    processing: list[ProcessingUsage] = Field(default_factory=list)
 
 
 def digest(path: Path) -> str:
@@ -91,6 +94,19 @@ def save(path: Path, value: Record) -> None:
     temporary = path.with_suffix(".tmp")
     temporary.write_text(value.model_dump_json(indent=2) + "\n")
     temporary.replace(path)
+
+
+def record_prediction_usage(
+    prediction: Prediction,
+    path: Path,
+    call: ProcessingUsage,
+    *,
+    page_map: list[int] | None = None,
+) -> None:
+    if page_map is not None:
+        call.source_pages = [page_map[number - 1] for number in call.source_pages]
+    prediction.processing.append(call)
+    save(path, prediction)
 
 
 async def evaluate(
@@ -141,9 +157,6 @@ async def evaluate(
         },
     }
     (output / "run.json").write_text(json.dumps(metadata, indent=2) + "\n")
-    inference = EndpointInference(
-        settings, os.environ.get("PAPERMAN_MODEL_API_KEY", "local")
-    )
     ocr = LocalOCR()
 
     for sample in truth.documents:
@@ -153,6 +166,11 @@ async def evaluate(
             ocr_languages=sample.ocr_languages,
         )
         result_path = output / f"{sample.id}.json"
+        inference = EndpointInference(
+            settings,
+            os.environ.get("PAPERMAN_MODEL_API_KEY", "local"),
+            partial(record_prediction_usage, prediction, result_path),
+        )
         started = perf_counter()
         phase = "ocr"
         stage_started = started
@@ -179,6 +197,12 @@ async def evaluate(
             phase = "enrich"
             stage_started = perf_counter()
             for group in prediction.analysis.documents:
+                inference.record_usage = partial(
+                    record_prediction_usage,
+                    prediction,
+                    result_path,
+                    page_map=group.pages,
+                )
                 result = EnrichedGroup(pages=group.pages)
                 group_started = perf_counter()
                 try:

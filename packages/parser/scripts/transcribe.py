@@ -28,7 +28,10 @@ class CodexTranscriber(CodexInference):
         for number, image in enumerate(images, 1):
             print(f"{self.output.parent.name}: page {number}/{len(images)}", flush=True)
             result = await self._request(
-                Transcript, transcribe(image, number, len(images))
+                Transcript,
+                transcribe(image, number, len(images)),
+                stage="transcription",
+                source_pages=[number],
             )
             save(self.output.parent / f"page-{number:04}.json", result)
             pages.append(result)
@@ -50,7 +53,7 @@ async def run(sources: list[Path], output: Path, model: str) -> None:
         "reasoning_effort": "high",
         "status": "model-generated drafts; not verified OCR ground truth",
         "input": "one rendered page image per request; no OCR text or field labels",
-        "rendering": "Poppler; longest edge 2400 pixels",
+        "rendering": "Poppler; longest edge 1600 pixels",
         "prompt_sha256": digest(prompt_file),
         "runner_sha256": digest(Path(__file__)),
         "transport_sha256": digest(package / "scripts" / "benchmark_codex.py"),

@@ -1,0 +1,14 @@
+[
+  {
+    "type": "ValueError",
+    "message": "The model server returned HTTP 413. Check the endpoint, model name, and credentials"
+  },
+  {
+    "type": "ModelHTTPError",
+    "message": "status_code: 413, model_name: zai-org/GLM-5.3-Flash, body: {'type': 'Payload Too Large', 'code': 'multimodal_payload_too_large', 'message': 'Multimodal payload is 487880352 bytes (465.3 MiB) which exceeds the gRPC single-message ceiling of 267386880 bytes (255.0 MiB). Reduce the number of images, lower their resolution (e.g. `detail=\"low\"`), or split the request into multiple smaller batches.', 'param': None}"
+  },
+  {
+    "type": "APIStatusError",
+    "message": "Error code: 413 - {'error': {'type': 'Payload Too Large', 'code': 'multimodal_payload_too_large', 'message': 'Multimodal payload is 487880352 bytes (465.3 MiB) which exceeds the gRPC single-message ceiling of 267386880 bytes (255.0 MiB). Reduce the number of images, lower their resolution (e.g. `detail=\"low\"`), or split the request into multiple smaller batches.', 'param': None}}"
+  }
+]

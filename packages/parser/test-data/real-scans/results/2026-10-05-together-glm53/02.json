@@ -1,0 +1,104 @@
+{
+  "id": "02",
+  "source_sha256": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+  "ocr_languages": "por",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Hair salon receipt",
+        "document_date": "2020-11-04",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Zara Home credit note",
+        "document_date": "2020-11-10",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          2
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Flying Tiger Copenhagen receipt",
+        "document_date": "2021-05-06",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice",
+          "receipt"
+        ],
+        "suggested_tags": [
+          "beauty-services",
+          "point-of-sale",
+          "vat"
+        ],
+        "summary": "A simplified invoice (Fatura Simplificada) from Maria da Glória Cabeleireiros Lda., a hair salon at Centro Comercial Primavera, Coimbra, Portugal (NIF 121653897). Dated 2020-11-04 11:16 (document FS A/42402), it lists two services — Brushing Medio (€10.00) and Lavagem (€2.20) — with 23% IVA (VAT €2.28 on a base of €9.92), for a total of €12.20 EUR paid in cash (DINHEIRO). It was processed by certified Sage software (nº 2648/AT) and notes it does not constitute a transport document under Decree-Law nº 147/2003."
+      },
+      "error": "",
+      "seconds": 14.513394874986261
+    },
+    {
+      "pages": [
+        2
+      ],
+      "result": {
+        "tag_ids": [
+          "credit-note"
+        ],
+        "suggested_tags": [
+          "retail-return",
+          "point-of-sale-receipt",
+          "portuguese-language"
+        ],
+        "summary": "A thermal-printed credit note (Nota de Crédito) from Zara Home (Portugal), issued at the Forum Coimbra store (Loja 1718) on 10-11-2020 at 17:14. It credits 99,99€ for the return (Motivo: Devolução) of a rug (TAPETE, item 4631802940089), settled as an exchange of goods (Permuta de bens), and references the original sales document FS 001715012020/014205. The document includes the company's Portuguese registration details (NIF 506648117) and a certified billing program reference (2742/AT)."
+      },
+      "error": "",
+      "seconds": 8.944446374895051
+    },
+    {
+      "pages": [
+        3
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice",
+          "receipt"
+        ],
+        "suggested_tags": [
+          "retail",
+          "vat",
+          "point-of-sale"
+        ],
+        "summary": "A simplified invoice (Fatura Simplificada) from Flying Tiger Copenhagen, Tiger Portugal, SA at Fórum Coimbra, printed with the transaction date 2021-05-06 11:48. It covers one item, a foldable black bag (BAG FOLDABEL BLACK W), at a total of 3.00 EUR including 23% VAT (0.56 EUR on a base of 2.44 EUR), paid by Multibanco. The receipt notes exchanges only with an invoice within 30 days, no returns accepted, and states it was processed by a certified tax program (nº 2648/AT - Sage) and does not constitute a transport document."
+      },
+      "error": "",
+      "seconds": 18.438413250027224
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 39.46033691614866,
+    "total": 81.35819437517785
+  }
+}

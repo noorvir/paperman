@@ -1,0 +1,457 @@
+{
+  "id": "01",
+  "source_sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "bluewest",
+        "title": "Television advertising invoice",
+        "document_date": "2020-03-01",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "owner_id": "buying-time",
+        "title": "Television advertising invoice",
+        "document_date": "2020-02-09",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          5
+        ]
+      },
+      {
+        "owner_id": "assembly",
+        "title": "Television advertising invoice",
+        "document_date": "2020-02-23",
+        "confidence": 0.98,
+        "review_reason": "",
+        "pages": [
+          6,
+          7
+        ]
+      },
+      {
+        "owner_id": "groundswell",
+        "title": "Television advertising contract",
+        "document_date": "2020-02-20",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          8,
+          9
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        6,
+        7
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "advertising-billing",
+          "broadcast-media",
+          "political-advertising"
+        ],
+        "summary": "Two-page invoice #950658-1 from KMSP (Fox 9) to Assembly Media, Attention: Accounts Payable, for broadcast advertising purchased by Michael Bloomberg 2020, Inc. The invoice, dated 02/23/20 for the period 01/27/20\u201302/21/20, itemizes 18 aired political candidate spots on channel 9 with air dates, times, and rates. Totals: gross $5,625.00, agency commission $843.75, net amount due $4,781.25 with 30-day payment terms."
+      },
+      "error": "",
+      "seconds": 0.0
+    },
+    {
+      "pages": [
+        8,
+        9
+      ],
+      "result": {
+        "tag_ids": [
+          "contract"
+        ],
+        "suggested_tags": [
+          "broadcast-advertising",
+          "media-buy",
+          "political-advertising"
+        ],
+        "summary": "Two-page broadcast television confirmation contract (#4251728) from WZTV Nashville (Fox 17), entered 02/20/20, for the Amy Klobuchar for President-D campaign placed through agency Groundswell Public Strategies. It schedules 41 spots running 02/21/20\u201302/25/20 in news, spot, and prime dayparts (e.g., Fox 17 This Morning, Judge Judy, Fox 17 News at 9), with a grand total of $9,110.00, a 15% commission of $1,366.50, and a net total of $7,743.50. The document includes a signature block for agency/advertiser and station acceptance and references Standard Advertiser Terms and Conditions; it was printed 02/24/20."
+      },
+      "error": "",
+      "seconds": 0.0
+    },
+    {
+      "pages": [
+        5
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "broadcast-advertising",
+          "political-campaign-advertising",
+          "television-station-billing"
+        ],
+        "summary": "A broadcast advertising invoice from KPTH (Fox 44), Dakota Dunes, SD, dated 02/09/20 (invoice #1336165-2), issued to Buying Time, LLC in Washington, DC for the Tom Steyer for President campaign. It bills one :30 spot aired 02/03/20 at 10:24 AM during 'The Doctors' with a gross total of $40.00, agency commission of $6.00, and net amount due of $34.00, with 30-day payment terms and remittance to Sinclair Broadcast Group."
+      },
+      "error": "",
+      "seconds": 0.0
+    },
+    {
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "broadcast-advertising",
+          "media-billing",
+          "political-campaign-advertising"
+        ],
+        "summary": "A four-page broadcast television invoice (Invoice # 220018567, Invoice Date 03/01/20, Invoice Period 02/24/20\u201302/25/20) from KCNC-TV (CBS 4, Denver) to the advertiser Bernie 2020, with billing directed to the agency Bluewest Media. It itemizes 23 aired spots placed during the Order Flight 02/19/20\u201302/25/20 (Order # 277809) in programs such as local news, CBS This Morning, and Dr. Phil, with a Gross Total of $10,910.00, Agency Commission of $1,636.50, and Net Amount Due of $9,273.50 under 30-day payment terms."
+      },
+      "error": "",
+      "seconds": 0.0
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "total": 78.28888833289966
+  },
+  "processing": [
+    {
+      "id": "8c5456deea044fc7b45ca1a2d36e9475",
+      "started_at": "2026-10-05T21:50:19.566651Z",
+      "stage": "ocr",
+      "source_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "model": "local-ocr",
+      "base_url": "",
+      "status": "complete",
+      "seconds": 1.0181900840252638,
+      "requests": 0,
+      "input_tokens": null,
+      "cached_input_tokens": null,
+      "output_tokens": null,
+      "token_details": {},
+      "usage_complete": true,
+      "pricing": null,
+      "estimated_cost_usd": "0"
+    },
+    {
+      "id": "17afa619600c49649792c2bb28b06890",
+      "started_at": "2026-10-05T21:50:24.295530Z",
+      "stage": "split",
+      "source_pages": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 10.352439833106473,
+      "requests": 1,
+      "input_tokens": 23859,
+      "cached_input_tokens": 0,
+      "output_tokens": 326,
+      "token_details": {
+        "reasoning_tokens": 298
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00374185"
+    },
+    {
+      "id": "ea5688b9b94f42b991587d20f03b6ffd",
+      "started_at": "2026-10-05T21:50:34.652737Z",
+      "stage": "details",
+      "source_pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 9.56798733305186,
+      "requests": 1,
+      "input_tokens": 11203,
+      "cached_input_tokens": 0,
+      "output_tokens": 605,
+      "token_details": {
+        "reasoning_tokens": 560
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00198295"
+    },
+    {
+      "id": "f83cab543cff487495469a9b3d2dd9c9",
+      "started_at": "2026-10-05T21:50:44.225851Z",
+      "stage": "details",
+      "source_pages": [
+        5
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 4.4331947499886155,
+      "requests": 1,
+      "input_tokens": 3367,
+      "cached_input_tokens": 0,
+      "output_tokens": 219,
+      "token_details": {
+        "reasoning_tokens": 167
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00061455"
+    },
+    {
+      "id": "57e5d8ad9c3b4f4e98da562a3311082f",
+      "started_at": "2026-10-05T21:50:48.664176Z",
+      "stage": "details",
+      "source_pages": [
+        6,
+        7
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 3.6659067920409143,
+      "requests": 1,
+      "input_tokens": 5979,
+      "cached_input_tokens": 640,
+      "output_tokens": 259,
+      "token_details": {
+        "reasoning_tokens": 209
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00094955"
+    },
+    {
+      "id": "656888fa56424206851cf6d35d37005e",
+      "started_at": "2026-10-05T21:50:52.335302Z",
+      "stage": "details",
+      "source_pages": [
+        8,
+        9
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 5.417506542056799,
+      "requests": 1,
+      "input_tokens": 5979,
+      "cached_input_tokens": 640,
+      "output_tokens": 527,
+      "token_details": {
+        "reasoning_tokens": 475
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00108355"
+    },
+    {
+      "id": "1e40c04e2e654935af5359c020fb949c",
+      "started_at": "2026-10-05T21:51:00.237873Z",
+      "stage": "tagging",
+      "source_pages": [
+        6,
+        7
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 3.99581649992615,
+      "requests": 1,
+      "input_tokens": 5559,
+      "cached_input_tokens": 0,
+      "output_tokens": 469,
+      "token_details": {
+        "reasoning_tokens": 316
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00106835"
+    },
+    {
+      "id": "1d7a6642910a4447b0faeba0bc55ec3e",
+      "started_at": "2026-10-05T21:51:04.738517Z",
+      "stage": "tagging",
+      "source_pages": [
+        8,
+        9
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 12.630388790974393,
+      "requests": 1,
+      "input_tokens": 5559,
+      "cached_input_tokens": 0,
+      "output_tokens": 710,
+      "token_details": {
+        "reasoning_tokens": 516
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00118885"
+    },
+    {
+      "id": "4d0db55c105245f8892907499a0c885f",
+      "started_at": "2026-10-05T21:51:17.661254Z",
+      "stage": "tagging",
+      "source_pages": [
+        5
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 5.65773137495853,
+      "requests": 1,
+      "input_tokens": 2947,
+      "cached_input_tokens": 0,
+      "output_tokens": 438,
+      "token_details": {
+        "reasoning_tokens": 286
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00066105"
+    },
+    {
+      "id": "dacafcb383194d7ebf27087c24f53381",
+      "started_at": "2026-10-05T21:51:24.274569Z",
+      "stage": "tagging",
+      "source_pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 13.56056616595015,
+      "requests": 1,
+      "input_tokens": 10783,
+      "cached_input_tokens": 256,
+      "output_tokens": 732,
+      "token_details": {
+        "reasoning_tokens": 542
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00195273"
+    }
+  ]
+}

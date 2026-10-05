@@ -1,4 +1,5 @@
 from paperman_parser.models import validate_analysis
+from paperman_parser.usage import allocate_usage
 
 from paperman.document_names import document_filename
 from paperman.models import Document, Event, Scan
@@ -14,6 +15,7 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
     current = [storage.get_document(id) for id in scan.document_ids]
     by_pages = {tuple(doc.source_pages): doc for doc in current}
     document_ids: list[str] = []
+    retained_pages = [page for item in proposal.documents for page in item.pages]
     for number, item in enumerate(proposal.documents, 1):
         document_date = item.document_date or scan.scanned_at.date()
         date_source = "document" if item.document_date else "scan_fallback"
@@ -35,7 +37,10 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                     document.history.append(
                         Event(stage="review", message="Filing details corrected")
                     )
-                    storage.save_document(document)
+                document.processing = allocate_usage(
+                    scan.processing, item.pages, retained_pages
+                )
+                storage.save_document(document)
             document_ids.append(document.id)
             continue
 
@@ -92,6 +97,9 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                 scanned_at=scan.scanned_at,
                 final_path=final_path,
             )
+            document.processing = allocate_usage(
+                scan.processing, item.pages, retained_pages
+            )
             if existing is None and scan.filing_revision:
                 replaced = [
                     doc.id for doc in current if set(doc.source_pages) & set(item.pages)
@@ -110,7 +118,7 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                 )
                 with atomic_target(target.with_suffix(".txt")) as temporary:
                     temporary.write_text(text)
-                storage.save_document(document)
+            storage.save_document(document)
         document_ids.append(identifier)
 
     # This checkpoint publishes the complete set; a failed revision keeps the old set visible.

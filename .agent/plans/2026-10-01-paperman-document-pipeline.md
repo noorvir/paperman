@@ -22,6 +22,22 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 
 ## Current local AI milestone
 
+- [x] Make 1600 pixels the shared model-image default, including transcript generation. Rerun the harder real-scan set through the full worker with GLM: all 7 complete groups and all 10 owner/date/title/tag checks match; no failures or review. Preserve frozen labels and older results. Estimated model cost: $0.02477295 for 10 documents / 15 pages; 221 seconds total.
+- [x] Inject usage recording; persist scan calls and document cost shares. Include retries, cached tokens, price snapshots, unknown costs, and local OCR time. Actual inbox intake, OCR, filing, tagging, TOML, API round trips, restart, archive, and index checks pass in isolated public test storage. Details shows per-step estimates. Strict Python/web types, 23 parser tests, 34 server tests, and web build pass. The cost table was not visually inspected. Live household model/privacy settings remain unchanged.
+
+```text
+EndpointInference(settings, credential, record_usage?) -> existing analysis/enrichment results
+ProcessingUsage = call ID, stage, source pages, model/endpoint, time, outcome,
+  requests, input/cached/output tokens, usage completeness, price snapshot, estimated USD
+Scan owns original call records. Document owns page-based shares of those records.
+Shared scan costs divide across retained document pages; no duplicate charges on filing retry.
+Unknown usage/prices remain unknown. Costs exclude hardware, storage, tax, and unreported charges.
+```
+
+- [ ] Select a hosted model endpoint that meets the privacy requirement. Together's Qwen3.8 Flash endpoint returns `third_party_data_sharing_blocked`. Keep sharing disabled. GLM works under the current settings, but retention settings and large-batch handling still need verification before an application switch. The eval runner accepts an injected API key without saving it.
+
+- [x] Run the initial Together GLM 5.3 Flash eval. At 1600 pixels, all 7 complete groups, 10 owners, 10 dates, title rules, and required tags match; no request failures. The earlier 2400-pixel nine-page request exceeded the provider's internal payload limit. Preserve both runs and hashes. That initial size override was eval-only; the later milestone above adopts it across the parser. Current review prompts differ from the earlier model runs.
+
 - [x] Apply all saved transcript edits and review notes; accept all 15 page references as directed by the user. Preserve 22 review decisions and freeze the dataset hashes. Production OCR retains nine existing text layers and adds text to six image-only pages; all outputs have text. Final diagnostic CER is 38.2% overall and 21.4% on new OCR. Reading order and unreadable regions affect scores; text-layer position remains unmeasured. Original field labels and model results are unchanged.
 
 - [x] Generate Sol Markdown transcript drafts for all 10 real source documents (15 pages). Preserve tables, form fields, page breaks, and source language. Page coverage, hashes, and table structure pass; visual spot checks are complete. User review, plain-text references, and OCR scoring are complete above; fixed field labels are unchanged.

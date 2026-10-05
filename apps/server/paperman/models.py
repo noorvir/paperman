@@ -1,7 +1,14 @@
 from datetime import UTC, date, datetime
 from typing import Literal
 
-from paperman_parser.models import Analysis, Identifier, InferenceSettings, Record
+from paperman_parser.models import (
+    Analysis,
+    Identifier,
+    InferenceSettings,
+    ProcessingUsage,
+    Record,
+    UsageAllocation,
+)
 from pydantic import Field
 
 ScanStatus = Literal["queued", "running", "review", "failed", "complete"]
@@ -38,6 +45,7 @@ class Scan(Record):
     filing_revision: int = 0
     filing_paths: dict[str, str] = Field(default_factory=dict)
     history: list[Event] = Field(default_factory=list)
+    processing: list[ProcessingUsage] = Field(default_factory=list)
 
 
 class Document(Record):
@@ -62,6 +70,7 @@ class Document(Record):
     enrichment_status: Literal["pending", "running", "complete", "failed"] = "pending"
     enrichment_version: str = ""
     enrichment_error: str = ""
+    processing: list[UsageAllocation] = Field(default_factory=list)
 
 
 class WorkerState(Record):

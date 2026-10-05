@@ -1,7 +1,24 @@
 # Real-scan eval results — 5 October 2026
 
+The [full worker GLM eval with costs](2026-10-05-together-glm53-e2e/README.md)
+passed all measured labels at the new shared 1600-pixel default. It processed
+10 documents in 221 seconds, with an estimated model charge of $0.02477295.
+Each document has a cost breakdown in its TOML metadata and the Details tab.
+Original hashes, OCR output, filing, tagging, API results, restart, and indexing
+were checked in isolated public test storage.
+
 A later [OCR eval](2026-10-05-ocr/README.md) uses the user-accepted transcripts.
 The model results below are unchanged.
+
+The [Together Qwen3.8 Flash connection check](2026-10-05-together-qwen38/README.md)
+was blocked by the provider's third-party-sharing requirement. It has no model
+accuracy score and did not change the application endpoint.
+
+The later [Together GLM 5.3 Flash eval](2026-10-05-together-glm53/README.md)
+matched 7/7 complete groups and 10/10 owners, dates, title rules, and required
+tags at 1600 pixels. The default 2400-pixel run exceeded Together's internal
+payload limit on the nine-page batch. Current review prompts differ from the
+earlier runs below. No privacy setting or application endpoint changed.
 
 Ten real documents, 15 pages. Two constructed batches contain seven complete
 documents. Three single-page excerpts count for field checks only. Labels were

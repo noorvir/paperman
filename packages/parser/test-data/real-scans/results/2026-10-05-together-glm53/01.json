@@ -1,0 +1,141 @@
+{
+  "id": "01",
+  "source_sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "bluewest",
+        "title": "Television advertising invoice",
+        "document_date": "2020-03-01",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [
+          1,
+          2,
+          3,
+          4
+        ]
+      },
+      {
+        "owner_id": "buying-time",
+        "title": "Television advertising invoice",
+        "document_date": "2020-02-09",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [
+          5
+        ]
+      },
+      {
+        "owner_id": "assembly",
+        "title": "Television advertising invoice",
+        "document_date": "2020-02-23",
+        "confidence": 0.98,
+        "review_reason": "",
+        "pages": [
+          6,
+          7
+        ]
+      },
+      {
+        "owner_id": "groundswell",
+        "title": "Television advertising contract",
+        "document_date": "2020-02-20",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          8,
+          9
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "broadcast-advertising",
+          "political-campaign",
+          "media-billing"
+        ],
+        "summary": "Four-page invoice #220018567 from KCNC-TV (CBS 4, Denver), dated 03/01/20 for the invoice period 02/24/20–02/25/20, billing Bluewest Media (Accounts Payable, Denver, CO) on behalf of advertiser Bernie 2020 (Burlington, VT). It itemizes 23 aired TV spots placed in programs such as local news broadcasts, CBS This Morning, Dr. Phil, and The Late Late Show under order #277809 (order flight 02/19/20–02/25/20), with a gross total of $10,910.00, agency commission of $1,636.50, and net amount due of $9,273.50 under 30-day payment terms."
+      },
+      "error": "",
+      "seconds": 19.617440042085946
+    },
+    {
+      "pages": [
+        5
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "broadcast-advertising",
+          "political-advertising",
+          "television-station-billing"
+        ],
+        "summary": "Invoice from KPTH (Fox 44, Dakota Dunes, SD), a Sinclair Broadcast Group station, to Buying Time, LLC (Accounts Payable, Washington, DC) for a political advertising spot for Tom Steyer for President. Invoice #1336165-2, dated 02/09/20, covering the invoice period 02/03/20–02/09/20 (flight dates 01/28/20–02/03/20). It bills one :30 spot aired 02/03/20 at 10:24 AM during 'The Doctors' at a rate of $40.00; gross total $40.00, agency commission $6.00, net amount due $34.00, with 30-day payment terms."
+      },
+      "error": "",
+      "seconds": 5.187488040886819
+    },
+    {
+      "pages": [
+        6,
+        7
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice"
+        ],
+        "suggested_tags": [
+          "political-advertising",
+          "broadcast-media",
+          "advertising-agency"
+        ],
+        "summary": "Two-page invoice #950658-1 dated 02/23/20 from KMSP (Fox 9) to Assembly Media, Attention: Accounts Payable, on behalf of advertiser Michael Bloomberg 2020, Inc. It covers the invoice period 01/27/20–02/21/20 and itemizes 18 aired political candidate spots (Political Candidate LUR and CDR rates) on channel 9 between 02/17/20 and 02/23/20, with air times, lengths, Ad-IDs, and rates per spot. Totals: gross $5,625.00, agency commission $843.75, net amount due $4,781.25, with payment terms of 30 days. The invoice includes a nondiscrimination warranty statement regarding the sale of advertising time."
+      },
+      "error": "",
+      "seconds": 13.516241583041847
+    },
+    {
+      "pages": [
+        8,
+        9
+      ],
+      "result": {
+        "tag_ids": [
+          "contract",
+          "order"
+        ],
+        "suggested_tags": [
+          "broadcast-advertising",
+          "political-advertising",
+          "media-buy"
+        ],
+        "summary": "Two-page confirmation contract (#4251728) from WZTV Nashville (FOX 17), entered 02/20/20, for the Amy Klobuchar for President-D campaign placed through the agency Groundswell Public Strategies. It schedules 41 television spots airing 02/21/20–02/25/20 (16 in Feb. 2020 for $2,730.00 and 25 in Mar. 2020 for $6,380.00, gross total $9,110.00) across news, spot, and prime dayparts such as Fox 17 This Morning, Judge Judy, Fox 17 News at 9, and prime programming. A 15% commission of $1,366.50 yields a net total of $7,743.50. The document incorporates Standard Advertiser Terms and Conditions by reference and was printed on Monday, February 24, 2020."
+      },
+      "error": "",
+      "seconds": 10.919895667117089
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 60.85333295795135,
+    "total": 110.09587899991311
+  }
+}

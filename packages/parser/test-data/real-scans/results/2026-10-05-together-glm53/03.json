@@ -1,0 +1,46 @@
+{
+  "id": "03",
+  "source_sha256": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "george-barody",
+        "title": "Confidential fax cover sheet",
+        "document_date": "1998-12-10",
+        "confidence": 0.92,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "fax-cover-sheet",
+          "government-legal-office",
+          "confidential-transmission"
+        ],
+        "summary": "A confidential facsimile transmission cover sheet from Ohio Attorney General Betty D. Montgomery's office, dated 12/10/98 (fax transmission date), sent to George Baroody with sender listed as June Flynn for Eric Brown. The fax was 3 pages including the cover sheet, transmitted from the State Office Tower in Columbus, Ohio, and includes a standard confidentiality notice."
+      },
+      "error": "",
+      "seconds": 4.870588374789804
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 6.96636874997057,
+    "total": 11.837446042103693
+  }
+}

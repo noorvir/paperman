@@ -29,7 +29,7 @@ def test_render_preserves_page_order_blank_pages_and_rotation() -> None:
         with Image.open(BytesIO(data)) as image:
             assert image.format == "PNG"
             assert image.getpixel((100, 100)) == color
-            assert max(image.size) == 2400
+            assert max(image.size) == 1600
             assert (image.width > image.height) == (number == 1)
 
 

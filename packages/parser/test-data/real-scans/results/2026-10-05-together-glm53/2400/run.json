@@ -1,0 +1,56 @@
+{
+  "started_at": "2026-10-05T21:21:22.398541+00:00",
+  "model": "zai-org/GLM-5.3-Flash",
+  "settings": {
+    "provider": "compatible",
+    "reasoning_effort": "default",
+    "base_url": "https://api.together.ai/v1",
+    "model": "zai-org/GLM-5.3-Flash",
+    "timeout_seconds": 180,
+    "output_mode": "native"
+  },
+  "transport": "compatible endpoint",
+  "auth": "endpoint credential supplied by caller",
+  "codex_version": "codex-cli 0.156.1",
+  "source_run": null,
+  "ocr": "not run; inference-only eval",
+  "model_input": "rendered PDF page images only",
+  "pdf_sha256": {
+    "01.pdf": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+    "02.pdf": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+    "03.pdf": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+    "04.pdf": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d",
+    "05.pdf": "5b378fccd8d7ebea1b3433dd0bc7cb63b106aec20d71afc4c11145bf5eda1edd"
+  },
+  "source_sha256": {},
+  "frozen_sha256": "2ec88c0477be99b85d28ea4467c2bd6811385885e110e54212c4dc3b264e1f24",
+  "annotations": {
+    "version": 1,
+    "created_on": "2026-10-05",
+    "files": {
+      "catalog.json": "b456cb310e5fef45eaa31abaefcdfc1b6444cdfea46c5174a58daeff95b85e4c",
+      "ground-truth.json": "dcc75a464edd637a0eb71a7531b1a841220938b9207c5c18e12d0a465443ff99",
+      "batches.json": "83d156b0ff138c0ba4d33b1c6b9a5b681c3950946497eb9e603436d0ccd4c165",
+      "manifest.json": "4fc51280019aa1554824d69dace4fb21dda7812af773596ed459049b27332698"
+    }
+  },
+  "poppler": "pdftoppm version 26.05.0\nCopyright 2005-2026 The Poppler Developers - http://poppler.freedesktop.org\nCopyright 1996-2011, 2022 Glyph & Cog, LLC",
+  "parser_sha256": {
+    "paperman_parser/__init__.py": "5796e7a41d5cd3ee822a17c9ac3ee9c7b2dc6510e16c5991dd2058c2b5fd0864",
+    "paperman_parser/demo_inference.py": "1114d06916f6fb04f87d265a3fbc13f1bcae8168133dbe14c36931740eec5507",
+    "paperman_parser/inference.py": "65222c2c5b28b12aa7c3b2a8f58682417a83b62a85698819d702ca5b386302e8",
+    "paperman_parser/models.py": "1e57e4c99ef1026e6da65697ceefce8d87161f64ac4c1dd35ccde6acd66aeef7",
+    "paperman_parser/ocr.py": "e5b99ba4b5c70829c022ef0183b2fdbc39a61505a80b0ce6251890477a6a98f9",
+    "paperman_parser/parser.py": "6e3df8fcc67b12e38657ddce63832481b82e803180fdb34dda56fa900a38636e",
+    "paperman_parser/pdf.py": "cfa671e4a0c67ad86375a4efa648bbd6b04974c6d5c5d9a0065df1d9452e8068",
+    "paperman_parser/prompt/__init__.py": "ce4c0c04f186b2d21a291edba077a3cb3f10f27642f0d8878ecace08a5206bc5",
+    "paperman_parser/prompt/details.py": "15de6434844b03111b3efcd82075fb287472e3003b87d558fe1de87217815ad3",
+    "paperman_parser/prompt/enrich.py": "0ff2a4f9e4e5f57c8096509b21da633661665c7731a1d159bdba606f5f1aefde",
+    "paperman_parser/prompt/revise.py": "800b9e11edfd24bab8d434f9f474597a131fce17f2aafde559d2dd2f488e301a",
+    "paperman_parser/prompt/split.py": "3573b5919648a0380773502447ecc1a8eb868c2beb06f02e7a16bf4e40212401",
+    "paperman_parser/prompt/transcribe.py": "635a5121dc8650f1a4d3b8cfa39debcfde109c2f83fc1c1fafe98fb5e1ec25d8"
+  },
+  "runner_sha256": "54c4b4c73af43c6b68a3582a4205919606ca1943d4230bfb4208e596216be844",
+  "scorer_sha256": "70a0eec7f8c1078cdce59d6c6c33ade20ab7042d66cdbf9d5332dac4459a62c0",
+  "notes": "Render source PDFs. Cached OCR is used only for scoring, never as model input. No previous model output or labels are sent. Same production stage prompts. No tools, repository access, or answer labels in model input. Temperature uses Codex default or zero for compatible endpoints. Up to two schema/domain validation retries. Four independent PDFs at a time for Codex; one at a time for compatible endpoints."
+}

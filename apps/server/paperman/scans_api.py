@@ -1,4 +1,5 @@
 import asyncio
+from functools import partial
 from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
@@ -14,6 +15,7 @@ from paperman.models import Event, Scan, now
 from paperman.pdf import validate_scan
 from paperman.progress import scan_progress
 from paperman.storage import FileStorage, atomic_target, write_record
+from paperman.usage import record_scan_usage
 
 
 def routes(storage: FileStorage, config: Settings) -> APIRouter:
@@ -140,7 +142,11 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
         source = await asyncio.to_thread(
             storage.scan_path(scan.id, "searchable.pdf").read_bytes
         )
-        inference = EndpointInference(settings, config.model_api_key)
+        inference = EndpointInference(
+            settings,
+            config.model_api_key,
+            record_usage=partial(record_scan_usage, storage, scan_id),
+        )
         result = await inference.revise(
             source, catalog, value.proposal, value.instructions
         )

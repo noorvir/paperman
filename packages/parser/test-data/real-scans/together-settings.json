@@ -1,0 +1,8 @@
+{
+  "provider": "compatible",
+  "reasoning_effort": "default",
+  "base_url": "https://api.together.ai/v1",
+  "model": "Qwen/Qwen3.8-Flash",
+  "timeout_seconds": 180,
+  "output_mode": "native"
+}

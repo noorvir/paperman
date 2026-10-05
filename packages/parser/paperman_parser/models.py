@@ -1,5 +1,7 @@
-from datetime import date
+from datetime import UTC, date, datetime
+from decimal import Decimal
 from typing import Annotated, Literal
+from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
 
@@ -61,6 +63,46 @@ class Catalog(Record):
     )
 
 
+class ModelPricing(Record):
+    model: str
+    base_url: str
+    input_usd_per_million: Decimal = Field(ge=0)
+    output_usd_per_million: Decimal = Field(ge=0)
+    cached_input_usd_per_million: Decimal | None = Field(default=None, ge=0)
+    source: str
+    checked_on: date
+
+
+ProcessingStage = Literal[
+    "ocr", "split", "details", "tagging", "review", "transcription"
+]
+
+
+class ProcessingUsage(Record):
+    id: str = Field(default_factory=lambda: uuid4().hex)
+    started_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    stage: ProcessingStage
+    source_pages: list[int]
+    model: str
+    base_url: str
+    status: Literal["complete", "failed"]
+    seconds: float = Field(ge=0)
+    requests: int = Field(default=0, ge=0)
+    input_tokens: int | None = Field(default=None, ge=0)
+    cached_input_tokens: int | None = Field(default=None, ge=0)
+    output_tokens: int | None = Field(default=None, ge=0)
+    token_details: dict[str, int] = Field(default_factory=dict)
+    usage_complete: bool = False
+    pricing: ModelPricing | None = None
+    estimated_cost_usd: Decimal | None = Field(default=None, ge=0)
+
+
+class UsageAllocation(Record):
+    call: ProcessingUsage
+    share: Decimal = Field(gt=0, le=1)
+    estimated_cost_usd: Decimal | None = Field(default=None, ge=0)
+
+
 class InferenceSettings(Record):
     provider: Literal["compatible", "ollama", "demo"] = "compatible"
     reasoning_effort: Literal["default", "none", "low", "medium", "high"] = "default"
@@ -68,6 +110,7 @@ class InferenceSettings(Record):
     model: str = ""
     timeout_seconds: int = Field(default=180, ge=5, le=1800)
     output_mode: Literal["prompted", "native", "tool"] = "prompted"
+    pricing: ModelPricing | None = None
 
     @field_validator("base_url")
     @classmethod

@@ -1,14 +1,19 @@
 import asyncio
 import logging
+from datetime import UTC, datetime
+from decimal import Decimal
+from time import perf_counter
 
 from paperman_parser import Inference
-from paperman_parser.models import validate_analysis
+from paperman_parser.models import ProcessingUsage, validate_analysis
 from paperman_parser.ocr import OCR
+from pypdf import PdfReader
 
 from paperman.filing import file_documents
 from paperman.models import Document, Event, Scan
 from paperman.pdf import extract_pages, prepare_pdf
 from paperman.storage import Storage, safe_path
+from paperman.usage import record_scan_usage
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +29,37 @@ async def process_scan(
             storage.save_scan(scan)
         searchable = storage.scan_path(scan.id, "searchable.pdf")
         if scan.phase == "ocr":
-            scan.page_count = await asyncio.to_thread(
-                prepare_pdf,
-                storage.scan_path(scan.id, "original.pdf"),
-                searchable,
-                ocr,
-                storage.settings().ocr_languages,
-            )
+            original = storage.scan_path(scan.id, "original.pdf")
+            scan.page_count = len(PdfReader(original).pages)
+            started_at = datetime.now(UTC)
+            started = perf_counter()
+            succeeded = False
+            try:
+                scan.page_count = await asyncio.to_thread(
+                    prepare_pdf,
+                    original,
+                    searchable,
+                    ocr,
+                    storage.settings().ocr_languages,
+                )
+                succeeded = True
+            finally:
+                call = ProcessingUsage(
+                    stage="ocr",
+                    source_pages=list(range(1, scan.page_count + 1)),
+                    model="local-ocr",
+                    base_url="",
+                    started_at=started_at,
+                    status="complete" if succeeded else "failed",
+                    seconds=perf_counter() - started,
+                    usage_complete=True,
+                    estimated_cost_usd=Decimal(0),
+                )
+                try:
+                    record_scan_usage(storage, scan.id, call)
+                except Exception:
+                    logger.exception("Could not record OCR usage for %s", scan.id)
+                scan.processing = storage.get_scan(scan.id).processing
             scan.phase = "analyze"
             scan.history.append(
                 Event(
@@ -46,6 +75,7 @@ async def process_scan(
             catalog = storage.catalog()
             source = await asyncio.to_thread(searchable.read_bytes)
             proposal = await inference.analyze(source, catalog)
+            scan.processing = storage.get_scan(scan.id).processing
             empty_pages = {
                 number for number, text in enumerate(pages, 1) if not text.strip()
             }
@@ -103,6 +133,7 @@ async def process_scan(
         )
         scan.history.append(Event(stage=scan.phase, message=message))
         with storage.transaction():
+            scan.processing = storage.get_scan(scan.id).processing
             storage.save_scan(scan)
 
 

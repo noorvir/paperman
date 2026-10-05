@@ -1,0 +1,157 @@
+{
+  "id": "04",
+  "source_sha256": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "kelli-scruggs",
+        "title": "Direct mail coupon initiation form",
+        "document_date": "2000-01-21",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "order"
+        ],
+        "suggested_tags": [
+          "coupon",
+          "marketing",
+          "tobacco"
+        ],
+        "summary": "Internal campaign request form initiated by Lynnette Stevens on 21-Jan-00 and addressed to Kelli Scruggs (CC: Vincent Losito, George Baroody, Don Kisling, and others added by hand). It requests a direct mail coupon campaign for the Newport Parent, Lights & 120's brands targeting 'Competitive 21-34 years,' with $1.50 off pack coupons issued 4/14/00 and expiring 9/30/00, circulation of approximately 600,000 in Tiers II & IV across a listed set of states. A 'For Control Use Only' box assigns code 05787 and an estimated redemption rate of 13%."
+      },
+      "error": "",
+      "seconds": 0.0
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "total": 19.98838962498121
+  },
+  "processing": [
+    {
+      "id": "62a405b70c5d42b68bc2b30cfed8173a",
+      "started_at": "2026-10-05T21:53:27.572481Z",
+      "stage": "ocr",
+      "source_pages": [
+        1
+      ],
+      "model": "local-ocr",
+      "base_url": "",
+      "status": "complete",
+      "seconds": 1.1099106669425964,
+      "requests": 0,
+      "input_tokens": null,
+      "cached_input_tokens": null,
+      "output_tokens": null,
+      "token_details": {},
+      "usage_complete": true,
+      "pricing": null,
+      "estimated_cost_usd": "0"
+    },
+    {
+      "id": "9838a48bfe9245ae95a9568efb821af1",
+      "started_at": "2026-10-05T21:53:28.851509Z",
+      "stage": "split",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 1.99641358316876,
+      "requests": 1,
+      "input_tokens": 3021,
+      "cached_input_tokens": 256,
+      "output_tokens": 124,
+      "token_details": {
+        "reasoning_tokens": 96
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00048443"
+    },
+    {
+      "id": "52ad5b388fee457fb21ed128e28c2113",
+      "started_at": "2026-10-05T21:53:30.854200Z",
+      "stage": "details",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 6.212660707999021,
+      "requests": 1,
+      "input_tokens": 3425,
+      "cached_input_tokens": 640,
+      "output_tokens": 491,
+      "token_details": {
+        "reasoning_tokens": 435
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00068245"
+    },
+    {
+      "id": "9cfc0a9b38f64d3d8f63ff22c214c4d2",
+      "started_at": "2026-10-05T21:53:37.262844Z",
+      "stage": "tagging",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 10.27076462493278,
+      "requests": 1,
+      "input_tokens": 3005,
+      "cached_input_tokens": 256,
+      "output_tokens": 805,
+      "token_details": {
+        "reasoning_tokens": 639
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00082253"
+    }
+  ]
+}

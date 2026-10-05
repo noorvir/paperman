@@ -28,6 +28,7 @@ from paperman_parser.models import (
     CatalogEntry,
     DocumentProposal,
     InferenceSettings,
+    ProcessingUsage,
 )
 from paperman_parser.pdf import render_pdf, select_pages
 
@@ -112,7 +113,7 @@ def test_validated_splitting_details_and_tags(
     for data in pages:
         with Image.open(BytesIO(data)) as image:
             assert image.format == "PNG"
-            assert max(image.size) == 2400
+            assert max(image.size) == 1600
 
 
 @pytest.mark.parametrize("all_blank", [False, True])
@@ -263,6 +264,8 @@ def test_feedback_uses_current_draft_and_validates_page_coverage(
 def test_model_transport_failures_have_actionable_messages(
     monkeypatch: pytest.MonkeyPatch, failure: str, message: str
 ) -> None:
+    calls: list[ProcessingUsage] = []
+
     def respond(request: httpx2.Request) -> httpx2.Response:
         assert b'"type":"image_url"' in request.content
         assert b"data:image/png;base64," in request.content
@@ -297,11 +300,16 @@ def test_model_transport_failures_have_actionable_messages(
                     output_mode="native",
                 ),
                 "local",
+                calls.append,
             )
             with pytest.raises(ValueError, match=message):
                 await inference.analyze(pdf_bytes(["One page"]), Catalog())
 
     asyncio.run(check())
+    assert len(calls) == 1
+    assert calls[0].status == "failed"
+    assert not calls[0].usage_complete
+    assert calls[0].estimated_cost_usd is None
 
 
 def replace_model(

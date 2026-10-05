@@ -1,0 +1,12 @@
+{
+  "id": "01",
+  "source_sha256": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": null,
+  "enriched": [],
+  "error": "ValueError: The model server returned HTTP 413. Check the endpoint, model name, and credentials",
+  "seconds": {
+    "total": 12.586805459111929
+  }
+}

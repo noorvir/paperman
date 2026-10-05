@@ -139,6 +139,21 @@ uv run python -m scripts.benchmark_codex --labels test-data/real-scans --pdfs ..
 uv run python -m scripts.benchmark_codex --labels test-data/real-scans --pdfs ../../.cache/real-scans/pdfs --output ../../.cache/real-scans/runs/gemma-new --settings test-data/real-scans/gemma-settings.json
 ```
 
+Compatible endpoints read their credential from `PAPERMAN_MODEL_API_KEY` in the
+process environment. Supply hosted API keys through your secret manager; never
+put them in a settings file or command argument. Saved run metadata excludes
+the credential. Endpoints without authentication use the existing `local` default.
+
+Use `--image-max-edge 800` with `--settings` to test an endpoint at a smaller
+image size. This changes only the eval requests, preserves page aspect ratios,
+and records the actual sent images and their hashes. The shared default is 1600 pixels.
+Together GLM 5.3 Flash rejected the nine-page batch at the earlier 2400-pixel size because
+its internal multimodal request exceeded the provider's 255 MiB limit.
+
+The GLM settings include a dated price snapshot. Endpoint eval predictions now
+include per-step usage and estimated USD costs. Earlier runs do not have these
+records; their costs cannot be recovered from response text alone.
+
 Omit `--source` for this image-only eval with no OCR score. Existing evals can
 still pass `--source` to reuse checked OCR outputs. Text scores now aggregate all
 labelled pages; the scorer no longer assumes that sample IDs identify scan types.

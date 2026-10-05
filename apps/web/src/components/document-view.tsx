@@ -5,6 +5,7 @@ import { enrichDocument } from "@/lib/actions";
 import { ActionButton, ErrorNotice } from "./page";
 import { PdfPreview } from "./pdf-preview";
 import { DocumentTags } from "./document-tags";
+import { ProcessingCost } from "./processing-cost";
 
 export function DocumentView({
   document,
@@ -143,6 +144,7 @@ export function DocumentView({
             <dt>Tagging version</dt>
             <dd>{document.enrichment_version || "Not processed"}</dd>
           </dl>
+          <ProcessingCost processing={document.processing} />
         </div>
       </div>
     </section>

@@ -1,0 +1,339 @@
+{
+  "id": "02",
+  "source_sha256": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6",
+  "ocr_languages": "por",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Hair salon receipt",
+        "document_date": "2020-11-04",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Zara Home credit note",
+        "document_date": "2020-11-10",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          2
+        ]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Flying Tiger purchase receipt",
+        "document_date": "2021-05-06",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        3
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice",
+          "receipt"
+        ],
+        "suggested_tags": [
+          "point-of-sale",
+          "retail-receipt",
+          "vat"
+        ],
+        "summary": "A simplified invoice (Fatura Simplificada) / sales receipt from Flying Tiger Copenhagen, issued by Tiger Portugal, SA at F\u00f3rum Coimbra, dated 2021-05-06 11:48. It covers one item, a foldable black bag (BAG FOLDABEL BLACK W), at a total of 3.00 EUR including 23% VAT (0.56 VAT on a 2.44 base), paid by Multibanco. The receipt notes exchanges only with an invoice within 30 days, no returns accepted, and that the document was processed by a certified program (n\u00ba 2648/AT \u2013 Sage) and does not constitute a transport document under Decree-Law n\u00ba 147/2003."
+      },
+      "error": "",
+      "seconds": 0.0
+    },
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "invoice",
+          "receipt"
+        ],
+        "suggested_tags": [
+          "beauty-services",
+          "point-of-sale",
+          "portugal"
+        ],
+        "summary": "Simplified invoice (\"Fatura Simplificada\") from Maria da Gl\u00f3ria Cabeleireiros Lda., a hair salon at Centro Comercial Primavera, Coimbra, Portugal (NIF 121653897). Dated 2020-11-04 11:16, it lists two services \u2014 Brushing Medio (\u20ac10.00) and Lavagem (\u20ac2.20), both taxed at 23% IVA \u2014 for a total of \u20ac12.20 EUR, paid in cash (\"Forma Pag. DINHEIRO\"). The VAT breakdown shows \u20ac2.28 tax on a \u20ac9.92 base, and the document notes it was processed by certified Sage software (n\u00ba 2648/AT) and does not constitute a transport document."
+      },
+      "error": "",
+      "seconds": 0.0
+    },
+    {
+      "pages": [
+        2
+      ],
+      "result": {
+        "tag_ids": [
+          "credit-note"
+        ],
+        "suggested_tags": [
+          "point-of-sale",
+          "retail-return",
+          "vat-breakdown"
+        ],
+        "summary": "A printed retail credit note (\"Nota de Cr\u00e9dito\") from Zara Home, Forum Coimbra store (Portugal), dated 10-11-2020 at 17:14, number NS 001718012020/000851. It credits 99,99 \u20ac for the return (\"Motivo: Devolu\u00e7\u00e3o\") of one TAPETE (rug, item 4631802940089), with a subtotal of 81,29 \u20ac plus 23% VAT of 18,70 \u20ac. The credit was settled as an exchange of goods (\"Permuta de bens\") and references the original sales document FS 001715012020/014205. The document notes it was processed by a certified tax program (n\u00ba 2742/AT)."
+      },
+      "error": "",
+      "seconds": 0.0
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "total": 92.86545599997044
+  },
+  "processing": [
+    {
+      "id": "5b2c92c652714e488663481d6dfef115",
+      "started_at": "2026-10-05T21:51:38.394349Z",
+      "stage": "ocr",
+      "source_pages": [
+        1,
+        2,
+        3
+      ],
+      "model": "local-ocr",
+      "base_url": "",
+      "status": "complete",
+      "seconds": 6.232621417148039,
+      "requests": 0,
+      "input_tokens": null,
+      "cached_input_tokens": null,
+      "output_tokens": null,
+      "token_details": {},
+      "usage_complete": true,
+      "pricing": null,
+      "estimated_cost_usd": "0"
+    },
+    {
+      "id": "a5e6b87942ef40779fef2ea4c8bf1efd",
+      "started_at": "2026-10-05T21:51:52.984910Z",
+      "stage": "split",
+      "source_pages": [
+        1,
+        2,
+        3
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 6.725805833004415,
+      "requests": 1,
+      "input_tokens": 7839,
+      "cached_input_tokens": 0,
+      "output_tokens": 303,
+      "token_details": {
+        "reasoning_tokens": 269
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00132735"
+    },
+    {
+      "id": "75ead8771e344bbe842ab1dd36fecbe2",
+      "started_at": "2026-10-05T21:51:59.715522Z",
+      "stage": "details",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 8.28860779106617,
+      "requests": 1,
+      "input_tokens": 3251,
+      "cached_input_tokens": 640,
+      "output_tokens": 586,
+      "token_details": {
+        "reasoning_tokens": 537
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00070385"
+    },
+    {
+      "id": "3b99d55e04c149b294590277a329d1f8",
+      "started_at": "2026-10-05T21:52:08.008207Z",
+      "stage": "details",
+      "source_pages": [
+        2
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 4.912543500075117,
+      "requests": 1,
+      "input_tokens": 3251,
+      "cached_input_tokens": 640,
+      "output_tokens": 494,
+      "token_details": {
+        "reasoning_tokens": 449
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00065785"
+    },
+    {
+      "id": "e0ab3772be7047f29d159edf718056cd",
+      "started_at": "2026-10-05T21:52:12.924858Z",
+      "stage": "details",
+      "source_pages": [
+        3
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 21.029372666031122,
+      "requests": 1,
+      "input_tokens": 3251,
+      "cached_input_tokens": 640,
+      "output_tokens": 1487,
+      "token_details": {
+        "reasoning_tokens": 1437
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00115435"
+    },
+    {
+      "id": "b54f49ac95b648bbb1267073afc88ec6",
+      "started_at": "2026-10-05T21:52:36.101877Z",
+      "stage": "tagging",
+      "source_pages": [
+        3
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 8.111423583002761,
+      "requests": 1,
+      "input_tokens": 2831,
+      "cached_input_tokens": 256,
+      "output_tokens": 576,
+      "token_details": {
+        "reasoning_tokens": 389
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00068193"
+    },
+    {
+      "id": "d0fd0efa3468493485379c1149eb24e9",
+      "started_at": "2026-10-05T21:52:47.653233Z",
+      "stage": "tagging",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 11.51425804081373,
+      "requests": 1,
+      "input_tokens": 2831,
+      "cached_input_tokens": 256,
+      "output_tokens": 959,
+      "token_details": {
+        "reasoning_tokens": 765
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00087343"
+    },
+    {
+      "id": "515238de6bdc47e6b97ce782335b91fa",
+      "started_at": "2026-10-05T21:53:02.849870Z",
+      "stage": "tagging",
+      "source_pages": [
+        2
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 8.385538542177528,
+      "requests": 1,
+      "input_tokens": 2831,
+      "cached_input_tokens": 256,
+      "output_tokens": 642,
+      "token_details": {
+        "reasoning_tokens": 440
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00071493"
+    }
+  ]
+}

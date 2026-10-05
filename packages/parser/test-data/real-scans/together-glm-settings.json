@@ -1,0 +1,17 @@
+{
+  "provider": "compatible",
+  "reasoning_effort": "default",
+  "base_url": "https://api.together.ai/v1",
+  "model": "zai-org/GLM-5.3-Flash",
+  "timeout_seconds": 180,
+  "output_mode": "native",
+  "pricing": {
+    "model": "zai-org/GLM-5.3-Flash",
+    "base_url": "https://api.together.ai/v1",
+    "input_usd_per_million": "0.15",
+    "output_usd_per_million": "0.50",
+    "cached_input_usd_per_million": "0.03",
+    "source": "https://www.together.ai/pricing",
+    "checked_on": "2026-10-05"
+  }
+}

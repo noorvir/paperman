@@ -1,0 +1,311 @@
+{
+  "fields": {
+    "packets": {
+      "correct": 1,
+      "total": 2,
+      "rate": 0.5
+    },
+    "groups": {
+      "correct": 3,
+      "total": 7,
+      "rate": 0.42857142857142855
+    },
+    "owner": {
+      "correct": 6,
+      "total": 10,
+      "rate": 0.6
+    },
+    "date": {
+      "correct": 6,
+      "total": 10,
+      "rate": 0.6
+    },
+    "title_keywords": {
+      "correct": 6,
+      "total": 10,
+      "rate": 0.6
+    }
+  },
+  "boundaries": {
+    "true_positive": 2,
+    "false_positive": 0,
+    "false_negative": 3
+  },
+  "tags": {
+    "true_positive": 6,
+    "false_positive": 0,
+    "false_negative": 4
+  },
+  "text": {
+    "all": {
+      "characters": 0,
+      "character_errors": 0,
+      "words": 0,
+      "word_errors": 0,
+      "actual_words": 0,
+      "matching_words": 0,
+      "cer": null,
+      "wer": null,
+      "word_coverage": null
+    }
+  },
+  "failures": [
+    "01: ValueError: The model server returned HTTP 413. Check the endpoint, model name, and credentials"
+  ],
+  "samples": [
+    {
+      "id": "01",
+      "groups": [
+        {
+          "pages": [
+            1,
+            2,
+            3,
+            4
+          ],
+          "checks": {
+            "groups": false,
+            "owner": false,
+            "date": false,
+            "title_keywords": false
+          },
+          "expected_owner": "bluewest",
+          "actual_owner": null,
+          "expected_date": "2020-03-01",
+          "actual_date": null,
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": []
+        },
+        {
+          "pages": [
+            5
+          ],
+          "checks": {
+            "groups": false,
+            "owner": false,
+            "date": false,
+            "title_keywords": false
+          },
+          "expected_owner": "buying-time",
+          "actual_owner": null,
+          "expected_date": "2020-02-09",
+          "actual_date": null,
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": []
+        },
+        {
+          "pages": [
+            6,
+            7
+          ],
+          "checks": {
+            "groups": false,
+            "owner": false,
+            "date": false,
+            "title_keywords": false
+          },
+          "expected_owner": "assembly",
+          "actual_owner": null,
+          "expected_date": "2020-02-23",
+          "actual_date": null,
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": []
+        },
+        {
+          "pages": [
+            8,
+            9
+          ],
+          "checks": {
+            "groups": false,
+            "owner": false,
+            "date": false,
+            "title_keywords": false
+          },
+          "expected_owner": "groundswell",
+          "actual_owner": null,
+          "expected_date": "2020-02-20",
+          "actual_date": null,
+          "expected_tags": [
+            "contract"
+          ],
+          "actual_tags": []
+        }
+      ],
+      "seconds": {
+        "total": 12.586805459111929
+      }
+    },
+    {
+      "id": "02",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "2020-11-04",
+          "actual_date": "2020-11-04",
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": [
+            "invoice",
+            "receipt"
+          ]
+        },
+        {
+          "pages": [
+            2
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "2020-11-10",
+          "actual_date": "2020-11-10",
+          "expected_tags": [
+            "credit-note"
+          ],
+          "actual_tags": [
+            "credit-note"
+          ]
+        },
+        {
+          "pages": [
+            3
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "2021-05-06",
+          "actual_date": "2021-05-06",
+          "expected_tags": [
+            "invoice"
+          ],
+          "actual_tags": [
+            "invoice",
+            "receipt"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 47.38878674991429,
+        "total": 90.96639095805585
+      }
+    },
+    {
+      "id": "03",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "george-barody",
+          "actual_owner": "george-barody",
+          "expected_date": "1998-12-10",
+          "actual_date": "1998-12-10",
+          "expected_tags": [
+            "correspondence"
+          ],
+          "actual_tags": [
+            "correspondence"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 10.65611462504603,
+        "total": 18.44358329102397
+      }
+    },
+    {
+      "id": "04",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "kelli-scruggs",
+          "actual_owner": "kelli-scruggs",
+          "expected_date": "2000-01-21",
+          "actual_date": "2000-01-21",
+          "expected_tags": [
+            "order"
+          ],
+          "actual_tags": [
+            "order"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 10.905745374970138,
+        "total": 23.194253665860742
+      }
+    },
+    {
+      "id": "05",
+      "groups": [
+        {
+          "pages": [
+            1
+          ],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "mike-mozina",
+          "actual_owner": "mike-mozina",
+          "expected_date": "1998-08-31",
+          "actual_date": "1998-08-31",
+          "expected_tags": [
+            "correspondence"
+          ],
+          "actual_tags": [
+            "correspondence"
+          ]
+        }
+      ],
+      "seconds": {
+        "analyze": 4.93348649982363,
+        "total": 10.16705770790577
+      }
+    }
+  ],
+  "policy": "All expected documents remain in the field denominator, including failures. Incomplete source excerpts are excluded from packet, group and boundary scores. OCR is unscored when transcripts are absent. Field scores require an exact page-group match. Title is a frozen keyword rubric, not a semantic quality score. CER/WER include reading-order errors; word coverage ignores order. NFKC, case, curly quotes, dash and whitespace normalization; decorative bullets ignored. Optional tags count neither for nor against the score. No human label review; no held-out set."
+}

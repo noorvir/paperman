@@ -1,0 +1,157 @@
+{
+  "id": "03",
+  "source_sha256": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "george-barody",
+        "title": "Confidential facsimile transmission cover sheet",
+        "document_date": "1998-12-10",
+        "confidence": 0.9,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "confidential-communication",
+          "fax-cover-sheet",
+          "government-office"
+        ],
+        "summary": "A confidential facsimile transmission cover sheet from the Ohio Attorney General's office (Betty D. Montgomery), dated 12/10/98, addressed to George Baroody with fax and phone numbers (336) 335-7392 and (336) 335-7363. The sender is listed as June Flynn for Eric Brown at (614) 466-8980, and the fax includes 3 pages total. The cover sheet carries a confidentiality notice stating the message is intended only for the named recipient and may contain privileged information. The fax header shows a transmission time of Dec 10 '98, 17:46."
+      },
+      "error": "",
+      "seconds": 0.0
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "total": 16.186186749953777
+  },
+  "processing": [
+    {
+      "id": "9eb6db5719ce4c198dcc5c2b075034eb",
+      "started_at": "2026-10-05T21:53:11.353478Z",
+      "stage": "ocr",
+      "source_pages": [
+        1
+      ],
+      "model": "local-ocr",
+      "base_url": "",
+      "status": "complete",
+      "seconds": 1.2750913749914616,
+      "requests": 0,
+      "input_tokens": null,
+      "cached_input_tokens": null,
+      "output_tokens": null,
+      "token_details": {},
+      "usage_complete": true,
+      "pricing": null,
+      "estimated_cost_usd": "0"
+    },
+    {
+      "id": "906f506284524699b4578d3fba97e382",
+      "started_at": "2026-10-05T21:53:12.897665Z",
+      "stage": "split",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 5.270912582986057,
+      "requests": 1,
+      "input_tokens": 2905,
+      "cached_input_tokens": 256,
+      "output_tokens": 171,
+      "token_details": {
+        "reasoning_tokens": 143
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00049053"
+    },
+    {
+      "id": "7a72144c8eee498eb1c04db40bbea226",
+      "started_at": "2026-10-05T21:53:18.174376Z",
+      "stage": "details",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 4.662132124882191,
+      "requests": 1,
+      "input_tokens": 3309,
+      "cached_input_tokens": 640,
+      "output_tokens": 601,
+      "token_details": {
+        "reasoning_tokens": 544
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00072005"
+    },
+    {
+      "id": "b57670d695294b10b96bb019d1704594",
+      "started_at": "2026-10-05T21:53:23.100040Z",
+      "stage": "tagging",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 4.415357958059758,
+      "requests": 1,
+      "input_tokens": 2889,
+      "cached_input_tokens": 256,
+      "output_tokens": 345,
+      "token_details": {
+        "reasoning_tokens": 177
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00057513"
+    }
+  ]
+}

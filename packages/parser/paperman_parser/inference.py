@@ -1,6 +1,9 @@
 import asyncio
+import logging
 from collections.abc import Callable
+from datetime import UTC, datetime
 from itertools import pairwise
+from time import perf_counter
 from typing import Annotated
 
 from openai import APIConnectionError, APITimeoutError
@@ -12,15 +15,18 @@ from pydantic_ai import (
     NativeOutput,
     PromptedOutput,
     ToolOutput,
+    capture_run_messages,
 )
 from pydantic_ai.exceptions import (
     ModelAPIError,
     ModelHTTPError,
     UnexpectedModelBehavior,
 )
+from pydantic_ai.messages import ModelMessage, ModelResponse
 from pydantic_ai.models.openai import OpenAIChatModel, OpenAIChatModelSettings
 from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
+from pydantic_ai.usage import RunUsage
 
 from paperman_parser.models import (
     Analysis,
@@ -29,6 +35,8 @@ from paperman_parser.models import (
     DocumentProposal,
     Enrichment,
     InferenceSettings,
+    ProcessingStage,
+    ProcessingUsage,
     Record,
     validate_analysis,
 )
@@ -38,12 +46,21 @@ from paperman_parser.prompt.details import details
 from paperman_parser.prompt.enrich import enrich
 from paperman_parser.prompt.revise import revise
 from paperman_parser.prompt.split import split
+from paperman_parser.usage import estimate_cost
+
+logger = logging.getLogger(__name__)
 
 
 class EndpointInference:
-    def __init__(self, settings: InferenceSettings, api_key: str) -> None:
+    def __init__(
+        self,
+        settings: InferenceSettings,
+        api_key: str,
+        record_usage: Callable[[ProcessingUsage], None] | None = None,
+    ) -> None:
         self.settings = settings
         self.api_key = api_key
+        self.record_usage = record_usage
 
     @property
     def version(self) -> str:
@@ -81,7 +98,13 @@ class EndpointInference:
                     "Start at the first nonblank page. Return unique nonblank document starts in source order"
                 )
 
-        boundaries = await self._request(ScanSplit, split(pages), validate_split)
+        boundaries = await self._request(
+            ScanSplit,
+            split(pages),
+            validate_split,
+            stage="split",
+            source_pages=list(range(1, len(pages) + 1)),
+        )
         owners = {owner.id for owner in catalog.owners}
 
         def validate_owner(result: DocumentDetails) -> None:
@@ -98,7 +121,11 @@ class EndpointInference:
             ]
             images = [pages[page - 1] for page in source_pages]
             result = await self._request(
-                DocumentDetails, details(images, catalog.owners), validate_owner
+                DocumentDetails,
+                details(images, catalog.owners),
+                validate_owner,
+                stage="details",
+                source_pages=source_pages,
             )
             documents.append(
                 DocumentProposal(
@@ -129,7 +156,11 @@ class EndpointInference:
                 )
 
         return await self._request(
-            Enrichment, enrich(pages, catalog.tags), validate_tags
+            Enrichment,
+            enrich(pages, catalog.tags),
+            validate_tags,
+            stage="tagging",
+            source_pages=list(range(1, len(pages) + 1)),
         )
 
     async def revise(
@@ -147,7 +178,11 @@ class EndpointInference:
                 )
 
         return await self._request(
-            Analysis, revise(pages, catalog, proposal, instructions), validate_revision
+            Analysis,
+            revise(pages, catalog, proposal, instructions),
+            validate_revision,
+            stage="review",
+            source_pages=list(range(1, len(pages) + 1)),
         )
 
     async def _request[T: BaseModel](
@@ -155,6 +190,9 @@ class EndpointInference:
         output: type[T],
         prompt: Prompt,
         validate: Callable[[T], None] | None = None,
+        *,
+        stage: ProcessingStage,
+        source_pages: list[int],
     ) -> T:
         if not self.settings.base_url or not self.settings.model:
             raise ValueError(
@@ -202,13 +240,23 @@ class EndpointInference:
         content.extend(
             BinaryContent(data=image, media_type="image/png") for image in prompt.images
         )
+        started_at = datetime.now(UTC)
+        started = perf_counter()
+        usage = RunUsage()
+        messages: list[ModelMessage] = []
+        succeeded = False
+        transport_failed = False
         try:
-            result = await agent.run(content)
+            with capture_run_messages() as messages:
+                result = await agent.run(content, usage=usage)
+            succeeded = True
         except ModelHTTPError as error:
+            transport_failed = True
             raise ValueError(
                 f"The model server returned HTTP {error.status_code}. Check the endpoint, model name, and credentials"
             ) from error
         except ModelAPIError as error:
+            transport_failed = True
             if isinstance(error.__cause__, APITimeoutError):
                 message = "The model request timed out. Check the GPU server or increase its timeout, then retry"
             elif isinstance(error.__cause__, APIConnectionError):
@@ -220,6 +268,39 @@ class EndpointInference:
             raise ValueError(
                 "The model did not return valid data after validation retries. Check its output format or choose another model"
             ) from error
+        finally:
+            if self.record_usage is not None:
+                responses = [
+                    item for item in messages if isinstance(item, ModelResponse)
+                ]
+                reported = usage.total_tokens > 0
+                requests = usage.requests + int(transport_failed)
+                complete = (
+                    bool(responses)
+                    and len(responses) == requests
+                    and all(item.usage.total_tokens > 0 for item in responses)
+                )
+                call = ProcessingUsage(
+                    started_at=started_at,
+                    stage=stage,
+                    source_pages=source_pages,
+                    model=self.settings.model,
+                    base_url=self.settings.base_url,
+                    status="complete" if succeeded else "failed",
+                    seconds=perf_counter() - started,
+                    requests=requests,
+                    input_tokens=usage.input_tokens if reported else None,
+                    cached_input_tokens=usage.cache_read_tokens if reported else None,
+                    output_tokens=usage.output_tokens if reported else None,
+                    token_details=usage.details,
+                    usage_complete=complete,
+                    pricing=self.settings.pricing,
+                )
+                call.estimated_cost_usd = estimate_cost(call)
+                try:
+                    self.record_usage(call)
+                except Exception:
+                    logger.exception("Could not record processing usage for %s", stage)
         return result.output
 
 

@@ -8,7 +8,7 @@ from pypdf.errors import PyPdfError
 
 
 def render_pdf(source: bytes) -> list[bytes]:
-    """Render visible PDF pages as ordered PNGs with a 2400-pixel longest edge."""
+    """Render visible PDF pages as ordered PNGs with a 1600-pixel longest edge."""
     try:
         reader = PdfReader(BytesIO(source))
         if reader.is_encrypted:
@@ -30,7 +30,7 @@ def render_pdf(source: bytes) -> list[bytes]:
                     "-png",
                     "-cropbox",
                     "-scale-to",
-                    "2400",
+                    "1600",
                     str(path),
                     str(root / "page"),
                 ],

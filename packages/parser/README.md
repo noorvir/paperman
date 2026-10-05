@@ -24,7 +24,7 @@ tags = await inference.enrich(document_pdf_bytes, catalog)
 
 `settings` is an `InferenceSettings`; `catalog` is a `Catalog`, both from `paperman_parser.models`. An issue date can be absent. The parser does not read the clock or substitute an intake date. Page numbers are one-based source numbers. Each source page must appear exactly once, either in an ordered document group or in `blank_pages`. Groups can have gaps only for confirmed blank pages. Splitting returns page groups; the server creates the final files after review.
 
-The server uses the same `OCR.searchable` and `Inference.analyze` stages separately so it can save OCR output before a model request. Both inference methods accept PDF bytes. The endpoint adapter renders visible pages to ordered PNGs with a 2400-pixel longest edge using Poppler. Only these images, instructions, page counts, and catalog values go to the model. OCR text and user text corrections stay local for search and review. The model must support multiple images; there is no text fallback. The server owns intake, saved checkpoints, review, date fallback, filenames, publication, and user tag overrides. An API caller can supply the same bytes without a scan record or inbox.
+The server uses the same `OCR.searchable` and `Inference.analyze` stages separately so it can save OCR output before a model request. Both inference methods accept PDF bytes. The endpoint adapter renders visible pages to ordered PNGs with a 1600-pixel longest edge using Poppler. Only these images, instructions, page counts, and catalog values go to the model. OCR text and user text corrections stay local for search and review. The model must support multiple images; there is no text fallback. The server owns intake, saved checkpoints, review, date fallback, filenames, publication, and user tag overrides. An API caller can supply the same bytes without a scan record or inbox.
 
 `OCR` and `Inference` are injected interfaces. The current implementations are `LocalOCR`, `EndpointInference`, and a deterministic `DemoInference`. Endpoint settings and credentials are explicit. OCR uses temporary files and removes them after the call. No parser result is saved automatically. Rendering also uses temporary files which are removed after each call. The demo adapter is a local stub that reads embedded sample text; it sends nothing to a model.
 
@@ -42,6 +42,14 @@ Originals and the full searchable scan retain all pages. The saved proposal and 
 OCR remains separate because a transcript alone does not provide the word positions needed for selectable text aligned with the PDF. A future image OCR adapter must produce a correctly positioned text layer and pass accuracy checks before replacing local OCR. Blank-page detection shares the split request and adds no separate model call.
 
 For six documents, this is normally 13 model requests: one split, six metadata requests, and six enrichment requests. Validation can cause up to two retries per request. The current splitter has no context windows. The eight public PDFs were evaluated with local Gemma 4. See [measured results](test-data/public-pdfs/results/README.md). Large batches can exceed the configured model context; the server reports request failures for retry.
+
+## Usage and cost
+
+Pass `record_usage: Callable[[ProcessingUsage], None]` to `EndpointInference` to receive one record per split, details, tagging, or review step, including failures. The record contains source pages, model, endpoint, elapsed seconds, reported input/cached/output tokens, request count, outcome, and a price snapshot. Validation retries are included. Tagging page numbers refer to the supplied document; the caller maps these to its source scan. The callback owns persistence. Recording failures are logged and do not stop parsing.
+
+Set `InferenceSettings.pricing` with the matching model and endpoint, USD rates per million tokens, optional cached-input rate, source, and check date. Cached tokens are included in the total input count and charged once at their own rate. Missing usage, missing rates, or a different model/endpoint produces an unknown estimate. A failed step can contain a known partial cost; check `usage_complete` before treating it as a total. This estimate excludes unreported provider charges and is not an invoice.
+
+All model stages, evals, and transcript generation use the shared 1600-pixel renderer. This does not resize stored PDFs or change OCR resolution.
 
 ## Prompts
 
@@ -79,10 +87,10 @@ These checks run without the server, FastAPI, a data directory, or a live model.
 
 The eight public PDFs and label status are described in [test data](test-data/public-pdfs/README.md). All 18 page transcripts and 13 document labels were frozen before evaluation. Labels were written by the agent and have not had human review. The existing server integration script also checks fictional mixed mail against a configured live model.
 
-The [real document eval candidates](test-data/real-scans/README.md) add ten inputs
-with 15 pages from real invoices, forms, and receipts. Sources and file hashes are
-saved. They need PaperMan labels before a scored eval. Source files stay in the
-local cache because dataset rights differ.
+The [real document eval set](test-data/real-scans/README.md) adds ten documents
+with 15 pages from real invoices, forms, and receipts. Sources, file hashes,
+frozen labels, and model results are saved. Source files stay in the local cache
+because dataset rights differ.
 
 ## DocJev research — 2 October 2026
 

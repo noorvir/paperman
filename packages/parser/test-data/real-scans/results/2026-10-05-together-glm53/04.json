@@ -1,0 +1,46 @@
+{
+  "id": "04",
+  "source_sha256": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "kelli-scruggs",
+        "title": "Direct mail coupon request form",
+        "document_date": "2000-01-21",
+        "confidence": 0.95,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "order"
+        ],
+        "suggested_tags": [
+          "direct-mail",
+          "coupon-campaign",
+          "marketing-request-form"
+        ],
+        "summary": "Internal campaign request form initiated by Lynnette Stevens on 21-Jan-00 (dated as 'Date Initiated') and addressed to Kelli Scruggs, with copies to Vincent Losito, George Baroody, Don Kisling, S. Tesh, and C. Will. It requests a direct mail coupon campaign for the Newport Parent, Lights & 120's brands targeting competitive smokers aged 21–34, with approximate circulation of 600,000 across Tiers II & IV (a list of states is given). The coupon value is $1.50 off a pack, with a coupon issue date of 4/14/00 and expiration date of 9/30/00. A control-use section assigns code 05787 and an estimated redemption rate of 13%; the job number field is blank."
+      },
+      "error": "",
+      "seconds": 11.779304915806279
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 6.368632249999791,
+    "total": 18.148423208855093
+  }
+}

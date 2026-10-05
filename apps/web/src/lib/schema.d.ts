@@ -452,6 +452,8 @@ export interface components {
              * @default
              */
             enrichment_error: string;
+            /** Processing */
+            processing: components["schemas"]["UsageAllocation"][];
         };
         /** DocumentDetail */
         DocumentDetail: {
@@ -599,6 +601,46 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** ModelPricing */
+        "ModelPricing-Input": {
+            /** Model */
+            model: string;
+            /** Base Url */
+            base_url: string;
+            /** Input Usd Per Million */
+            input_usd_per_million: number | string;
+            /** Output Usd Per Million */
+            output_usd_per_million: number | string;
+            /** Cached Input Usd Per Million */
+            cached_input_usd_per_million?: number | string | null;
+            /** Source */
+            source: string;
+            /**
+             * Checked On
+             * Format: date
+             */
+            checked_on: string;
+        };
+        /** ModelPricing */
+        "ModelPricing-Output": {
+            /** Model */
+            model: string;
+            /** Base Url */
+            base_url: string;
+            /** Input Usd Per Million */
+            input_usd_per_million: string;
+            /** Output Usd Per Million */
+            output_usd_per_million: string;
+            /** Cached Input Usd Per Million */
+            cached_input_usd_per_million: string | null;
+            /** Source */
+            source: string;
+            /**
+             * Checked On
+             * Format: date
+             */
+            checked_on: string;
+        };
         /** ModelSettings */
         "ModelSettings-Input": {
             /**
@@ -634,6 +676,7 @@ export interface components {
              * @enum {string}
              */
             output_mode: "prompted" | "native" | "tool";
+            pricing?: components["schemas"]["ModelPricing-Input"] | null;
             /**
              * Review Before Filing
              * @default false
@@ -680,6 +723,7 @@ export interface components {
              * @enum {string}
              */
             output_mode: "prompted" | "native" | "tool";
+            pricing: components["schemas"]["ModelPricing-Output"] | null;
             /**
              * Review Before Filing
              * @default false
@@ -769,6 +813,57 @@ export interface components {
             /** Count */
             count: number | null;
         };
+        /** ProcessingUsage */
+        ProcessingUsage: {
+            /** Id */
+            id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "ocr" | "split" | "details" | "tagging" | "review" | "transcription";
+            /** Source Pages */
+            source_pages: number[];
+            /** Model */
+            model: string;
+            /** Base Url */
+            base_url: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "complete" | "failed";
+            /** Seconds */
+            seconds: number;
+            /**
+             * Requests
+             * @default 0
+             */
+            requests: number;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Cached Input Tokens */
+            cached_input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Token Details */
+            token_details: {
+                [key: string]: number;
+            };
+            /**
+             * Usage Complete
+             * @default false
+             */
+            usage_complete: boolean;
+            pricing: components["schemas"]["ModelPricing-Output"] | null;
+            /** Estimated Cost Usd */
+            estimated_cost_usd: string | null;
+        };
         /** Scan */
         Scan: {
             /** Id */
@@ -826,6 +921,8 @@ export interface components {
             };
             /** History */
             history: components["schemas"]["Event"][];
+            /** Processing */
+            processing: components["schemas"]["ProcessingUsage"][];
         };
         /** ScanDetail */
         ScanDetail: {
@@ -884,6 +981,8 @@ export interface components {
             };
             /** History */
             history: components["schemas"]["Event"][];
+            /** Processing */
+            processing: components["schemas"]["ProcessingUsage"][];
             /** Pipeline */
             pipeline: components["schemas"]["PipelineStep"][];
         };
@@ -922,6 +1021,14 @@ export interface components {
         TagSelection: {
             /** Tag Ids */
             tag_ids: string[];
+        };
+        /** UsageAllocation */
+        UsageAllocation: {
+            call: components["schemas"]["ProcessingUsage"];
+            /** Share */
+            share: string;
+            /** Estimated Cost Usd */
+            estimated_cost_usd: string | null;
         };
         /** ValidationError */
         ValidationError: {

@@ -1411,6 +1411,13 @@
             "type": "string",
             "title": "Enrichment Error",
             "default": ""
+          },
+          "processing": {
+            "items": {
+              "$ref": "#/components/schemas/UsageAllocation"
+            },
+            "type": "array",
+            "title": "Processing"
           }
         },
         "additionalProperties": false,
@@ -1436,7 +1443,8 @@
           "history",
           "enrichment_status",
           "enrichment_version",
-          "enrichment_error"
+          "enrichment_error",
+          "processing"
         ],
         "title": "Document"
       },
@@ -1789,6 +1797,135 @@
         "type": "object",
         "title": "HTTPValidationError"
       },
+      "ModelPricing-Input": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "input_usd_per_million": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Input Usd Per Million"
+          },
+          "output_usd_per_million": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              }
+            ],
+            "title": "Output Usd Per Million"
+          },
+          "cached_input_usd_per_million": {
+            "anyOf": [
+              {
+                "type": "number",
+                "minimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Input Usd Per Million"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "checked_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Checked On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "base_url",
+          "input_usd_per_million",
+          "output_usd_per_million",
+          "source",
+          "checked_on"
+        ],
+        "title": "ModelPricing"
+      },
+      "ModelPricing-Output": {
+        "properties": {
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "input_usd_per_million": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Input Usd Per Million"
+          },
+          "output_usd_per_million": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Output Usd Per Million"
+          },
+          "cached_input_usd_per_million": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Input Usd Per Million"
+          },
+          "source": {
+            "type": "string",
+            "title": "Source"
+          },
+          "checked_on": {
+            "type": "string",
+            "format": "date",
+            "title": "Checked On"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "model",
+          "base_url",
+          "input_usd_per_million",
+          "output_usd_per_million",
+          "cached_input_usd_per_million",
+          "source",
+          "checked_on"
+        ],
+        "title": "ModelPricing"
+      },
       "ModelSettings-Input": {
         "properties": {
           "provider": {
@@ -1839,6 +1976,16 @@
             ],
             "title": "Output Mode",
             "default": "prompted"
+          },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelPricing-Input"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "review_before_filing": {
             "type": "boolean",
@@ -1906,6 +2053,16 @@
             "title": "Output Mode",
             "default": "prompted"
           },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelPricing-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "review_before_filing": {
             "type": "boolean",
             "title": "Review Before Filing",
@@ -1926,6 +2083,7 @@
           "model",
           "timeout_seconds",
           "output_mode",
+          "pricing",
           "review_before_filing",
           "ocr_languages"
         ],
@@ -2148,6 +2306,156 @@
         ],
         "title": "PipelineStep"
       },
+      "ProcessingUsage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "ocr",
+              "split",
+              "details",
+              "tagging",
+              "review",
+              "transcription"
+            ],
+            "title": "Stage"
+          },
+          "source_pages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Source Pages"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Seconds"
+          },
+          "requests": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Requests",
+            "default": 0
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "cached_input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "token_details": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Token Details"
+          },
+          "usage_complete": {
+            "type": "boolean",
+            "title": "Usage Complete",
+            "default": false
+          },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelPricing-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimated_cost_usd": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Usd"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "started_at",
+          "stage",
+          "source_pages",
+          "model",
+          "base_url",
+          "status",
+          "seconds",
+          "requests",
+          "input_tokens",
+          "cached_input_tokens",
+          "output_tokens",
+          "token_details",
+          "usage_complete",
+          "pricing",
+          "estimated_cost_usd"
+        ],
+        "title": "ProcessingUsage"
+      },
       "Scan": {
         "properties": {
           "id": {
@@ -2252,6 +2560,13 @@
             },
             "type": "array",
             "title": "History"
+          },
+          "processing": {
+            "items": {
+              "$ref": "#/components/schemas/ProcessingUsage"
+            },
+            "type": "array",
+            "title": "Processing"
           }
         },
         "additionalProperties": false,
@@ -2271,7 +2586,8 @@
           "document_ids",
           "filing_revision",
           "filing_paths",
-          "history"
+          "history",
+          "processing"
         ],
         "title": "Scan"
       },
@@ -2380,6 +2696,13 @@
             "type": "array",
             "title": "History"
           },
+          "processing": {
+            "items": {
+              "$ref": "#/components/schemas/ProcessingUsage"
+            },
+            "type": "array",
+            "title": "Processing"
+          },
           "pipeline": {
             "items": {
               "$ref": "#/components/schemas/PipelineStep"
@@ -2406,6 +2729,7 @@
           "filing_revision",
           "filing_paths",
           "history",
+          "processing",
           "pipeline"
         ],
         "title": "ScanDetail"
@@ -2514,6 +2838,38 @@
           "tag_ids"
         ],
         "title": "TagSelection"
+      },
+      "UsageAllocation": {
+        "properties": {
+          "call": {
+            "$ref": "#/components/schemas/ProcessingUsage"
+          },
+          "share": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Share"
+          },
+          "estimated_cost_usd": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Usd"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "call",
+          "share",
+          "estimated_cost_usd"
+        ],
+        "title": "UsageAllocation"
       },
       "ValidationError": {
         "properties": {

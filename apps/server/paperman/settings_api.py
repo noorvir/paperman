@@ -52,6 +52,10 @@ def routes(storage: FileStorage) -> APIRouter:
     @router.put("/api/settings", operation_id="save_settings")
     def save_settings(value: ModelSettings) -> ModelSettings:
         with storage.transaction():
+            current = storage.settings()
+            if "pricing" not in value.model_fields_set:
+                if value.model == current.model and value.base_url == current.base_url:
+                    value.pricing = current.pricing
             write_record(storage.root / "settings.toml", value)
         return value
 

@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import time
+from functools import partial
 from pathlib import Path
 
 from filelock import FileLock
@@ -15,6 +16,7 @@ from paperman.models import Event, WorkerState
 from paperman.pdf import validate_scan
 from paperman.pipeline import enrich_document, process_scan
 from paperman.storage import FileStorage, file_hash, write_record
+from paperman.usage import record_scan_usage
 
 logger = logging.getLogger(__name__)
 
@@ -114,12 +116,16 @@ async def run_cycle(
                 del observed[path]
         model = storage.settings()
         inference: Inference
-        if model.provider == "demo":
-            inference = DemoInference()
-        else:
-            inference = EndpointInference(model, settings.model_api_key)
         for scan in storage.list_scans():
             if scan.status == "queued":
+                if model.provider == "demo":
+                    inference = DemoInference()
+                else:
+                    inference = EndpointInference(
+                        model,
+                        settings.model_api_key,
+                        record_usage=partial(record_scan_usage, storage, scan.id),
+                    )
                 state.message = f"Processing {scan.original_name}"
                 await process_scan(storage, inference, LocalOCR(), scan)
             current = storage.get_scan(scan.id)
@@ -129,6 +135,19 @@ async def run_cycle(
             storage.rebuild_index()
         for document in storage.list_documents():
             if document.enrichment_status == "pending":
+                if model.provider == "demo":
+                    inference = DemoInference()
+                else:
+                    inference = EndpointInference(
+                        model,
+                        settings.model_api_key,
+                        record_usage=partial(
+                            record_scan_usage,
+                            storage,
+                            document.scan_id,
+                            page_map=document.source_pages,
+                        ),
+                    )
                 state.message = f"Tagging {document.title}"
                 await enrich_document(storage, inference, document)
         if state.status != "error":

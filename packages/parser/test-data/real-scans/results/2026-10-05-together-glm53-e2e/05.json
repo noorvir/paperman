@@ -1,0 +1,157 @@
+{
+  "id": "05",
+  "source_sha256": "5b378fccd8d7ebea1b3433dd0bc7cb63b106aec20d71afc4c11145bf5eda1edd",
+  "ocr_languages": "eng",
+  "pages": [],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "mike-mozina",
+        "title": "Fax cover page",
+        "document_date": "1998-08-31",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [
+          1
+        ]
+      }
+    ],
+    "blank_pages": []
+  },
+  "enriched": [
+    {
+      "pages": [
+        1
+      ],
+      "result": {
+        "tag_ids": [
+          "correspondence"
+        ],
+        "suggested_tags": [
+          "fax-cover-sheet",
+          "market-research",
+          "tobacco-industry"
+        ],
+        "summary": "Fax cover sheet from Susan Smith of Lorillard Tobacco Company's Market Planning and Information Department to Mike Mozina at MSA, dated 8/31/98 (3 pages including cover). The note transmits, as promised, an approval for the AWS Quarterly Store Count Database to begin in 3rd Quarter 1998 and a table showing a significant jump in Convenience Store market importance in 2nd Quarter 1998."
+      },
+      "error": "",
+      "seconds": 0.0
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "total": 12.771014832891524
+  },
+  "processing": [
+    {
+      "id": "7917f5ffa45e4399a725e1e7e41d1e86",
+      "started_at": "2026-10-05T21:53:47.594106Z",
+      "stage": "ocr",
+      "source_pages": [
+        1
+      ],
+      "model": "local-ocr",
+      "base_url": "",
+      "status": "complete",
+      "seconds": 1.098991832928732,
+      "requests": 0,
+      "input_tokens": null,
+      "cached_input_tokens": null,
+      "output_tokens": null,
+      "token_details": {},
+      "usage_complete": true,
+      "pricing": null,
+      "estimated_cost_usd": "0"
+    },
+    {
+      "id": "01fc7e202f3a4e58b1c03e094860d49b",
+      "started_at": "2026-10-05T21:53:48.855118Z",
+      "stage": "split",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 2.1583651669789106,
+      "requests": 1,
+      "input_tokens": 2905,
+      "cached_input_tokens": 256,
+      "output_tokens": 152,
+      "token_details": {
+        "reasoning_tokens": 124
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00048103"
+    },
+    {
+      "id": "93280b038b8e4671989a9c61a191c199",
+      "started_at": "2026-10-05T21:53:51.020767Z",
+      "stage": "details",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 2.8205144579987973,
+      "requests": 1,
+      "input_tokens": 3309,
+      "cached_input_tokens": 640,
+      "output_tokens": 291,
+      "token_details": {
+        "reasoning_tokens": 238
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00056505"
+    },
+    {
+      "id": "d86ebc8658984ffd859ac252ab6b2613",
+      "started_at": "2026-10-05T21:53:54.034659Z",
+      "stage": "tagging",
+      "source_pages": [
+        1
+      ],
+      "model": "zai-org/GLM-5.3-Flash",
+      "base_url": "https://api.together.ai/v1",
+      "status": "complete",
+      "seconds": 6.304536666022614,
+      "requests": 1,
+      "input_tokens": 2889,
+      "cached_input_tokens": 256,
+      "output_tokens": 384,
+      "token_details": {
+        "reasoning_tokens": 267
+      },
+      "usage_complete": true,
+      "pricing": {
+        "model": "zai-org/GLM-5.3-Flash",
+        "base_url": "https://api.together.ai/v1",
+        "input_usd_per_million": "0.15",
+        "output_usd_per_million": "0.50",
+        "cached_input_usd_per_million": "0.03",
+        "source": "https://www.together.ai/pricing",
+        "checked_on": "2026-10-05"
+      },
+      "estimated_cost_usd": "0.00059463"
+    }
+  ]
+}
