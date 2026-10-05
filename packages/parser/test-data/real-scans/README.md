@@ -86,6 +86,32 @@ No full transcript labels were created. **OCR accuracy and blank-page detection
 were not measured.** No test page is blank. This set is now used for evaluation;
 it must not be described as an unseen set after prompt changes use these results.
 
+## Markdown transcript drafts
+
+Sol transcript drafts are stored locally under
+`.cache/real-scans/transcripts/2026-10-05-sol/`. The folder contains one Markdown
+file per source document, with page breaks, headings, tables, and form fields.
+Per-page JSON records list uncertain readings. Full transcripts stay outside Git
+under the source datasets' existing redistribution limits.
+
+These are model-generated drafts, not verified OCR ground truth. They do not
+change the fixed field labels or the saved eval scores. Before a scored OCR eval,
+check the text against the page images, resolve or mark illegible spans, and
+define the plain-text reading order. Markdown table syntax must not count as OCR
+errors. The current production OCR and searchable PDF layer remain unchanged.
+
+The typed prompt is `paperman_parser/prompt/transcribe.py`. Run from
+`packages/parser` with a new output directory and explicit PDF inputs:
+
+```sh
+uv run python -m scripts.transcribe --model gpt-6-sol --output ../../.cache/real-scans/transcripts/new-run ../../.cache/real-scans/inputs/01.pdf
+```
+
+The runner uses the existing Codex login and sends one rendered page image per
+request, without OCR text or expected labels. It records model, prompt, source,
+and image hashes, raw responses, and errors. The Markdown preserves document
+structure; it does not reproduce exact page coordinates or add a PDF text layer.
+
 ## Repeat an eval
 
 Run from `packages/parser`. Use a new output directory for every run.

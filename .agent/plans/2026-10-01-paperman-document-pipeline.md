@@ -22,6 +22,8 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 
 ## Current local AI milestone
 
+- [x] Generate Sol Markdown transcript drafts for all 10 real source documents (15 pages). Preserve tables, form fields, page breaks, and source language. Page coverage, hashes, and table structure pass; visual spot checks are complete. Keep the 22 uncertain readings for review. Full transcript verification and plain-text references are still required before OCR scoring; fixed eval labels are unchanged.
+
 - [x] Rerun all eight public PDFs with Luna and image-only inputs. Exact groups, owners, and dates: 13/13. Title keywords: 12/13. Tag precision: 18/19; recall: 18/18. No failures. OCR was reused, not rerun; local model and Sol were not rerun. Keep frozen labels and saved evidence. Use "evals" for these model checks.
 - [x] Find and visually inspect ten real inputs with 15 pages from VRDU, FUNSD, and published personal receipts. Cache original files and upstream labels; record sources, hashes, and rights. These improve scan realism but do not cover modern German household mail.
 - [x] Freeze agent-checked labels for 10 real documents (15 pages) and run Gemma 4, Luna, and Sol on identical image inputs. Two constructed batches: Gemma 0/7 exact groups; Luna and Sol 7/7. Owners: 3/10, 10/10, 10/10. Dates: 2/10, 9/10, 10/10. Luna and Sol match all required tags; no processing failures. Exclude three excerpts from complete-document split metrics. OCR and blank-page accuracy remain unmeasured. Keep restricted source data outside Git.
