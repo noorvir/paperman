@@ -7,17 +7,12 @@ from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 from fpdf import FPDF
+from paperman_parser.demo_inference import DemoInference
+from paperman_parser.models import Analysis, Catalog, CatalogEntry, DocumentProposal
 
-from paperman.demo_inference import DemoInference
-from paperman.models import (
-    Analysis,
-    Catalog,
-    CatalogEntry,
-    DocumentProposal,
-    Event,
-    ModelSettings,
-)
-from paperman.pipeline import enrich_document, file_documents
+from paperman.filing import file_documents
+from paperman.models import Event, ModelSettings
+from paperman.pipeline import enrich_document
 from paperman.storage import FileStorage, write_record
 
 SAMPLES = [
@@ -205,7 +200,7 @@ async def seed(root: Path) -> None:
             ]
         )
         if batch < 12:
-            file_documents(store, scan)
+            scan = file_documents(store, scan)
             store.archive(scan)
         else:
             scan.status = "review" if batch == 12 else "failed"

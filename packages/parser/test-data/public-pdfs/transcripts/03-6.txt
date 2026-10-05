@@ -1,0 +1,21 @@
+COBALT HARBOR (FICTIONAL)
+Invoice
+Cobalt Harbor Services to Orchid Field
+INVOICE NUMBER
+INV-9596
+BILL TO
+Orchid Field, 14 Example Way
+ISSUED
+September 22, 2026
+PAYMENT TERMS
+Net 30, USD
+Payment requested
+Please remit $703.00 for the completed services listed below. Reference INV-9596 with your payment. No account or payment details in this fixture are real.
+Remittance note
+Payment is due thirty days after issue. Contact billing@example.invalid for a corrected copy.
+Service Quantity Amount
+Equipment restoration 1 $523.00
+Inspection and travel 1 $180.00
+TOTAL DUE $703.00
+SYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION
+1 / 2

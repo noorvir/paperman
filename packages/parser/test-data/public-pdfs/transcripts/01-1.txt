@@ -1,0 +1,21 @@
+CEDAR BAY (FICTIONAL)
+Invoice
+Cedar Bay Services to Quarry Lane
+INVOICE NUMBER
+INV-9400
+BILL TO
+Quarry Lane, 14 Example Way
+ISSUED
+September 1, 2026
+PAYMENT TERMS
+Net 30, USD
+Payment requested
+Please remit $1,367.00 for the completed services listed below. Reference INV-9400 with your payment. No account or payment details in this fixture are real.
+Remittance note
+Payment is due thirty days after issue. Contact billing@example.invalid for a corrected copy.
+Service Quantity Amount
+Equipment restoration 1 $1,187.00
+Inspection and travel 1 $180.00
+TOTAL DUE $1,367.00
+SYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION
+1 / 2

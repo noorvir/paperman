@@ -1,0 +1,37 @@
+{
+  "id": "04",
+  "source_sha256": "755073d4d13732eb9bd9b340c6ff28325741835c369a6c8b58b3f4650ffed52d",
+  "ocr_languages": "eng",
+  "pages": [
+    "Summer 2022\n1 of 1\nBUILDING BLOCKS STUDENT HANDOUT \nSample credit card statement\n BUILDING BLOCKS STUDENT HANDOUT\nSample credit card statement\nPayment Information\nDate: 12/30/XX\nPayment Due Date: 1/23/XX\nNew Balance: $1392.71\nMinimum Payment: $25\nAccount Summary Payment Information\nPrevious Balance $482.42 New Balance $1,392.71\nPayment, Credits -$350.42 Payment Due Date 1/23/XX\nPurchases $1,258.56 Minimum Payment Due $25\nCash Advances $0\nBalance Transfers $0\nFees Charged $0\nInterest Charged $2.15\nNew Balance $1,392.71\nOpening/Closing Date 11/27/XX – 12/26/XX\nCredit Access Line $12,000\nAvailable Credit $10,607. 29\nCash Access Line $2,000\nAvailable for Cash $2,000\nPast Due Amount $0\nBalance Over the Credit Access Line $0\nFinance Charge Summary Purchases Advances\nPeriodic Rate 1.65% 0.54%\nAnnual Percentage Rate (APR) 19.80% 6.48%\nName: Susan Doe\nAddress: 1234 Main Street, Anytown, USA\nAccount Number: 12345-67-8907\nFor Lost or Stolen Card, Call:  \n1-800-XXX-XXXX"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Credit card statement handout",
+        "document_date": null,
+        "confidence": 0.99,
+        "review_reason": "The document shows only “Summer 2022,” not a complete issue date.",
+        "pages": [1]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1],
+      "result": {
+        "tag_ids": ["reference", "banking"],
+        "suggested_tags": [],
+        "summary": "A student handout with a sample credit card statement. It lists a date of 12/30/XX, a payment due date of 1/23/XX, balances, payment amounts, and interest rates."
+      },
+      "error": "",
+      "seconds": 6.397330917185172
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 12.566958541050553,
+    "total": 18.964796375017613
+  }
+}

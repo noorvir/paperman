@@ -1,0 +1,66 @@
+{
+  "id": "01",
+  "source_sha256": "443b1fbcf040924f2ed60a4f46578e6d613afe0e8ccaf9f1cd2edc9e9f16ada7",
+  "ocr_languages": "eng",
+  "pages": [
+    "CEDAR BAY (FICTIONAL)\nInvoice\nCedar Bay Services to Quarry Lane\nINVOICE NUMBER\nINV-9400\nBILL TO\nQuarry Lane, 14 Example Way\nISSUED\nSeptember 1, 2026\nPAYMENT TERMS\nNet 30, USD\nPayment requested\nPlease remit $1,367.00 for the completed services listed below. Reference INV-9400 with your payment. No\naccount or payment details in this fixture are real.\nRemittance note\nPayment is due thirty days after issue. Contact billing@example.invalid for a corrected copy.\nService\nQuantity\nAmount\nEquipment restoration\n1\n$1,187.00\nInspection and travel\n1\n$180.00\nTOTAL DUE\n$1,367.00\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 2\n",
+    "CEDAR BAY (FICTIONAL)\nReference 9400 / continued\nService detail\nContinuation of INV-9400. Technician work log: isolate damaged fittings, complete pressure testing, and\nconfirm the equipment is safe to return to service.\nWork completed\nInspection: 1.5 hours. Restoration: 3.0 hours. Verification: 1.0 hour. The charges summarize work already\ndelivered and form part of the amount due on the preceding page.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n2 / 2\n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "quarry-lane",
+        "title": "Invoice",
+        "document_date": "2026-09-01",
+        "confidence": 1.0,
+        "review_reason": "",
+        "pages": [1]
+      },
+      {
+        "owner_id": "cedar-bay",
+        "title": "Service work log",
+        "document_date": null,
+        "confidence": 1.0,
+        "review_reason": "",
+        "pages": [2]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1],
+      "result": {
+        "tag_ids": ["invoice"],
+        "suggested_tags": [
+          "service_billing",
+          "repair_invoice",
+          "service_report"
+        ],
+        "summary": "This document is an invoice (INV-9400) from Cedar Bay Services to Quarry Lane, issued on September 1, 2026, for services rendered. The total amount due is $1,367.00, broken down into equipment restoration ($1,187.00) and inspection and travel ($180.00). Payment terms are Net 30."
+      },
+      "error": "",
+      "seconds": 2.1760507919825613
+    },
+    {
+      "pages": [2],
+      "result": {
+        "tag_ids": ["invoice", "contract", "correspondence"],
+        "suggested_tags": [
+          "Service Log",
+          "Technical Report",
+          "Repair Documentation"
+        ],
+        "summary": "This document appears to be a continuation of an invoice or service record (INV-9400), detailing technician work performed on equipment, including isolating damaged fittings, pressure testing, and confirming the equipment is safe for service. It includes time logs for inspection, restoration, and verification."
+      },
+      "error": "",
+      "seconds": 2.015445375116542
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "ocr": 0.46269470802508295,
+    "analyze": 5.074498292058706,
+    "enrich": 4.192491375142708,
+    "total": 9.731424167053774
+  }
+}

@@ -184,7 +184,8 @@ export interface paths {
         };
         /** Document */
         get: operations["document"];
-        put?: never;
+        /** Edit Document */
+        put: operations["edit_document"];
         post?: never;
         delete?: never;
         options?: never;
@@ -305,12 +306,7 @@ export interface components {
             message: string;
         };
         /** Analysis */
-        "Analysis-Input": {
-            /** Documents */
-            documents: components["schemas"]["DocumentProposal-Input"][];
-        };
-        /** Analysis */
-        "Analysis-Output": {
+        Analysis: {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Output"][];
         };
@@ -406,6 +402,20 @@ export interface components {
              */
             summary: string;
             /**
+             * Summary Edited
+             * @default false
+             */
+            summary_edited: boolean;
+            /** Text Override */
+            text_override: string | null;
+            /**
+             * Revision
+             * @default 0
+             */
+            revision: number;
+            /** History */
+            history: components["schemas"]["Event"][];
+            /**
              * Enrichment Status
              * @default pending
              * @enum {string}
@@ -425,6 +435,23 @@ export interface components {
         /** DocumentDetail */
         DocumentDetail: {
             document: components["schemas"]["Document"];
+            /** Text */
+            text: string;
+        };
+        /** DocumentEdit */
+        DocumentEdit: {
+            /** Revision */
+            revision: number;
+            /** Title */
+            title: string;
+            /** Owner Id */
+            owner_id: string;
+            /** Document Date */
+            document_date: string | null;
+            /** Summary */
+            summary: string;
+            /** Tag Ids */
+            tag_ids: string[];
             /** Text */
             text: string;
         };
@@ -686,9 +713,14 @@ export interface components {
              * @default 0
              */
             attempts: number;
-            proposal: components["schemas"]["Analysis-Output"] | null;
+            proposal: components["schemas"]["Analysis"] | null;
             /** Document Ids */
             document_ids: string[];
+            /**
+             * Filing Revision
+             * @default 0
+             */
+            filing_revision: number;
             /** History */
             history: components["schemas"]["Event"][];
         };
@@ -702,6 +734,15 @@ export interface components {
             page: number;
             /** Pages */
             pages: number;
+        };
+        /** ScanReview */
+        ScanReview: {
+            /** Documents */
+            documents: components["schemas"]["DocumentProposal-Input"][];
+            /** Document Revisions */
+            document_revisions?: {
+                [key: string]: number;
+            };
         };
         /** TagSelection */
         TagSelection: {
@@ -1012,7 +1053,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["Analysis-Input"];
+                "application/json": components["schemas"]["ScanReview"];
             };
         };
         responses: {
@@ -1117,6 +1158,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    edit_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentEdit"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

@@ -13,10 +13,10 @@ from typing import Protocol
 
 import tomli_w
 from filelock import FileLock
+from paperman_parser.models import Catalog
 from pydantic import BaseModel, JsonValue, TypeAdapter
 
 from paperman.models import (
-    Catalog,
     Document,
     Event,
     LegacyIndex,
@@ -36,9 +36,14 @@ class Storage(Protocol):
     def list_scans(self) -> list[Scan]: ...
     def save_scan(self, scan: Scan) -> None: ...
     def get_scan(self, scan_id: str) -> Scan: ...
-    def list_documents(self) -> list[Document]: ...
+    def list_documents(
+        self, *, include_unpublished: bool = False
+    ) -> list[Document]: ...
     def save_document(self, document: Document) -> None: ...
-    def get_document(self, document_id: str) -> Document: ...
+    def get_document(
+        self, document_id: str, *, include_unpublished: bool = False
+    ) -> Document: ...
+    def document_text(self, document: Document) -> str: ...
     def catalog(self) -> Catalog: ...
     def settings(self) -> ModelSettings: ...
 
@@ -48,12 +53,13 @@ class FileStorage:
         self.root = root.resolve()
         for directory in ("inbox", "scans", "documents", "state"):
             (self.root / directory).mkdir(parents=True, exist_ok=True)
+        self._lock = FileLock(self.root / "state" / "write.lock", timeout=10)
         with self.transaction():
             if not (self.root / "catalog.toml").exists():
                 catalog = Catalog()
                 legacy = self.root / "index.json"
                 if legacy.exists():
-                    from paperman.models import CatalogEntry
+                    from paperman_parser.models import CatalogEntry
 
                     index = LegacyIndex.model_validate_json(legacy.read_bytes())
                     catalog.tags = [
@@ -64,7 +70,7 @@ class FileStorage:
                 write_record(self.root / "settings.toml", ModelSettings())
 
     def transaction(self) -> FileLock:
-        return FileLock(self.root / "state" / "write.lock", timeout=10)
+        return self._lock
 
     def scan_path(self, scan_id: str, name: str) -> Path:
         return safe_path(self.root, f"scans/{scan_id}/{name}")
@@ -97,14 +103,30 @@ class FileStorage:
             tomllib.loads((self.root / "settings.toml").read_text())
         )
 
-    def list_documents(self) -> list[Document]:
-        return [
-            Document.model_validate(tomllib.loads(path.read_text()))
-            for path in (self.root / "documents").glob("*/*.toml")
-        ]
+    def list_documents(self, *, include_unpublished: bool = False) -> list[Document]:
+        with self.transaction():
+            documents = [
+                Document.model_validate(tomllib.loads(path.read_text()))
+                for path in (self.root / "documents").glob("*/*.toml")
+            ]
+            if include_unpublished:
+                return documents
+            revised_scans = {
+                scan.id: set(scan.document_ids)
+                for scan in self.list_scans()
+                if scan.filing_revision
+            }
+            return [
+                doc
+                for doc in documents
+                if doc.scan_id not in revised_scans
+                or doc.id in revised_scans[doc.scan_id]
+            ]
 
-    def get_document(self, document_id: str) -> Document:
-        for document in self.list_documents():
+    def get_document(
+        self, document_id: str, *, include_unpublished: bool = False
+    ) -> Document:
+        for document in self.list_documents(include_unpublished=include_unpublished):
             if document.id == document_id:
                 return document
         raise FileNotFoundError("Document not found")
@@ -113,6 +135,11 @@ class FileStorage:
         write_record(
             safe_path(self.root, document.final_path).with_suffix(".toml"), document
         )
+
+    def document_text(self, document: Document) -> str:
+        if document.text_override is not None:
+            return document.text_override
+        return safe_path(self.root, document.final_path).with_suffix(".txt").read_text()
 
     def ingest(self, path: Path) -> Scan:
         digest = file_hash(path)
@@ -153,6 +180,26 @@ class FileStorage:
             path = safe_path(self.root, f"inbox/{name}")
             if path.is_file() and file_hash(path) == scan.content_hash:
                 path.unlink()
+        if not scan.filing_revision or scan.status != "complete":
+            return
+        with self.transaction():
+            scan = self.get_scan(scan.id)
+            if scan.status != "complete":
+                return
+            for document in self.list_documents(include_unpublished=True):
+                if document.scan_id != scan.id or document.id in scan.document_ids:
+                    continue
+                source = safe_path(self.root, document.final_path)
+                archive = self.scan_path(
+                    scan.id,
+                    f"revisions/{scan.filing_revision - 1}/documents/{source.name}",
+                )
+                archive.parent.mkdir(parents=True, exist_ok=True)
+                # Move the metadata last so a restart can find and finish this archive.
+                for suffix in (".pdf", ".txt", ".toml"):
+                    path = source.with_suffix(suffix)
+                    if path.exists():
+                        path.replace(archive.with_suffix(suffix))
 
     def rebuild_index(self) -> SearchIndex:
         entries: list[SearchEntry] = []
@@ -164,7 +211,9 @@ class FileStorage:
                 text = "\n\f\n".join(extract_pages(path.with_suffix(".pdf")))
                 with atomic_target(path) as temporary:
                     temporary.write_text(text)
-            entries.append(SearchEntry(document_id=document.id, text=path.read_text()))
+            entries.append(
+                SearchEntry(document_id=document.id, text=self.document_text(document))
+            )
         index = SearchIndex(entries=entries)
         write_record(self.root / "state" / "search.json", index)
         return index

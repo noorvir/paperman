@@ -1,16 +1,10 @@
+from datetime import date
 from typing import Literal
 
+from paperman_parser.models import Analysis, CatalogIcon, Identifier, Name, Record
 from pydantic import Field
 
-from paperman.models import (
-    CatalogIcon,
-    Document,
-    Identifier,
-    Name,
-    Record,
-    Scan,
-    WorkerState,
-)
+from paperman.models import Document, Scan, WorkerState
 
 
 class Dashboard(Record):
@@ -63,3 +57,17 @@ class EntryRemoval(Record):
 class DocumentDetail(Record):
     document: Document
     text: str
+
+
+class DocumentEdit(Record):
+    revision: int = Field(ge=0)
+    title: Name
+    owner_id: Identifier
+    document_date: date | None
+    summary: str = Field(max_length=10000)
+    tag_ids: list[Identifier]
+    text: str = Field(max_length=1_000_000)
+
+
+class ScanReview(Analysis):
+    document_revisions: dict[Identifier, int] = Field(default_factory=dict)

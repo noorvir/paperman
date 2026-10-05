@@ -5,6 +5,14 @@ original_bytes_preserved = true
 page_numbering = "one-based"
 expected_groups_basis = "DocJev source manifest for 01-03; visual and text inspection for 04-08. These are test expectations, not model results."
 
+[annotation_status]
+page_groups = "available"
+ocr_transcripts = "missing"
+owner_catalog_and_labels = "missing"
+issue_dates = "incomplete_notes_only"
+tags = "missing"
+title_criteria = "missing"
+
 [sources.docjev]
 url = "https://github.com/jerryjliu/docjev"
 revision = "c7abe276a970605feb9cb8b27513365b6c10726e"

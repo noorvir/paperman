@@ -1,62 +1,18 @@
 import shutil
-import subprocess
-import sys
 from pathlib import Path
-from typing import Protocol
 
+from paperman_parser.ocr import OCR
 from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PyPdfError
 
 from paperman.storage import atomic_target
 
 
-class OCR(Protocol):
-    def searchable(self, source: Path, target: Path, languages: str) -> list[str]: ...
-
-
-class LocalOCR:
-    def searchable(self, source: Path, target: Path, languages: str) -> list[str]:
-        original = PdfReader(source)
-        if original.is_encrypted:
-            raise ValueError("This PDF is encrypted. Upload an unlocked copy")
-        if not original.pages:
-            raise ValueError("This PDF has no pages")
-        with atomic_target(target) as temporary:
-            process = subprocess.run(
-                [
-                    sys.executable,
-                    "-m",
-                    "ocrmypdf",
-                    "--skip-text",
-                    "--rotate-pages",
-                    "--output-type",
-                    "pdf",
-                    "--optimize",
-                    "0",
-                    "--jobs",
-                    "1",
-                    "--language",
-                    languages,
-                    str(source),
-                    str(temporary),
-                ],
-                check=False,
-                capture_output=True,
-                text=True,
-                timeout=1800,
-            )
-            if process.returncode != 0:
-                detail = process.stderr.strip()[-800:]
-                raise ValueError(f"OCR failed: {detail}")
-            result = PdfReader(temporary)
-            if len(result.pages) != len(original.pages):
-                raise ValueError("OCR changed the page count")
-            pages = [page.extract_text() for page in result.pages]
-            if not any(text.strip() for text in pages):
-                raise ValueError(
-                    "OCR found no readable text. Check the scan and OCR language"
-                )
-        return pages
+def prepare_pdf(source: Path, target: Path, ocr: OCR, languages: str) -> int:
+    content = ocr.searchable(source.read_bytes(), languages)
+    with atomic_target(target) as temporary:
+        temporary.write_bytes(content.pdf)
+    return len(content.pages)
 
 
 def extract_pages(path: Path) -> list[str]:

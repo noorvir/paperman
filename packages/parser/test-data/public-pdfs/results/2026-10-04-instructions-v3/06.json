@@ -1,0 +1,43 @@
+{
+  "id": "06",
+  "source_sha256": "3fce2d6e5baffec839ffc86b7c91903b139399392ea76a09bdfcca40cb8b5a4d",
+  "ocr_languages": "eng",
+  "pages": [
+    "Optical character recognition - Wikipedia, the free e... https://en.wikipedia.org/w/index.php?title=Optical_c... \n1 of 9 \nOptical character recognition \nFrom Wikipedia, the free encyclopedia \nOptical character recognition (optical character reader, OCR) is the mechanical or \nelectronic conversion of images of typed, handwritten or printed text into machine- \nencoded text, whether from a scanned document, a photo of a document, a scene-photo \n(for example the text on signs and billboards in a landscape photo) or from subtitle text \nsuperimposed on an image (for example from a television broadcast).!4 it is widely used \nas a form of information entry from printed paper data records, whether passport \ndocuments, invoices, bank statements, computerised receipts, business cards, mail, \nprintouts of static-data, or any suitable documentation. It is a common method of digitising \nprinted texts so that they can be electronically edited, searched, stored more compactly, \ndisplayed on-line, and used in machine processes such as cognitive computing, machine \ntranslation, (extracted) text-to-speech, key data and text mining. OCR is a field of research \nin pattern recognition, artificial intelligence and computer vision. \nEarly versions needed to be trained with images of each character, and worked on one font \nat a time. Advanced systems capable of producing a high degree of recognition accuracy \nfor most fonts are now common, and with support for a variety of digital image file format \ninputs.[2] Some systems are capable of reproducing formatted output that closely \napproximates the original page including images, columns, and other non-textual \ncomponents. \nContents \n« 1 History \n« 1.1 Blind and visually impaired users \n» 2 Applications \n=« 3 Types \na 4 Techniques \nm 4.1 Pre-processing \n« 4.2 Character recognition \n« 4.3 Post-processing \n« 4.4 Application-specific optimisations \n» 4.5 OCR Tools \n# 5 Workarounds \n« 5.1 Forcing better input \n« 5.2 Crowdsourcing \n» 6 Accuracy \n= 7 Unicode \n=» 8 See also \n= 9 References \n« 10 External links \nHistory \nEarly optical character recognition may be traced to technologies involving telegraphy and \ncreating reading devices for the blind.[3] In 1914, Emanuel Goldberg developed a machine \nthat read characters and converted them into standard telegraph code. Concurrently, \nEdmund Fournier d'Albe developed the Optophone, a handheld scanner that when moved \nacross a printed page, produced tones that corresponded to specific letters or \n14/09/16 20:42 \n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Optical character recognition overview",
+        "document_date": null,
+        "confidence": 1.0,
+        "review_reason": "",
+        "pages": [1]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1],
+      "result": {
+        "tag_ids": ["reference"],
+        "suggested_tags": [
+          "Technology",
+          "Computer Science",
+          "Information Retrieval"
+        ],
+        "summary": "The document is a Wikipedia article defining Optical Character Recognition (OCR), which is the mechanical or electronic conversion of images of text into machine-encoded text. It describes its uses in digitizing printed text for various applications like searching, storage, and machine processes, and touches upon its history and types."
+      },
+      "error": "",
+      "seconds": 2.5373540830332786
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "ocr": 2.429381625028327,
+    "analyze": 3.1334963750559837,
+    "enrich": 2.5378525420092046,
+    "total": 8.10169529216364
+  }
+}

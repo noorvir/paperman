@@ -57,7 +57,8 @@ function Documents() {
     from: "/documents/$documentId",
     shouldThrow: false,
   });
-  const full = detail !== undefined && !detail.search.preview;
+  const full =
+    detail !== undefined && (!detail.search.preview || detail.search.edit);
   const change = (next: typeof search) => {
     void navigate({ to: "/documents", search: next });
   };

@@ -4,13 +4,15 @@ import time
 from pathlib import Path
 
 from filelock import FileLock
+from paperman_parser import Inference
+from paperman_parser.demo_inference import DemoInference
+from paperman_parser.inference import EndpointInference
+from paperman_parser.ocr import LocalOCR
 from watchfiles import watch
 
 from paperman.config import Settings
-from paperman.demo_inference import DemoInference
-from paperman.inference import EndpointInference, Inference
 from paperman.models import Event, WorkerState
-from paperman.pdf import LocalOCR, validate_scan
+from paperman.pdf import validate_scan
 from paperman.pipeline import enrich_document, process_scan
 from paperman.storage import FileStorage, file_hash, write_record
 

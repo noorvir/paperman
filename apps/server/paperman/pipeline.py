@@ -1,12 +1,14 @@
 import asyncio
 import logging
-from datetime import UTC
-from pathlib import Path
 
-from paperman.inference import Inference
-from paperman.models import Document, Event, Scan, validate_analysis
-from paperman.pdf import OCR, extract_pages, split_pdf
-from paperman.storage import Storage, atomic_target, safe_path, slug
+from paperman_parser import Inference
+from paperman_parser.models import validate_analysis
+from paperman_parser.ocr import OCR
+
+from paperman.filing import file_documents
+from paperman.models import Document, Event, Scan
+from paperman.pdf import extract_pages, prepare_pdf
+from paperman.storage import Storage
 
 logger = logging.getLogger(__name__)
 
@@ -22,17 +24,18 @@ async def process_scan(
             storage.save_scan(scan)
         searchable = storage.scan_path(scan.id, "searchable.pdf")
         if scan.phase == "ocr":
-            pages = await asyncio.to_thread(
-                ocr.searchable,
+            scan.page_count = await asyncio.to_thread(
+                prepare_pdf,
                 storage.scan_path(scan.id, "original.pdf"),
                 searchable,
+                ocr,
                 storage.settings().ocr_languages,
             )
-            scan.page_count = len(pages)
             scan.phase = "analyze"
             scan.history.append(
                 Event(
-                    stage="ocr", message=f"Searchable PDF created: {len(pages)} pages"
+                    stage="ocr",
+                    message=f"Searchable PDF created: {scan.page_count} pages",
                 )
             )
             with storage.transaction():
@@ -42,6 +45,20 @@ async def process_scan(
             pages = await asyncio.to_thread(extract_pages, searchable)
             catalog = storage.catalog()
             proposal = await inference.analyze(pages, catalog)
+            empty_pages = {
+                number for number, text in enumerate(pages, 1) if not text.strip()
+            }
+            for document in proposal.documents:
+                unchecked = sorted(empty_pages.intersection(document.pages))
+                if unchecked:
+                    warning = (
+                        "No readable text on pages "
+                        + ", ".join(map(str, unchecked))
+                        + ". Check for blank backs or missed OCR."
+                    )
+                    document.review_reason = " ".join(
+                        filter(None, [document.review_reason, warning])
+                    )
             scan.proposal = proposal
             validation_error = ""
             try:
@@ -89,76 +106,22 @@ async def process_scan(
             storage.save_scan(scan)
 
 
-def file_documents(storage: Storage, scan: Scan) -> None:
-    proposal = scan.proposal
-    if proposal is None:
-        raise ValueError("A filing proposal is required")
-    validate_analysis(proposal, scan.page_count, storage.catalog())
-    for number, item in enumerate(proposal.documents, 1):
-        identifier = f"{scan.id}-{number}"
-        document_date = item.document_date or scan.scanned_at.date()
-        timestamp = scan.scanned_at.astimezone(UTC).strftime("%Y%m%dT%H%M%SZ")
-        filename = f"{document_date}__scanned-{timestamp}__{slug(item.title)}__{identifier}.pdf"
-        final_path = f"documents/{item.owner_id}/{filename}"
-        document = Document(
-            id=identifier,
-            scan_id=scan.id,
-            source_pages=item.pages,
-            owner_id=item.owner_id,
-            title=item.title.strip(),
-            document_date=document_date,
-            date_source="document" if item.document_date else "scan_fallback",
-            scanned_at=scan.scanned_at,
-            final_path=final_path,
-        )
-        with storage.transaction():
-            try:
-                existing = storage.get_document(identifier)
-            except FileNotFoundError:
-                existing = None
-            if existing is not None:
-                if (
-                    Path(existing.final_path).name != filename
-                    or existing.owner_id != item.owner_id
-                    or existing.source_pages != item.pages
-                ):
-                    raise ValueError(
-                        "Filing details changed after publication. Restore the approved proposal"
-                    )
-                final_path = existing.final_path
-                if safe_path(storage.root, final_path).exists():
-                    continue
-            target = safe_path(storage.root, final_path)
-            text = split_pdf(
-                storage.scan_path(scan.id, "searchable.pdf"), target, item.pages
-            )
-            with atomic_target(target.with_suffix(".txt")) as temporary:
-                temporary.write_text(text)
-            storage.save_document(existing or document)
-    scan.document_ids = [
-        f"{scan.id}-{number}" for number in range(1, len(proposal.documents) + 1)
-    ]
-    scan.phase = "done"
-    scan.status = "complete"
-    scan.history.append(
-        Event(stage="file", message=f"Filed {len(scan.document_ids)} documents")
-    )
-    with storage.transaction():
-        storage.save_scan(scan)
-
-
 async def enrich_document(
     storage: Storage, inference: Inference, document: Document
 ) -> None:
     try:
         with storage.transaction():
             document = storage.get_document(document.id)
+            try:
+                scan = storage.get_scan(document.scan_id)
+            except FileNotFoundError:
+                scan = None
+            if scan is not None and scan.status != "complete":
+                return
             document.enrichment_status = "running"
             document.enrichment_error = ""
             storage.save_document(document)
-        text = (
-            safe_path(storage.root, document.final_path).with_suffix(".txt").read_text()
-        )
+        text = storage.document_text(document)
         catalog = storage.catalog()
         result = await inference.enrich(text, catalog)
         tag_ids = {tag.id for tag in catalog.tags}
@@ -171,9 +134,22 @@ async def enrich_document(
                     "The tag catalog changed during processing. Retry tagging"
                 )
             document = storage.get_document(document.id)
-            document.generated_tags = sorted(set(result.tag_ids))
-            document.suggested_tags = sorted(set(result.suggested_tags))
-            document.summary = result.summary
+            if storage.document_text(document) != text:
+                document.enrichment_status = "pending"
+                storage.save_document(document)
+                return
+            generated_tags = sorted(set(result.tag_ids))
+            suggested_tags = sorted(set(result.suggested_tags))
+            summary = document.summary if document.summary_edited else result.summary
+            if (
+                document.generated_tags != generated_tags
+                or document.suggested_tags != suggested_tags
+                or document.summary != summary
+            ):
+                document.revision += 1
+            document.generated_tags = generated_tags
+            document.suggested_tags = suggested_tags
+            document.summary = summary
             document.enrichment_version = inference.version
             document.enrichment_status = "complete"
             storage.save_document(document)

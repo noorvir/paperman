@@ -1,14 +1,14 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
 import { approveScan } from "@/lib/actions";
 import { ErrorNotice } from "./page";
 import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import { SelectField } from "./select-field";
 import { DatePicker } from "./date-picker";
 
-type Proposal = components["schemas"]["Analysis-Output"];
+type Proposal = NonNullable<components["schemas"]["Scan"]["proposal"]>;
 type Draft = {
   pages: string;
   owner_id: string;
@@ -20,10 +20,12 @@ export function ReviewForm({
   scan,
   proposal,
   owners,
+  documentRevisions,
 }: {
   scan: components["schemas"]["Scan"];
   proposal: Proposal;
   owners: components["schemas"]["CatalogEntry"][];
+  documentRevisions: Record<string, number>;
 }) {
   const [drafts, setDrafts] = useState<Draft[]>(
     proposal.documents.map((document) => ({
@@ -36,6 +38,8 @@ export function ReviewForm({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const router = useRouter();
+  const [revisions] = useState(documentRevisions);
   function update(index: number, patch: Partial<Draft>) {
     setDrafts((drafts) =>
       drafts.map((draft, position) =>
@@ -55,7 +59,13 @@ export function ReviewForm({
         confidence: 1,
         review_reason: "",
       }));
-      await approveScan({ data: { id: scan.id, proposal: { documents } } });
+      await approveScan({
+        data: {
+          id: scan.id,
+          proposal: { documents, document_revisions: revisions },
+        },
+      });
+      await router.invalidate();
       await navigate({ to: "/scans/$scanId", params: { scanId: scan.id } });
     } catch (error) {
       setError(
@@ -74,9 +84,20 @@ export function ReviewForm({
         Account for pages 1 through {scan.page_count}, once each and in order.
         Keep blank backs with their document. A blank date uses the scan date.
       </p>
+      {scan.status === "complete" && (
+        <p className="text-xs leading-relaxed text-muted-foreground">
+          Changed groups get new documents and new tags. Their old files,
+          summaries, and text corrections stay in scan history. Unchanged groups
+          keep their saved information.
+        </p>
+      )}
       <div>
         {drafts.map((draft, index) => (
-          <fieldset key={index} className="grid gap-3 border-t py-4">
+          <fieldset
+            key={index}
+            disabled={pending}
+            className="grid gap-3 border-t py-4"
+          >
             <legend className="sr-only">Document {index + 1}</legend>
             <div className="flex items-center justify-between">
               <h2 className="workspace-title">Document {index + 1}</h2>
@@ -84,7 +105,7 @@ export function ReviewForm({
                 type="button"
                 variant="ghost"
                 size="sm"
-                disabled={drafts.length === 1}
+                disabled={pending || drafts.length === 1}
                 onClick={() =>
                   setDrafts((drafts) =>
                     drafts.filter((_draft, position) => position !== index),
@@ -155,6 +176,7 @@ export function ReviewForm({
         <Button
           type="button"
           variant="outline"
+          disabled={pending}
           onClick={() =>
             setDrafts((drafts) => [
               ...drafts,
@@ -170,9 +192,22 @@ export function ReviewForm({
         >
           Add document group
         </Button>
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving" : "Approve and file"}
-        </Button>
+        <div className="flex gap-2">
+          <Link
+            to="/scans/$scanId"
+            params={{ scanId: scan.id }}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Cancel
+          </Link>
+          <Button type="submit" disabled={pending}>
+            {pending
+              ? "Saving"
+              : scan.status === "complete"
+                ? "Save page groups"
+                : "Approve and file"}
+          </Button>
+        </div>
       </div>
       <ErrorNotice message={error} />
     </form>

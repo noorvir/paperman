@@ -10,11 +10,13 @@ export function DocumentView({
   text,
   catalog,
   view,
+  allowActions,
 }: {
   document: components["schemas"]["Document"];
   text: string;
   catalog: components["schemas"]["Catalog"];
   view: "pdf" | "text" | "summary" | "details";
+  allowActions: boolean;
 }) {
   const views: (typeof view)[] = ["pdf", "text", "summary", "details"];
   return (
@@ -83,18 +85,21 @@ export function DocumentView({
               key={document.id}
               document={document}
               catalog={catalog}
+              allowActions={allowActions}
             />
-            <ActionButton
-              disabled={
-                document.enrichment_status === "running" ||
-                document.enrichment_status === "pending"
-              }
-              action={() => enrichDocument({ data: document.id })}
-            >
-              {document.enrichment_status === "failed"
-                ? "Retry tagging"
-                : "Run tagging again"}
-            </ActionButton>
+            {allowActions && (
+              <ActionButton
+                disabled={
+                  document.enrichment_status === "running" ||
+                  document.enrichment_status === "pending"
+                }
+                action={() => enrichDocument({ data: document.id })}
+              >
+                {document.enrichment_status === "failed"
+                  ? "Retry tagging"
+                  : "Run tagging again"}
+              </ActionButton>
+            )}
             <p className="text-xs text-muted-foreground">
               Tagging: {document.enrichment_status}. Your saved tag choices take
               priority.

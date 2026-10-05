@@ -1,0 +1,18 @@
+{
+  "run": {
+    "model": "gpt-6-luna",
+    "reasoning_effort": "high",
+    "comparison": "Same field prompt and OCR input as sample 02, with its rendered page image added. Diagnostic only; excluded from main benchmark.",
+    "image_sha256": "e9cd19e9a332acfb57d28bfa16d9a75f5485c6fb0c1beb62949be2643c7fb8c5",
+    "prompt_sha256": "8b246d31773f57aa34218f40aad7efbcc468b297018453b9dd72675bb03af0f7",
+    "instructions_sha256": "0ab661949e3af9d9c9af382f8a7fd6e83be698e84d50c0d2b2e6c63e21f162a2",
+    "exit_code": 0
+  },
+  "prediction": {
+    "owner_id": "willow-ridge",
+    "title": "Purchase order",
+    "document_date": null,
+    "confidence": 0.99,
+    "review_reason": "Issue date is not shown. October 15, 2026 is the requested delivery date."
+  }
+}

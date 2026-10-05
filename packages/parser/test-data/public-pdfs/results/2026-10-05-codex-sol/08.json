@@ -1,0 +1,37 @@
+{
+  "id": "08",
+  "source_sha256": "600c27f8dd2ef085a94d3500f6ccdb3b37f4b89aa8ffdf9a00a06a1367887e8b",
+  "ocr_languages": "fra",
+  "pages": [
+    "Portez ce vieux whisky au juge \nblond qui fume sur son île \nintérieure, à côté de l'alcôve \novoiïde, où les bûches se \nconsument dans l'âtre, ce qui \nlui permet de penser à la \ncænogénèse de l'être dont il \nest question dans la cause \nambiguë entendue à Moÿ, dans \nun capharnaüm qui, pense-t-il, \ndiminue çà et là la qualité de son \nœuvre. \n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "French text sample",
+        "document_date": null,
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [1]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1],
+      "result": {
+        "tag_ids": ["reference"],
+        "suggested_tags": ["Language sample"],
+        "summary": "A French text sample with many accented letters and uncommon characters."
+      },
+      "error": "",
+      "seconds": 12.126082667149603
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 18.084248750004917,
+    "total": 30.210960583062842
+  }
+}

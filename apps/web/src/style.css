@@ -288,6 +288,7 @@
   }
   .collection-preview {
     @apply absolute inset-y-0 right-0 z-20 flex w-full min-w-0 flex-col gap-3 bg-background outline-none;
+    container: preview / inline-size;
   }
   .collection-preview[data-preview="true"] {
     @apply border-l p-4 shadow-xl md:w-[64%] xl:w-[62%];
@@ -295,6 +296,33 @@
   }
   .document-panels {
     @apply grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)];
+  }
+  .document-edit-layout {
+    @apply grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)];
+  }
+  .document-read-view {
+    @apply col-start-1 row-start-1 min-h-0 min-w-0;
+  }
+  .document-edit-panel {
+    @apply z-10 col-start-1 row-start-1 flex min-h-0 min-w-0 flex-col bg-background;
+  }
+  .document-edit-layout[data-editing="true"] > .document-read-view,
+  .document-edit-layout[data-editing="true"]
+    .document-panel[data-active="true"] {
+    @apply invisible;
+  }
+  @container preview (min-width: 48rem) {
+    .document-edit-layout[data-editing="true"] {
+      @apply grid-cols-[minmax(0,1fr)_22rem] gap-4;
+    }
+    .document-edit-layout[data-editing="true"] > .document-read-view,
+    .document-edit-layout[data-editing="true"]
+      .document-panel[data-active="true"] {
+      @apply visible;
+    }
+    .document-edit-panel {
+      @apply col-start-2 border-l;
+    }
   }
   .document-panel {
     @apply invisible col-start-1 row-start-1 flex min-h-0 min-w-0 flex-col overflow-auto;

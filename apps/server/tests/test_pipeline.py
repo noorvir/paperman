@@ -1,29 +1,30 @@
 import asyncio
 import shutil
+from io import BytesIO
 from pathlib import Path
 
 import pytest
 from fpdf import FPDF
-from pypdf import PdfReader
-
-from paperman.models import (
+from paperman_parser.models import (
     Analysis,
     Catalog,
     CatalogEntry,
-    Document,
     DocumentProposal,
     Enrichment,
     validate_analysis,
 )
-from paperman.pdf import LocalOCR, extract_pages
+from paperman_parser.ocr import SearchableDocument
+from pypdf import PdfReader, PdfWriter
+
+from paperman.models import Document
 from paperman.pipeline import enrich_document, process_scan
 from paperman.storage import FileStorage, file_hash, write_record
 
 
 class FixtureOCR:
-    def searchable(self, source: Path, target: Path, languages: str) -> list[str]:
-        shutil.copyfile(source, target)
-        return extract_pages(target)
+    def searchable(self, source: bytes, languages: str) -> SearchableDocument:
+        pages = [page.extract_text() for page in PdfReader(BytesIO(source)).pages]
+        return SearchableDocument(pdf=source, pages=pages)
 
 
 class FixtureInference:
@@ -170,34 +171,6 @@ def test_review_requires_exact_page_coverage() -> None:
             validate_analysis(proposal, 3, Catalog())
 
 
-def test_real_ocr_preserves_existing_text(tmp_path: Path) -> None:
-    source = tmp_path / "original.pdf"
-    create_pdf(source)
-    digest = file_hash(source)
-    pages = LocalOCR().searchable(source, tmp_path / "searchable.pdf", "eng")
-    assert len(pages) == 3
-    assert "Electricity" in pages[0]
-    assert file_hash(source) == digest
-
-
-def test_image_scan_gets_searchable_text(tmp_path: Path) -> None:
-    from PIL import Image, ImageDraw, ImageFont
-
-    image = Image.new("RGB", (1240, 1754), "white")
-    draw = ImageDraw.Draw(image)
-    font = ImageFont.load_default(size=42)
-    draw.text((100, 150), "ELECTRICITY INVOICE", fill="black", font=font)
-    draw.text((100, 250), "Alice Smith", fill="black", font=font)
-    draw.text((100, 350), "Total 150 EUR", fill="black", font=font)
-    source = tmp_path / "scan.pdf"
-    image.save(source, "PDF", resolution=150)
-    assert not PdfReader(source).pages[0].extract_text().strip()
-    pages = LocalOCR().searchable(source, tmp_path / "searchable.pdf", "eng")
-    assert len(pages) == 1
-    assert "INVOICE" in pages[0]
-    assert "150" in pages[0]
-
-
 class InvalidInference(FixtureInference):
     async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
         return Analysis(
@@ -207,6 +180,45 @@ class InvalidInference(FixtureInference):
                 )
             ]
         )
+
+
+class ConfidentInference(FixtureInference):
+    async def analyze(self, pages: list[str], catalog: Catalog) -> Analysis:
+        return Analysis(
+            documents=[
+                DocumentProposal(
+                    pages=[1, 2, 3], owner_id="alice", title="Invoice", confidence=1
+                )
+            ]
+        )
+
+
+def test_empty_page_requires_review_even_with_confident_analysis(
+    tmp_path: Path,
+) -> None:
+    store = FileStorage(tmp_path)
+    catalog = store.catalog()
+    catalog.owners.append(CatalogEntry(id="alice", name="Alice"))
+    write_record(tmp_path / "catalog.toml", catalog)
+    settings = store.settings()
+    settings.review_before_filing = False
+    write_record(tmp_path / "settings.toml", settings)
+    source = tmp_path / "inbox" / "mail.pdf"
+    create_pdf(source)
+    reader = PdfReader(source)
+    writer = PdfWriter()
+    writer.add_page(reader.pages[0])
+    writer.add_blank_page(width=595, height=842)
+    writer.add_page(reader.pages[2])
+    writer.write(source)
+    scan = store.ingest(source)
+    asyncio.run(process_scan(store, ConfidentInference(), FixtureOCR(), scan))
+    result = store.get_scan(scan.id)
+    assert result.status == "review"
+    assert result.proposal is not None
+    assert "No readable text on pages 2" in result.proposal.documents[0].review_reason
+    assert result.proposal.documents[0].pages == [1, 2, 3]
+    assert not store.list_documents()
 
 
 def test_invalid_model_proposal_is_reviewable_without_filing(tmp_path: Path) -> None:

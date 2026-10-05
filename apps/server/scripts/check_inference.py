@@ -5,11 +5,12 @@ from tempfile import TemporaryDirectory
 
 from fastapi.testclient import TestClient
 from fpdf import FPDF
+from paperman_parser.models import Catalog, CatalogEntry
 from pypdf import PdfReader
 
 from paperman.api import create_app
 from paperman.config import Settings
-from paperman.models import Catalog, CatalogEntry, WorkerState
+from paperman.models import WorkerState
 from paperman.storage import FileStorage, file_hash, write_record
 from paperman.worker import run_cycle
 

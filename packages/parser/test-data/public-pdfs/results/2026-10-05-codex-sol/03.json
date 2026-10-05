@@ -1,0 +1,135 @@
+{
+  "id": "03",
+  "source_sha256": "99df04d93066ae0ba31aa31adfdac26fd4a12ce891ccc4a4d694b6072043c083",
+  "ocr_languages": "eng",
+  "pages": [
+    "MARBLE KITE (FICTIONAL)\nProperty damage claim\nMarble Kite Mutual demonstration form\nCLAIM REFERENCE\nCL-9587\nPOLICYHOLDER\nParker Quinn\nLOSS DATE\nSeptember 13, 2026\nLOCATION\n21 Fictional Lane\nStatement of loss\nA water supply fitting failed in the service room during the evening. Water damaged the floor finish and a\nstorage cabinet. The policyholder isolated the water supply and notified the building manager.\nRequested reimbursement\nThe policyholder requests reimbursement of documented repair expenses. Estimated loss: $5,468.00.\nSupporting reports and vendor records are attached separately.\nDeclaration\nI certify that this fictional statement represents the circumstances described in this demonstration.\nPolicyholder: Parker Quinn. Signature: SAMPLE ONLY.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 2\n",
+    "MARBLE KITE (FICTIONAL)\nReference 9587 / continued\nAdditional loss details\nContinuation of CL-9587. The affected cabinet contained spare equipment and cleaning materials. None of the\nitems are personal records or genuine customer property.\nSupporting statement\nThe policyholder had not observed a leak before the incident. An equipment inspection two weeks earlier\nrecorded normal operation. Repairs await the contractor's final scope.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n2 / 2\n",
+    "SILVER LOOM (FICTIONAL)\nIncident report\nSilver Loom Facilities team\nREPORT NUMBER\nIR-9590\nINCIDENT DATE\nSeptember 16, 2026\nREPORTING OFFICER\nAvery Vale\nSITE\n21 Fictional Lane, service room\nObserved conditions\nAt 18:20 the facilities officer found standing water next to the supply cabinet. The floor covering was wet along\nthe north wall. No injuries were reported.\nImmediate response\nThe officer closed the isolation valve, placed warning signs at the entrance, and moved stored materials away\nfrom the wet area. A repair contractor attended the following morning.\nCause and follow up\nA split flexible supply hose was visible behind the cabinet. Retain the damaged fitting for inspection and record\nmoisture readings before reinstating the floor.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 1\n",
+    "JUNIPER WORKS (FICTIONAL)\nRepair estimate\nJuniper Works Restoration\nESTIMATE REFERENCE\nEST-9593\nPREPARED FOR\nMorgan Wren\nSITE\n21 Fictional Lane\nVALID THROUGH\nOctober 30, 2026\nProposed work\nRemove the damaged floor finish, dry the substrate, and replace the affected panels. Reinstate cabinet skirting\nafter moisture readings meet the installation requirement.\nConditions\nThis quotation is an estimate for proposed work. It is subject to customer acceptance before scheduling.\nAdditional concealed damage requires a revised written estimate.\nProposed work\nHours\nEstimated cost\nRemoval and drying\n8\n$960.00\nFloor finish and skirting\n12\n$1,440.00\nEstimated total\n$2,400.00\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 2\n",
+    "JUNIPER WORKS (FICTIONAL)\nReference 9593 / continued\nWork schedule and exclusions\nContinuation of estimate EST-9593. Allow two days for drying and one day for reinstatement. The quoted\nscope excludes structural repair and work outside the affected room.\nAcceptance\nThe customer may approve the proposed scope in writing. Materials will be ordered after acceptance. This\nestimate is valid until the date stated on its first page.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n2 / 2\n",
+    "COBALT HARBOR (FICTIONAL)\nInvoice\nCobalt Harbor Services to Orchid Field\nINVOICE NUMBER\nINV-9596\nBILL TO\nOrchid Field, 14 Example Way\nISSUED\nSeptember 22, 2026\nPAYMENT TERMS\nNet 30, USD\nPayment requested\nPlease remit $703.00 for the completed services listed below. Reference INV-9596 with your payment. No\naccount or payment details in this fixture are real.\nRemittance note\nPayment is due thirty days after issue. Contact billing@example.invalid for a corrected copy.\nService\nQuantity\nAmount\nEquipment restoration\n1\n$523.00\nInspection and travel\n1\n$180.00\nTOTAL DUE\n$703.00\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 2\n",
+    "COBALT HARBOR (FICTIONAL)\nReference 9596 / continued\nService detail\nContinuation of INV-9596. Technician work log: isolate damaged fittings, complete pressure testing, and\nconfirm the equipment is safe to return to service.\nWork completed\nInspection: 1.5 hours. Restoration: 3.0 hours. Verification: 1.0 hour. The charges summarize work already\ndelivered and form part of the amount due on the preceding page.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n2 / 2\n",
+    "MARBLE KITE (FICTIONAL)\nInvoice\nMarble Kite Services to Cedar Bay\nINVOICE NUMBER\nINV-9599\nBILL TO\nCedar Bay, 14 Example Way\nISSUED\nSeptember 25, 2026\nPAYMENT TERMS\nNet 30, USD\nPayment requested\nPlease remit $952.00 for the completed services listed below. Reference INV-9599 with your payment. No\naccount or payment details in this fixture are real.\nRemittance note\nPayment is due thirty days after issue. Contact billing@example.invalid for a corrected copy.\nService\nQuantity\nAmount\nEquipment restoration\n1\n$772.00\nInspection and travel\n1\n$180.00\nTOTAL DUE\n$952.00\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 1\n",
+    "SILVER LOOM (FICTIONAL)\nClaim correspondence\nSilver Loom Claims desk\nTO\nCasey Rowan\nFROM\nclaims@example.invalid\nDATE\nSeptember 3, 2026\nSUBJECT\nSupporting information for CL-9602\nDear policyholder\nThank you for providing the supporting documents. We have received the initial loss statement and contractor\nrecords. The assigned reviewer will compare the records with the policy terms.\nNext step\nPlease retain the damaged materials until the inspection is complete. If you locate additional photographs from\nthe day of the loss, send copies with your claim reference.\nRegards\nAlex Rowan, demonstration claims coordinator. This letter contains no coverage decision and belongs to a\nsynthetic example.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 1\n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Property damage claim",
+        "document_date": null,
+        "confidence": 0.98,
+        "review_reason": "",
+        "pages": [1, 2]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Water leak incident report",
+        "document_date": null,
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [3]
+      },
+      {
+        "owner_id": "morgan-wren",
+        "title": "Floor repair estimate",
+        "document_date": null,
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [4, 5]
+      },
+      {
+        "owner_id": "unknown",
+        "title": "Equipment restoration invoice",
+        "document_date": "2026-09-22",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [6, 7]
+      },
+      {
+        "owner_id": "cedar-bay",
+        "title": "Equipment restoration invoice",
+        "document_date": "2026-09-25",
+        "confidence": 0.99,
+        "review_reason": "",
+        "pages": [8]
+      },
+      {
+        "owner_id": "casey-rowan",
+        "title": "Insurance claim correspondence",
+        "document_date": "2026-09-03",
+        "confidence": 0.97,
+        "review_reason": "",
+        "pages": [9]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1, 2],
+      "result": {
+        "tag_ids": ["reference", "claim", "insurance"],
+        "suggested_tags": ["Property damage", "Water damage"],
+        "summary": "A fictional demonstration insurance claim describes water damage from a failed fitting. It gives September 13, 2026, as the loss date and estimates the loss at $5,468.00."
+      },
+      "error": "",
+      "seconds": 16.011797750135884
+    },
+    {
+      "pages": [3],
+      "result": {
+        "tag_ids": ["incident-report"],
+        "suggested_tags": ["Water damage", "Facilities maintenance"],
+        "summary": "Fictional facilities incident report IR-9590. On the incident date, September 16, 2026, an officer found standing water near a supply cabinet. No injuries were reported. The officer closed a valve and secured the area. A split supply hose was visible behind the cabinet."
+      },
+      "error": "",
+      "seconds": 12.82798770791851
+    },
+    {
+      "pages": [4, 5],
+      "result": {
+        "tag_ids": ["estimate"],
+        "suggested_tags": ["Flooring repair", "Property restoration"],
+        "summary": "A fictional repair estimate proposes floor removal, drying, panel replacement, and cabinet skirting work. The estimated total is $2,400.00. The estimate is valid through October 30, 2026."
+      },
+      "error": "",
+      "seconds": 23.788268249947578
+    },
+    {
+      "pages": [6, 7],
+      "result": {
+        "tag_ids": ["invoice"],
+        "suggested_tags": ["Equipment repair", "Sample document"],
+        "summary": "This fictional invoice bills Orchid Field $703.00 for equipment restoration, inspection, and travel. It shows September 22, 2026 as the issue date and Net 30 payment terms."
+      },
+      "error": "",
+      "seconds": 19.647027249913663
+    },
+    {
+      "pages": [8],
+      "result": {
+        "tag_ids": ["invoice"],
+        "suggested_tags": [],
+        "summary": "A fictional invoice from Marble Kite Services to Cedar Bay, issued September 25, 2026, requests $952.00 for equipment restoration, inspection, and travel."
+      },
+      "error": "",
+      "seconds": 13.721317166928202
+    },
+    {
+      "pages": [9],
+      "result": {
+        "tag_ids": ["reference", "insurance", "claim"],
+        "suggested_tags": ["Sample document"],
+        "summary": "This synthetic insurance claim letter has a printed date of September 3, 2026. It says the claims desk received the loss statement and contractor records. It asks the recipient to keep damaged materials until inspection and gives no coverage decision."
+      },
+      "error": "",
+      "seconds": 21.91597054200247
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 93.00606429204345,
+    "total": 200.92060787510127
+  }
+}

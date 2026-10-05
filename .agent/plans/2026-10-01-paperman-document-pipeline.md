@@ -16,13 +16,23 @@ Build PaperMan as a standalone repository with a custom web UI and a simple, rel
 - [ ] Integrate the inbox and worker with the Homestack deployment.
 - [x] Implement OCR, split proposals, review, ownership, naming, and deterministic filing.
 - [x] Implement repeatable tagging, full-text search, URL-based routes, and dashboard recovery controls.
-- [ ] Verify real scans, GPU failures, restart recovery, and backup restoration.
+- [x] Verify public scans, local model failures, worker restart recovery, and a filesystem backup restore. Physical scanner delivery, the intended GPU host, and live Homestack backups remain deployment checks.
 
-The Python worker and API, routed TanStack Start UI, and deployment configuration are implemented. Physical scan delivery, the intended GPU endpoint, a Pi deployment, and a live backup restore remain unverified. Local model testing uses fictional content only.
+The Python worker and API, routed TanStack Start UI, and deployment configuration are implemented. Physical scan delivery, the intended GPU endpoint, a Pi deployment, and a live backup restore remain unverified. Local model testing uses fictional mail and the public PDF test set. Household documents have not been sent to a model.
 
 ## Current local AI milestone
 
-- [x] Cache eight public PDFs with sources, licences, hashes, and expected page groups. Inspect all 18 rendered pages, including four image-only pages and a six-document claim packet. Pipeline evaluation on this set remains pending.
+- [x] Benchmark GPT-6 Luna with the signed-in Codex account on the fixed public test set, then GPT-6 Sol because Luna was below 100%. Identical OCR text, prompts, catalogs, and scoring; no label changes. Luna: 94.7% tag precision, 100% recall, all owners correct. Sol: 85.0% precision, 94.4% recall, 12/13 owners correct. Both dates: 12/13; both groups: 13/13. A separate Luna image check recovered the date label lost by OCR. Saved predictions and request evidence; flag ambiguous tag and synthetic-document rules for review. This cloud approval covers public test data only; application processing stays local.
+- [x] Finish the local pipeline end to end with the current model; defer Jev. Printer-to-Pi delivery and live polling integration remain outside this milestone.
+- [x] Pass the final quality checks: formatting, lint, strict Python and web types, 11 parser tests, 16 server tests, and the production web build. Check edit and page-group controls in the browser at desktop and phone widths.
+- [x] Read all 18 public PDF pages visually and freeze transcripts, a fixed catalog, and 13 document labels before evaluation. Labels are agent-reviewed, not human-reviewed. Save predictions, source/settings hashes, stage times, and measured scores.
+- [x] Complete edit mode, including page-group correction after filing. Edit from quick preview must open the full document route with `edit=true`; the preview stays read-only. Title, owner, issue/fallback date, summary, tags, and extracted text now save as one revision-checked sidecar update. Save/Cancel and desktop/phone layouts were checked in the browser. Preserve originals, provenance, user changes, and identities where the same document remains. Group corrections reuse review, preserve unchanged groups, publish replacements through a saved scan revision, and archive replaced files. Invalid ranges, interrupted publication/retry, repeated grouping, and desktop/phone Save/Cancel checks pass.
+- [x] Verify upload, OCR, split/review, filing, enrichment, search, corrections, repeated processing, failure/retry, and restart recovery through the local application. All eight public PDFs produced 13 reviewed documents. A live worker recovered from a model outage, termination during analysis, and a tagging outage. A backup copy restored files and search. Edit mode and grouping were checked at desktop and phone sizes.
+- [x] Separate OCR, AI adapters, parsing contracts, and parser tests into a standalone package. Move public samples under test data. Preserve current prompts and model request settings for the baseline. Ten parser tests pass without the server installed; twelve server tests, strict types, formatting, package build, and web build pass. The API contract is unchanged. Container paths are updated; Docker is unavailable for a container build.
+- [x] Complete and freeze public-sample ground truth before scoring: per-page OCR text, page groups, recipient IDs against a fixed catalog, issue dates or verified absence, and expected tags. Distinguish unreviewed fields from verified missing fields.
+- [x] Run the local Gemma baseline and one revised-instruction run on the eight public PDFs. Exact grouping improved from 6/8 to 8/8; owner accuracy from 7/13 to 10/13; issue-date accuracy from 4/13 to 10/13. Revised tag precision is 15/21 and recall is 15/18. Both measured runs completed without processing failures. CER/WER and reading-order limits are recorded. This is a small known set, not an unseen-mail accuracy estimate.
+- [x] Review DocJev for later comparison. Consider typed category/boundary questions, descriptions for category rules, context windows, per-page OCR checks, and saved evaluation results. Its Jev adapter uses a hosted service; retain the private endpoint for this baseline. Do not adopt its blank-page segmentation or category-driven cuts without tests against PaperMan's rules.
+- [x] Cache eight public PDFs with sources, licences, hashes, and expected page groups. Inspect all 18 rendered pages, including four image-only pages and a six-document claim packet. Parser evaluation and the reviewed application workflow both pass on this set.
 - [x] Commit the UI work before the AI changes.
 - [x] Separate boundary detection, recipient/title/date extraction, and enrichment behind the existing inference interface. Validate page coverage and catalog IDs, with bounded retries. Test native JSON, prompted JSON, and tool output.
 - [x] Add an opt-in worker check using fictional mixed mail and temporary storage. It checks model accuracy before approving filing, then checks tagging, provenance, and repeat processing.
@@ -36,13 +46,30 @@ Inference.enrich(document_text, tag_catalog) -> tags, suggestions, summary
 Worker owns review, filing, retries, and state; the adapter owns model calls.
 ```
 
+Standalone parser contract:
+
+```text
+parse(PDF bytes, catalog, injected OCR, injected inference, OCR languages)
+  -> searchable PDF bytes, ordered page text, validated document proposals
+proposal = source pages, recipient ID, title, optional issue date, confidence, review reason
+enrich(document text, catalog) -> tags, suggestions, summary
+```
+
+The parser has no server, intake, saved-state, or clock dependency. OCR may use temporary files which are removed after each call. Inputs can come from a scanner, an upload, or a future API. The server supplies catalogs and provider settings, saves checkpoints, applies the recorded intake date when an issue date is absent, and publishes files. Enrichment remains separate so it can run again without OCR or new splits. Repeated parsing has no persistent side effects; model output is not guaranteed to be identical. Evaluation records must identify input hashes, catalogs, OCR settings, model settings, and code revision.
+
+Research: [DocJev architecture](https://github.com/jerryjliu/docjev/blob/main/docs/architecture.md) and [published real-document pilot](https://github.com/jerryjliu/docjev/blob/main/benchmarks/results/real-small-v1-run01/report.md). The pilot reports 40/40 classifications and 7/8 exact splits for Jev. Decision latency excludes OCR; labels had no human review. This is evidence from a small test, not a production accuracy claim.
+
 ## Current UI milestone
+
+- [x] Keep the preview panel mounted when the selected document changes; reset only the document editor draft. Browser checks confirm stable document and scan panels across row clicks and arrow navigation, Enter to full view, and Edit/Cancel. Web types and production build pass.
+
+- [x] Open full-page edit mode from the preview with `edit=true`. Keep quick preview read-only. Save and Cancel return to the full document view. The editor retains its draft during live refresh, uses shared controls, and leaves the PDF mounted. Backend tests cover stale drafts, immediate text search, preserved source bytes, repeated enrichment, and text edits made during inference.
 
 - [x] Repeat the consistency check across calendars, scan/document row previews, keyboard navigation, Settings, tag editing, owner reassignment, Overview, and upload. Add a selected-order check mark to sorting; let its menu fit the labels. Stack Settings fields on phones so values stay readable. No new browser errors were observed.
 - [x] Complete the app consistency pass: shared Mira calendars in filters and scan review; shared scan/document previews, row clicks, arrow/Enter/Escape navigation, Open controls, and table spacing. Scan documents use the same document table and preview route. Check Overview, lists, preview tabs, review, upload, catalog forms, owner reassignment, and missing-page states at desktop and phone widths. Date selection, keyboard use, mobile filter Apply, types, formatting, and production build pass. Native date/select controls are absent from application code.
 - [x] Replace native dropdowns with shared Mira selects in filters, Settings, owner reassignment, scan review, and PDF zoom. Menus use rounded corners, neutral highlights, and selected-item check marks. Desktop/phone inspection, keyboard selection, filter submission, form values, nested menus, PDF zoom, types, and build pass.
 - [x] Add owner removal: unused owners can be removed directly; used owners require a reassignment dialog with Unknown selected. Update document metadata and scan proposals under the write lock; preserve document IDs, PDFs, and paths. Unknown is reserved, and removal is blocked during active scan processing. Twelve focused tests cover reassignment, invalid targets, worker races, and interrupted filing. Desktop/phone dialog checks, Cancel/Escape, strict types, focused lint/format, and production build pass.
-- [ ] Resolve the reported Add tag React hook crash. Fresh loads, navigation from document preview, and creating/reopening a tag pass. React resolution is now deduplicated, and development errors expose a stack trace and reload action. The original failed tab could not be inspected; the cause and resolution remain unconfirmed.
+- [x] Verify Add tag after React deduplication. Fresh loads, navigation from document preview, and creating/reopening a tag pass; navigation and Save passed again on 4 October. The reported hook crash did not recur. Its original cause remains unconfirmed because the failed tab was unavailable.
 - [x] Refine the shared preview: table top border, visible Open action, Summary tab, and list keyboard navigation (arrows select; Enter opens full view).
 - [x] Show document filters inline when space permits; use the compact filter menu on smaller screens. Left-align dates and add sort icons.
 - [x] Save a selectable icon on catalog entries and use tag icons across document lists, summaries, and Settings. Old catalogs use automatic icons. Verified persistence, Save/Cancel, desktop/mobile filters, arrow/Enter/Escape navigation, shared top border, full preview height, and retained PDF rendering across tabs. Three catalog/API tests, strict Python and web types, focused lint/format checks, and the production build pass. Browser console is clear.
@@ -127,7 +154,7 @@ The worker owns processing decisions and recovery. The storage implementation ow
 - AI proposes a short, useful title, such as "Physiotherapy invoice" or "Electricity bill". Apply uniform filename rules in code. The title need not express every detail because tags follow.
 - Filename contains the selected document date, scan date/time, title, and a unique identifier. Illustrative shape: `<date>__scanned-<timestamp>__<title>__<id>.pdf`; the implementation uses UTC scan timestamps and the full scan hash plus document number.
 - Each owner has one flat directory of final PDFs and adjacent metadata files. Settle splitting, owner, dates, and filename before publication. Final document identities and paths remain fixed during later processing.
-- Each metadata file identifies its original scan, source pages, and later tags. Review is the supported correction point for owner/name/split. Filed identities and paths are immutable; ordinary enrichment must never relocate files.
+- Each metadata file identifies its original scan, source pages, and later tags. Review corrects owner/name/split before filing. Full-page edit mode corrects filed metadata and extracted search text. Page-group correction after filing remains required. Ordinary enrichment must not relocate files or overwrite explicit user corrections.
 - Removing an owner can reassign filed documents through metadata. Keep their original storage paths and update scan proposals so interrupted filing can resume.
 
 ### 5. Archive the original scan
@@ -181,7 +208,7 @@ Keep retry/restart behaviour small: bounded automatic retries where useful, manu
 - [x] Originals survive; searchable PDFs preserve pages and map final documents back to their batch.
 - [ ] Mixed mail splits correctly, known owners match, unmatched mail uses unknown, and missing dates use the recorded scan date. The fictional Gemma 4 test passes; representative real scans remain unverified.
 - [x] Filenames are consistent and unique; each owner's directory is flat; enrichment leaves paths unchanged.
-- [ ] Duplicate arrival, interrupted filing, and GPU failure produce visible, recoverable outcomes.
+- [x] Duplicate arrival, interrupted filing, and model endpoint failure produce visible, recoverable outcomes in local checks. The intended GPU host remains a deployment check.
 - [x] Repeated tagging/indexing creates no duplicates and preserves user edits; indexes can be rebuilt.
 - [x] Catalogs and state can be read without the running application; a local file-copy restore recovers documents and provenance. Live Restic restore remains pending.
 

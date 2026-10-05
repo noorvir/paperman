@@ -1,0 +1,59 @@
+{
+  "started_at": "2026-10-04T17:22:58.110547+00:00",
+  "settings": {
+    "provider": "compatible",
+    "reasoning_effort": "none",
+    "base_url": "http://127.0.0.1:9931/v1",
+    "model": "ggml-org/gemma-4-E2B-it-GGUF:Q8_0",
+    "timeout_seconds": 180,
+    "output_mode": "native"
+  },
+  "revision": "b34a33cdee2bb4f8838d7e77570f334f92efef22",
+  "parser_sha256": {
+    "paperman_parser/__init__.py": "5796e7a41d5cd3ee822a17c9ac3ee9c7b2dc6510e16c5991dd2058c2b5fd0864",
+    "paperman_parser/demo_inference.py": "53c3a2241a38821894c01b337efd6547f45b265e7bc36f617249b0142f525eb1",
+    "paperman_parser/inference.py": "ae53f198a927a2c89421d726073dc3d39dc7b458fe45294b1f102dd700157849",
+    "paperman_parser/models.py": "f38ba2aa88cb1dea7946e88a22566ea6f63b54489cbc315a0991fa70d72b4f48",
+    "paperman_parser/ocr.py": "4b0f7d3301730b9b4462d007adb6132bb793af9fe1dfe7cb581ffb07ea0b3750",
+    "paperman_parser/parser.py": "ad57ea17dd8f1be31ec2d42f8d739e0d18f78be0d56dea0cfa3997ede4fbd2b9"
+  },
+  "frozen_sha256": "27bc114855e4c4ecae583477a5294896bd25f296609b258601725a91b08e9e3f",
+  "annotations": {
+    "version": 1,
+    "created_on": "2026-10-03",
+    "files": {
+      "catalog.json": "2b9838fd2c942476d4fa72de678f623ead29809165e91906ffafedb5db78c122",
+      "ground-truth.json": "04ab15846f851f540d18230722138b8b1cb92b75071c58aa548388ec3f4ac088",
+      "transcripts/01-1.txt": "0104e494402f65590a5524998d339c90794180c1e91e10dd8ccb92db21f8b04f",
+      "transcripts/01-2.txt": "4771be902f566bfbe3861e816a931f1970b93c500ecfc2340d6fc182a41a4219",
+      "transcripts/02-1.txt": "0e27919bd46f316953acb1b84709286f2b2c347552a48d32ecba59bee3582384",
+      "transcripts/03-1.txt": "aa417131dfce0f0d7fd466c1ca991dcc3b9b661330a1ca57896723d04452116d",
+      "transcripts/03-2.txt": "a4aae7afbde9fb1d2808008c7d16ee90fcbc22d52803c894a98d4b785652c17c",
+      "transcripts/03-3.txt": "03445c9b291129a20728510656eed2e666108f7bf50dc88a2ffd80326a690cb5",
+      "transcripts/03-4.txt": "aeb316596f865355e210e6406e96e416efd0c9758d3caa2f49a7922946cbfbc6",
+      "transcripts/03-5.txt": "20f7020bd825852c5c23f2c0a7e8d12cf1436f9eeab0aa40b4f9837ba3ae6052",
+      "transcripts/03-6.txt": "a1a0a9a4b15acde6793296631ec2e6ecccfe681e1238cc7d5fb1f47b944b0445",
+      "transcripts/03-7.txt": "83b72f319050a2a2d431e47623f937bd1ef936f3dfe72e30a913babe51c566bb",
+      "transcripts/03-8.txt": "3c3f0e2bdcb913764f4ede52326bf20fdd87e545cc17cd9a75809104d99aaebf",
+      "transcripts/03-9.txt": "4d9db2f27894365c05da1708c734574d170dcef94cb664aeca883d410176b279",
+      "transcripts/04-1.txt": "d506a97851b35caaae57fe67e81aa42223b84aab0887d6cf1b5d09657e9c96a8",
+      "transcripts/05-1.txt": "2438c33d75aa542694b48ecb3383ebe028baa75654a5f0147a594d45cc91ad0a",
+      "transcripts/05-2.txt": "f5f8f0ee8ca99d08ad9ae886064bc05c7c95082a6cab7d31abc7a2a5ec5ff9f0",
+      "transcripts/06-1.txt": "78e22701ebff6fd8528d2bac9a837f3e88a1ff7c5281f289211cc2d5d7b34ef1",
+      "transcripts/07-1.txt": "f55207e4b02f7e8b7fd9bb56df3bafc1d3271cc6f06439c8845786286ad1318d",
+      "transcripts/08-1.txt": "f53743ca78de8fb5607e0b05c156c4c3ccf2bf9575c1aef593f80040b05143ce"
+    }
+  },
+  "versions": {
+    "pydantic": "2.13.5",
+    "pydantic-ai-slim": "2.52.0",
+    "pypdf": "6.19.0",
+    "ocrmypdf": "17.13.0"
+  },
+  "tesseract": "tesseract 5.5.3\n leptonica-1.87.0\n  libgif 6.1.3 : libjpeg 8d (libjpeg-turbo 3.2.0) : libpng 1.6.58 : libtiff 4.7.2 : zlib 1.2.12 : libwebp 1.6.0 : libopenjp2 2.5.4\n Found NEON\n Found libarchive 3.8.9 zlib/1.2.12 liblzma/5.8.4 bz2lib/1.0.8 liblz4/1.10.0 libzstd/1.5.7 expat/expat_2.7.4 CommonCrypto/system libb2/system\n Found libcurl/8.7.1 SecureTransport (LibreSSL/3.3.6) zlib/1.2.12 nghttp2/1.69.0\n",
+  "tessdata": {
+    "eng.traineddata": "7d4322bd2a7749724879683fc3912cb542f19906c83bcc1a52132556427170b2",
+    "fra.traineddata": "ced037562e8c80c13122dece28dd477d399af80911a28791a66a63ac1e3445ca",
+    "osd.traineddata": "9cf5d576fcc47564f11265841e5ca839001e7e6f38ff7f7aacf46d15a96b00ff"
+  }
+}

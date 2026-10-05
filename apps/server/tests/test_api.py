@@ -3,11 +3,12 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from paperman_parser.models import Catalog, CatalogEntry, Enrichment
 from test_pipeline import FixtureInference, create_pdf
 
 from paperman.api import create_app
 from paperman.config import Settings
-from paperman.models import Catalog, CatalogEntry, Document, Enrichment, Scan
+from paperman.models import Document, Scan
 from paperman.pipeline import enrich_document
 from paperman.storage import FileStorage
 

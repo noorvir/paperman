@@ -1,4 +1,4 @@
-from paperman.models import Analysis, Catalog, DocumentProposal, Enrichment
+from paperman_parser.models import Analysis, Catalog, DocumentProposal, Enrichment
 
 
 class DemoInference:

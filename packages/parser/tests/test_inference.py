@@ -10,8 +10,8 @@ from pydantic_ai.models.function import AgentInfo, FunctionModel
 from pydantic_ai.providers.ollama import OllamaProvider
 from pydantic_ai.providers.openai import OpenAIProvider
 
-from paperman.inference import EndpointInference
-from paperman.models import Catalog, CatalogEntry, ModelSettings
+from paperman_parser.inference import EndpointInference
+from paperman_parser.models import Catalog, CatalogEntry, InferenceSettings
 
 
 @pytest.mark.parametrize("mode", ["native", "prompted", "tool"])
@@ -38,7 +38,7 @@ def test_validated_splitting_details_and_tags(
 
     replace_model(monkeypatch, respond)
     inference = EndpointInference(
-        ModelSettings.model_validate(
+        InferenceSettings.model_validate(
             {
                 "provider": "ollama",
                 "base_url": "http://model.test/v1",
@@ -82,7 +82,7 @@ def test_invalid_model_output_stops_after_bounded_retries(
 
     replace_model(monkeypatch, respond)
     inference = EndpointInference(
-        ModelSettings(
+        InferenceSettings(
             provider="ollama",
             base_url="http://model.test/v1",
             model="test-model",
@@ -128,9 +128,9 @@ def test_model_transport_failures_have_actionable_messages(
                     )
                 )
 
-            monkeypatch.setattr("paperman.inference.OllamaProvider", provider)
+            monkeypatch.setattr("paperman_parser.inference.OllamaProvider", provider)
             inference = EndpointInference(
-                ModelSettings(
+                InferenceSettings(
                     provider="ollama",
                     base_url="http://model.test/v1",
                     model="test-model",
@@ -153,4 +153,4 @@ def replace_model(
     ) -> FunctionModel:
         return FunctionModel(respond)
 
-    monkeypatch.setattr("paperman.inference.OpenAIChatModel", model)
+    monkeypatch.setattr("paperman_parser.inference.OpenAIChatModel", model)

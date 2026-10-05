@@ -1,0 +1,38 @@
+{
+  "id": "01",
+  "source_sha256": "443b1fbcf040924f2ed60a4f46578e6d613afe0e8ccaf9f1cd2edc9e9f16ada7",
+  "ocr_languages": "eng",
+  "pages": [
+    "CEDAR BAY (FICTIONAL)\nInvoice\nCedar Bay Services to Quarry Lane\nINVOICE NUMBER\nINV-9400\nBILL TO\nQuarry Lane, 14 Example Way\nISSUED\nSeptember 1, 2026\nPAYMENT TERMS\nNet 30, USD\nPayment requested\nPlease remit $1,367.00 for the completed services listed below. Reference INV-9400 with your payment. No\naccount or payment details in this fixture are real.\nRemittance note\nPayment is due thirty days after issue. Contact billing@example.invalid for a corrected copy.\nService\nQuantity\nAmount\nEquipment restoration\n1\n$1,187.00\nInspection and travel\n1\n$180.00\nTOTAL DUE\n$1,367.00\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n1 / 2\n",
+    "CEDAR BAY (FICTIONAL)\nReference 9400 / continued\nService detail\nContinuation of INV-9400. Technician work log: isolate damaged fittings, complete pressure testing, and\nconfirm the equipment is safe to return to service.\nWork completed\nInspection: 1.5 hours. Restoration: 3.0 hours. Verification: 1.0 hour. The charges summarize work already\ndelivered and form part of the amount due on the preceding page.\nSYNTHETIC EXAMPLE / NO REAL PERSON OR TRANSACTION\n2 / 2\n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "quarry-lane",
+        "title": "Equipment restoration invoice",
+        "document_date": "2026-09-01",
+        "confidence": 0.98,
+        "review_reason": "",
+        "pages": [1, 2]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1, 2],
+      "result": {
+        "tag_ids": ["invoice"],
+        "suggested_tags": ["Equipment repair"],
+        "summary": "This fictional invoice from Cedar Bay Services requests $1,367.00 from Quarry Lane for equipment restoration, inspection, and travel. It shows an issue date of September 1, 2026, and gives work details on the second page."
+      },
+      "error": "",
+      "seconds": 15.749346915865317
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 16.004226624965668,
+    "total": 31.754581165965647
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "started_at": "2026-10-05T11:20:03.657503+00:00",
+  "model": "gpt-6-sol",
+  "reasoning_effort": "high",
+  "transport": "codex exec",
+  "auth": "existing ChatGPT login; no API key",
+  "codex_version": "codex-cli 0.156.1",
+  "source_run": "/Users/noorvir/code/paperman/packages/parser/test-data/public-pdfs/results/2026-10-04-instructions-v3",
+  "source_sha256": {
+    "01.json": "cb6fb175a6ac373a88f1d35387ca3b0d42e3a74887746e4771bd7fc91ebaf459",
+    "02.json": "d81fe3f8904b294887c4f116a0b84a3ad655bcb0717159ad13a321badd470440",
+    "03.json": "2148e3883a822074abd34df59298fa985433baed1b43a463bd4af52cd2f9bffe",
+    "04.json": "c6d503e82d3f9a947b91383f4b0fda9b7fa0b500450e1e88abe17547847a2b8f",
+    "05.json": "8b3386de2b08293a1eff3b4d314aacdf9d04db1ee1c945bc00ccc3b163437a69",
+    "06.json": "f4d7f966e1c5c7774e7e3ec1709b3c750490c5187755c6620dd6b29d89710053",
+    "07.json": "f78feb3463460aa23437382f43bd707d95ca942f5a4ac824e25605252f66f646",
+    "08.json": "14c496375d17af16b88f229080955a02db98fcdf21fcb7dc9ad81aeaa03748ed"
+  },
+  "frozen_sha256": "27bc114855e4c4ecae583477a5294896bd25f296609b258601725a91b08e9e3f",
+  "annotations": {
+    "version": 1,
+    "created_on": "2026-10-03",
+    "files": {
+      "catalog.json": "2b9838fd2c942476d4fa72de678f623ead29809165e91906ffafedb5db78c122",
+      "ground-truth.json": "04ab15846f851f540d18230722138b8b1cb92b75071c58aa548388ec3f4ac088",
+      "transcripts/01-1.txt": "0104e494402f65590a5524998d339c90794180c1e91e10dd8ccb92db21f8b04f",
+      "transcripts/01-2.txt": "4771be902f566bfbe3861e816a931f1970b93c500ecfc2340d6fc182a41a4219",
+      "transcripts/02-1.txt": "0e27919bd46f316953acb1b84709286f2b2c347552a48d32ecba59bee3582384",
+      "transcripts/03-1.txt": "aa417131dfce0f0d7fd466c1ca991dcc3b9b661330a1ca57896723d04452116d",
+      "transcripts/03-2.txt": "a4aae7afbde9fb1d2808008c7d16ee90fcbc22d52803c894a98d4b785652c17c",
+      "transcripts/03-3.txt": "03445c9b291129a20728510656eed2e666108f7bf50dc88a2ffd80326a690cb5",
+      "transcripts/03-4.txt": "aeb316596f865355e210e6406e96e416efd0c9758d3caa2f49a7922946cbfbc6",
+      "transcripts/03-5.txt": "20f7020bd825852c5c23f2c0a7e8d12cf1436f9eeab0aa40b4f9837ba3ae6052",
+      "transcripts/03-6.txt": "a1a0a9a4b15acde6793296631ec2e6ecccfe681e1238cc7d5fb1f47b944b0445",
+      "transcripts/03-7.txt": "83b72f319050a2a2d431e47623f937bd1ef936f3dfe72e30a913babe51c566bb",
+      "transcripts/03-8.txt": "3c3f0e2bdcb913764f4ede52326bf20fdd87e545cc17cd9a75809104d99aaebf",
+      "transcripts/03-9.txt": "4d9db2f27894365c05da1708c734574d170dcef94cb664aeca883d410176b279",
+      "transcripts/04-1.txt": "d506a97851b35caaae57fe67e81aa42223b84aab0887d6cf1b5d09657e9c96a8",
+      "transcripts/05-1.txt": "2438c33d75aa542694b48ecb3383ebe028baa75654a5f0147a594d45cc91ad0a",
+      "transcripts/05-2.txt": "f5f8f0ee8ca99d08ad9ae886064bc05c7c95082a6cab7d31abc7a2a5ec5ff9f0",
+      "transcripts/06-1.txt": "78e22701ebff6fd8528d2bac9a837f3e88a1ff7c5281f289211cc2d5d7b34ef1",
+      "transcripts/07-1.txt": "f55207e4b02f7e8b7fd9bb56df3bafc1d3271cc6f06439c8845786286ad1318d",
+      "transcripts/08-1.txt": "f53743ca78de8fb5607e0b05c156c4c3ccf2bf9575c1aef593f80040b05143ce"
+    }
+  },
+  "parser_sha256": {
+    "paperman_parser/__init__.py": "5796e7a41d5cd3ee822a17c9ac3ee9c7b2dc6510e16c5991dd2058c2b5fd0864",
+    "paperman_parser/demo_inference.py": "53c3a2241a38821894c01b337efd6547f45b265e7bc36f617249b0142f525eb1",
+    "paperman_parser/inference.py": "784142515b3c6d6b04f4db36079953834098035898f881e53cfb5046a7419be4",
+    "paperman_parser/models.py": "f38ba2aa88cb1dea7946e88a22566ea6f63b54489cbc315a0991fa70d72b4f48",
+    "paperman_parser/ocr.py": "4b0f7d3301730b9b4462d007adb6132bb793af9fe1dfe7cb581ffb07ea0b3750",
+    "paperman_parser/parser.py": "ad57ea17dd8f1be31ec2d42f8d739e0d18f78be0d56dea0cfa3997ede4fbd2b9"
+  },
+  "runner_sha256": "6f2d7c2040ca82a511dd155c11477faaa3e790134a7e2fdf722db2161570b2e1",
+  "scorer_sha256": "fdd6e9301c26b7723fda6792ab72fecc3915a781a1c1979ad1ccb3b491fe578c",
+  "notes": "Reuse OCR pages only, not previous model output or labels. Same production stage prompts. No tools, repository access, or answer labels in model input. Temperature uses Codex default. Up to two schema/domain validation retries. Four independent PDFs at a time."
+}

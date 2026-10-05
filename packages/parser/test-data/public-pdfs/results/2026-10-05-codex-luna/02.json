@@ -1,0 +1,37 @@
+{
+  "id": "02",
+  "source_sha256": "fbaf7a7cd9a68500b126cf945e64e7b48b8b4326f369bbeb757cd6cb8c8aff8f",
+  "ocr_languages": "eng",
+  "pages": [
+    "UNIPER WORKS (FICTIONAL) \nPurchase order \nJuniper Works Procurement \nPO-9401 Willow Ridge \nOctober 15, 2026 Receiving desk, 18 Example Lane \nAuthorization to supply \nThe buyer authorizes the supplier to deliver the items below under the agreed commercial terms. Send an order \nacknowledgement before dispatch. \nReceiving instructions \nReference PO-9401 on the packing slip. Deliver between 09:00 and 16:00. The purchasing contact is Jordan Lark. \nQuantity Unit price \n‘Sensor mounting kit 2 $42.00 \nWeatherproof enclosure 6 $95.00 \nEstimated order total $1074.00 \n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "willow-ridge",
+        "title": "Purchase order",
+        "document_date": "2026-10-15",
+        "confidence": 0.91,
+        "review_reason": "",
+        "pages": [1]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1],
+      "result": {
+        "tag_ids": ["purchase-order"],
+        "suggested_tags": [],
+        "summary": "Purchase order PO-9401 authorizes supply of two sensor mounting kits and six weatherproof enclosures. It requests an order acknowledgement before dispatch and gives delivery instructions. The estimated order total is $1,074.00."
+      },
+      "error": "",
+      "seconds": 5.95870416611433
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "analyze": 12.228857332840562,
+    "total": 18.18812554096803
+  }
+}

@@ -1,0 +1,276 @@
+{
+  "version": 1,
+  "reviewed_on": "2026-10-03",
+  "reviewer": "Codex agent, visual inspection of every page; no human review",
+  "method": "Transcribed from rendered page images before any evaluation run. Dense pages 05, 06, 07 inspected again at higher resolution. Paragraphs use reading order, tables use rows, columns use column order. Decorative bullets are omitted. Text is not derived from pipeline OCR or model predictions.",
+  "scope": "PDFs only, one-based page groups; catalog owner must be the recipient/account holder/policyholder or explicit subject, not sender or an illustrative person in a guide. Issue date only, never event/expiry/delivery/print time.",
+  "documents": [
+    {
+      "id": "01",
+      "sha256": "443b1fbcf040924f2ed60a4f46578e6d613afe0e8ccaf9f1cd2edc9e9f16ada7",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/01-1.txt"
+        },
+        {
+          "page": 2,
+          "transcript": "transcripts/01-2.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1, 2],
+          "owner_id": "quarry-lane",
+          "document_date": "2026-09-01",
+          "required_tags": ["invoice"],
+          "optional_tags": [],
+          "title_any": ["invoice", "bill"],
+          "evidence": "BILL TO Quarry Lane; ISSUED September 1, 2026. Cedar Bay is the sender, despite also being a catalog owner."
+        }
+      ]
+    },
+    {
+      "id": "02",
+      "sha256": "fbaf7a7cd9a68500b126cf945e64e7b48b8b4326f369bbeb757cd6cb8c8aff8f",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/02-1.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1],
+          "owner_id": "willow-ridge",
+          "document_date": null,
+          "required_tags": ["purchase-order"],
+          "optional_tags": [],
+          "title_any": ["purchase order", "supply order"],
+          "evidence": "The order is addressed to SUPPLIER Willow Ridge. Juniper Works is the buyer/issuer. October 15 is REQUESTED DELIVERY, not issue date."
+        }
+      ]
+    },
+    {
+      "id": "03",
+      "sha256": "99df04d93066ae0ba31aa31adfdac26fd4a12ce891ccc4a4d694b6072043c083",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/03-1.txt"
+        },
+        {
+          "page": 2,
+          "transcript": "transcripts/03-2.txt"
+        },
+        {
+          "page": 3,
+          "transcript": "transcripts/03-3.txt"
+        },
+        {
+          "page": 4,
+          "transcript": "transcripts/03-4.txt"
+        },
+        {
+          "page": 5,
+          "transcript": "transcripts/03-5.txt"
+        },
+        {
+          "page": 6,
+          "transcript": "transcripts/03-6.txt"
+        },
+        {
+          "page": 7,
+          "transcript": "transcripts/03-7.txt"
+        },
+        {
+          "page": 8,
+          "transcript": "transcripts/03-8.txt"
+        },
+        {
+          "page": 9,
+          "transcript": "transcripts/03-9.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1, 2],
+          "owner_id": "parker-quinn",
+          "document_date": null,
+          "required_tags": ["insurance", "claim"],
+          "optional_tags": [],
+          "title_any": ["claim"],
+          "evidence": "The policyholder is Parker Quinn. September 13 is LOSS DATE. The form has no issue date."
+        },
+        {
+          "pages": [3],
+          "owner_id": "unknown",
+          "document_date": null,
+          "required_tags": ["incident-report"],
+          "optional_tags": [],
+          "title_any": ["incident"],
+          "evidence": "Avery Vale is the reporting officer; no catalog owner is the recipient or subject. September 16 is INCIDENT DATE, not a stated issue date."
+        },
+        {
+          "pages": [4, 5],
+          "owner_id": "morgan-wren",
+          "document_date": null,
+          "required_tags": ["estimate"],
+          "optional_tags": ["contract"],
+          "title_any": ["estimate", "quotation", "quote"],
+          "evidence": "PREPARED FOR Morgan Wren. October 30 is VALID THROUGH, not issue date."
+        },
+        {
+          "pages": [6, 7],
+          "owner_id": "unknown",
+          "document_date": "2026-09-22",
+          "required_tags": ["invoice"],
+          "optional_tags": [],
+          "title_any": ["invoice", "bill"],
+          "evidence": "BILL TO Orchid Field, which is outside the catalog. ISSUED September 22, 2026."
+        },
+        {
+          "pages": [8],
+          "owner_id": "cedar-bay",
+          "document_date": "2026-09-25",
+          "required_tags": ["invoice"],
+          "optional_tags": [],
+          "title_any": ["invoice", "bill"],
+          "evidence": "New invoice INV-9599; BILL TO Cedar Bay; ISSUED September 25, 2026. Separate from INV-9596."
+        },
+        {
+          "pages": [9],
+          "owner_id": "casey-rowan",
+          "document_date": "2026-09-03",
+          "required_tags": ["insurance", "correspondence"],
+          "optional_tags": [],
+          "title_any": ["claim", "correspondence", "letter"],
+          "evidence": "TO Casey Rowan; DATE September 3, 2026; insurer claim correspondence. Alex Rowan is the sender, not the recipient."
+        }
+      ]
+    },
+    {
+      "id": "04",
+      "sha256": "755073d4d13732eb9bd9b340c6ff28325741835c369a6c8b58b3f4650ffed52d",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/04-1.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1],
+          "owner_id": "unknown",
+          "document_date": null,
+          "required_tags": ["banking", "reference"],
+          "optional_tags": [],
+          "title_any": ["credit card", "card statement"],
+          "evidence": "The whole page is a STUDENT HANDOUT, not personal mail. Susan Doe is an example, even though a matching catalog entry exists. 12/30/XX lacks a year. Summer 2022 is a handout footer, not a complete issue date."
+        }
+      ]
+    },
+    {
+      "id": "05",
+      "sha256": "04ca1c9876aadaf3edf20b1115f0d3cc714d8816ff3c2894a8a7adef82a1b904",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/05-1.txt"
+        },
+        {
+          "page": 2,
+          "transcript": "transcripts/05-2.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1, 2],
+          "owner_id": "unknown",
+          "document_date": null,
+          "required_tags": ["banking", "reference"],
+          "optional_tags": [],
+          "title_any": ["mortgage"],
+          "evidence": "A public educational guide. Jordan and Dana Smith and 3/20/2014 belong to the embedded statement example, not the guide. The guide has no complete issue date."
+        }
+      ]
+    },
+    {
+      "id": "06",
+      "sha256": "3fce2d6e5baffec839ffc86b7c91903b139399392ea76a09bdfcca40cb8b5a4d",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/06-1.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1],
+          "owner_id": "unknown",
+          "document_date": null,
+          "required_tags": ["reference"],
+          "optional_tags": [],
+          "title_any": ["optical character recognition", "ocr"],
+          "evidence": "Public encyclopedia excerpt without recipient or issue date. Footer 14/09/16 20:42 is a browser print timestamp, not the article issue date; 1914 is historical context."
+        }
+      ]
+    },
+    {
+      "id": "07",
+      "sha256": "6be6b54d49df71351974774404e299b756d8d3cbeb2c4a31f15fae8dd983d72f",
+      "ocr_languages": "eng",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/07-1.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1],
+          "owner_id": "unknown",
+          "document_date": null,
+          "required_tags": ["reference", "music"],
+          "optional_tags": [],
+          "title_any": ["linnsequencer", "sequencer", "midi"],
+          "evidence": "Product brochure with no named recipient and no printed issue date. No date is inferred from external licence/attribution metadata."
+        }
+      ]
+    },
+    {
+      "id": "08",
+      "sha256": "600c27f8dd2ef085a94d3500f6ccdb3b37f4b89aa8ffdf9a00a06a1367887e8b",
+      "ocr_languages": "fra",
+      "pages": [
+        {
+          "page": 1,
+          "transcript": "transcripts/08-1.txt"
+        }
+      ],
+      "expected": [
+        {
+          "pages": [1],
+          "owner_id": "unknown",
+          "document_date": null,
+          "required_tags": ["reference"],
+          "optional_tags": [],
+          "title_any": [
+            "french",
+            "français",
+            "pangram",
+            "text sample",
+            "accent"
+          ],
+          "evidence": "French language sample, no recipient and no issue date."
+        }
+      ]
+    }
+  ]
+}

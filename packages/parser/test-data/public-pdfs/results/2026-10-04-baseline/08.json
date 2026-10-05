@@ -1,0 +1,39 @@
+{
+  "id": "08",
+  "source_sha256": "600c27f8dd2ef085a94d3500f6ccdb3b37f4b89aa8ffdf9a00a06a1367887e8b",
+  "ocr_languages": "fra",
+  "pages": [
+    "Portez ce vieux whisky au juge \nblond qui fume sur son île \nintérieure, à côté de l'alcôve \novoiïde, où les bûches se \nconsument dans l'âtre, ce qui \nlui permet de penser à la \ncænogénèse de l'être dont il \nest question dans la cause \nambiguë entendue à Moÿ, dans \nun capharnaüm qui, pense-t-il, \ndiminue çà et là la qualité de son \nœuvre. \n"
+  ],
+  "analysis": {
+    "documents": [
+      {
+        "owner_id": "unknown",
+        "title": "Poem excerpt",
+        "document_date": null,
+        "confidence": 0.9,
+        "review_reason": "",
+        "pages": [1]
+      }
+    ]
+  },
+  "enriched": [
+    {
+      "pages": [1],
+      "result": {
+        "tag_ids": ["correspondence"],
+        "suggested_tags": ["Literary excerpt", "Poetry"],
+        "summary": "The document is a short, evocative piece of writing, likely a literary excerpt, describing a scene involving an old whisky, a blond judge smoking on an island, and philosophical musings about the genesis of being and the quality of an artwork."
+      },
+      "error": "",
+      "seconds": 1.7777703339233994
+    }
+  ],
+  "error": "",
+  "seconds": {
+    "ocr": 1.1998824588954449,
+    "analyze": 2.175689458148554,
+    "enrich": 1.7782722499687225,
+    "total": 5.155114749912173
+  }
+}

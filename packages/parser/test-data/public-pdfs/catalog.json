@@ -1,0 +1,121 @@
+{
+  "owners": [
+    {
+      "id": "unknown",
+      "name": "Unknown",
+      "aliases": []
+    },
+    {
+      "id": "quarry-lane",
+      "name": "Quarry Lane",
+      "aliases": []
+    },
+    {
+      "id": "willow-ridge",
+      "name": "Willow Ridge",
+      "aliases": []
+    },
+    {
+      "id": "parker-quinn",
+      "name": "Parker Quinn",
+      "aliases": []
+    },
+    {
+      "id": "morgan-wren",
+      "name": "Morgan Wren",
+      "aliases": []
+    },
+    {
+      "id": "cedar-bay",
+      "name": "Cedar Bay",
+      "aliases": []
+    },
+    {
+      "id": "casey-rowan",
+      "name": "Casey Rowan",
+      "aliases": []
+    },
+    {
+      "id": "susan-doe",
+      "name": "Susan Doe",
+      "aliases": []
+    },
+    {
+      "id": "jordan-smith",
+      "name": "Jordan Smith",
+      "aliases": []
+    }
+  ],
+  "tags": [
+    {
+      "id": "invoice",
+      "name": "Invoice",
+      "aliases": []
+    },
+    {
+      "id": "insurance",
+      "name": "Insurance",
+      "aliases": []
+    },
+    {
+      "id": "tax",
+      "name": "Tax",
+      "aliases": []
+    },
+    {
+      "id": "health",
+      "name": "Health",
+      "aliases": []
+    },
+    {
+      "id": "banking",
+      "name": "Banking",
+      "aliases": []
+    },
+    {
+      "id": "utilities",
+      "name": "Utilities",
+      "aliases": []
+    },
+    {
+      "id": "contract",
+      "name": "Contract",
+      "aliases": []
+    },
+    {
+      "id": "purchase-order",
+      "name": "Purchase order",
+      "aliases": []
+    },
+    {
+      "id": "claim",
+      "name": "Insurance claim",
+      "aliases": []
+    },
+    {
+      "id": "incident-report",
+      "name": "Incident report",
+      "aliases": []
+    },
+    {
+      "id": "estimate",
+      "name": "Repair estimate",
+      "aliases": []
+    },
+    {
+      "id": "correspondence",
+      "name": "Correspondence",
+      "aliases": []
+    },
+    {
+      "id": "reference",
+      "name": "Reference and educational material",
+      "aliases": []
+    },
+    {
+      "id": "music",
+      "name": "Music equipment",
+      "aliases": []
+    }
+  ]
+}

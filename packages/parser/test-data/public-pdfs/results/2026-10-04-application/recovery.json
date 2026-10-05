@@ -1,0 +1,13 @@
+{
+  "passed": true,
+  "endpoint_failure_visible": true,
+  "retry_keeps_original_and_ocr": true,
+  "actual_worker_terminated_during_analysis": true,
+  "new_worker_resumes_to_review": true,
+  "filing_after_restart": true,
+  "tagging_failure_visible_and_retryable": true,
+  "filesystem_backup_restored_and_index_rebuilt": true,
+  "source_sha256": "d3f35f8dfddc6f6887877c39895d748516d19a1f8f02e26a525959c16b6193b2",
+  "pdf_sha256": "e02419378863b563c3084f9b39e6b09b6ec2b646a066b569b6db280c3789a164",
+  "attempts": 4
+}

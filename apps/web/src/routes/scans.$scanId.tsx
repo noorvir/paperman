@@ -1,4 +1,8 @@
-import { createFileRoute, stripSearchParams } from "@tanstack/react-router";
+import {
+  Link,
+  createFileRoute,
+  stripSearchParams,
+} from "@tanstack/react-router";
 import { z } from "zod";
 import { getScan, getCatalog, getDocument, scanSearch } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
@@ -9,6 +13,7 @@ import {
   OpenPreviewLink,
 } from "@/components/collection-preview";
 import { ScanView } from "@/components/scan-view";
+import { buttonVariants } from "@/components/ui/button";
 
 export const Route = createFileRoute("/scans/$scanId")({
   validateSearch: z.object({
@@ -42,7 +47,20 @@ function ScanDetail() {
       title={scan.original_name}
       description={`${scan.page_count || "—"} pages · Scanned ${formatDate(scan.scanned_at)}`}
       preview={search.preview}
-      actions={<ScanStatus status={scan.status} />}
+      actions={
+        <>
+          {scan.status === "complete" && (
+            <Link
+              to="/scans/$scanId/review"
+              params={{ scanId: scan.id }}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Edit page groups
+            </Link>
+          )}
+          <ScanStatus status={scan.status} />
+        </>
+      }
       onClose={() =>
         void navigate({
           to: "/scans",

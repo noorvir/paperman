@@ -1,6 +1,6 @@
 import { BackLink } from "@/components/back-link";
 import { createFileRoute } from "@tanstack/react-router";
-import { getCatalog, getScan } from "@/lib/queries";
+import { getCatalog, getDocument, getScan } from "@/lib/queries";
 import { PdfPreview } from "@/components/pdf-preview";
 import { ReviewForm } from "@/components/review-form";
 import { PageHeader, DetailLayout } from "@/components/page";
@@ -11,12 +11,36 @@ export const Route = createFileRoute("/scans_/$scanId/review")({
       getScan({ data: params.scanId }),
       getCatalog(),
     ]);
-    return { scan, catalog };
+    const details = await Promise.all(
+      scan.document_ids.map((id) => getDocument({ data: id })),
+    );
+    let proposal = scan.proposal;
+    const documentRevisions = Object.fromEntries(
+      details.map(({ document }) => [document.id, document.revision]),
+    );
+    if (scan.status === "complete") {
+      proposal = {
+        documents: details.map(({ document }) => {
+          return {
+            pages: document.source_pages,
+            owner_id: document.owner_id,
+            title: document.title,
+            document_date:
+              document.date_source === "document"
+                ? document.document_date
+                : null,
+            confidence: 1,
+            review_reason: "",
+          };
+        }),
+      };
+    }
+    return { scan, catalog, proposal, documentRevisions };
   },
   component: Review,
 });
 function Review() {
-  const { scan, catalog } = Route.useLoaderData();
+  const { scan, catalog, proposal, documentRevisions } = Route.useLoaderData();
   return (
     <>
       <PageHeader
@@ -28,19 +52,23 @@ function Review() {
             title="Back to scan"
           />
         }
-        title="Review documents"
-        description="Check the document groups, owners, titles, and dates before filing."
+        title={
+          scan.status === "complete" ? "Edit page groups" : "Review documents"
+        }
+        description="Check each source page, document group, owner, title, and date."
       />
-      {scan.status !== "review" || !scan.proposal ? (
-        <p>This scan is not waiting for review.</p>
+      {!["review", "complete"].includes(scan.status) || !proposal ? (
+        <p>Wait for this scan to finish before editing its groups.</p>
       ) : (
         <DetailLayout
           wide
           aside={
             <ReviewForm
               scan={scan}
-              proposal={scan.proposal}
+              key={scan.id}
+              proposal={proposal}
               owners={catalog.owners}
+              documentRevisions={documentRevisions}
             />
           }
         >

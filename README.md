@@ -8,6 +8,7 @@ Install Bun 1.3+, uv, and Tesseract with the required language data. On macOS, `
 
 ```sh
 uv sync --project apps/server
+uv sync --project packages/parser  # Standalone parser checks
 bun install
 bun run dev
 ```
@@ -44,7 +45,7 @@ The check sends fictional mail through the worker, OCR, real model, review API, 
 
 Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
 
-A [public PDF test set](apps/server/tests/fixtures/public-pdfs/README.md) is cached for the next check: eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a claim packet with known document boundaries. Its manifest records sources, licences, hashes, and expected page groups. These files have not yet been processed through PaperMan.
+The [public PDF test set](packages/parser/test-data/public-pdfs/README.md) has eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a six-document claim packet. Ground truth was written from page images before evaluation. Both the standalone parser evaluation and the application upload/review/filing checks are complete. See [accuracy, workflow checks, and limits](packages/parser/test-data/public-pdfs/results/README.md). The current model still needs review for owners, dates, and tags.
 
 ## Local demo
 
@@ -62,9 +63,11 @@ Overview uses a centered 1152 px content area with a document list and a 288 px 
 
 TanStack Start serves complete pages with server rendering and route loaders. Documents, scans, scan review, document detail, owner editing, tag editing, and settings have separate URLs. Search terms, filters, sorting, pagination, and document views use URL parameters. Form drafts remain local until Save or Approve.
 
-The UI uses shadcn Mira, Base UI, Tailwind CSS 4.3, Inter Variable, and Hugeicons. A compact top bar provides navigation. Shared workspace classes own page padding, headings, and section spacing. Use plain sections and table/list separators. Avoid cards inside cards. Keep Mira's control dimensions. The collection layout owns its search toolbar, scrolling table, empty state, and bottom pagination. Document filters sit beside search when space permits and use a popover on smaller screens; applied filters appear as removable labels. The document preview fills the remaining space. Summary and tag controls have a separate tab. Scan review uses separate scrolling for the preview and inspector. Back navigation uses one outlined chevron control. Add controls from `apps/web` with `bunx --bun shadcn@latest add <component>`.
+The UI uses shadcn Mira, Base UI, Tailwind CSS 4.3, Inter Variable, and Hugeicons. A compact top bar provides navigation. Shared workspace classes own page padding, headings, and section spacing. Use plain sections and table/list separators. Avoid cards inside cards. Keep Mira's control dimensions. The collection layout owns its search toolbar, scrolling table, empty state, and bottom pagination. Document filters sit beside search when space permits and use a popover on smaller screens; applied filters appear as removable labels. The document preview fills the remaining space. Summary and assigned tags have a separate tab. Scan review uses separate scrolling for the preview and inspector. Back navigation uses one outlined chevron control. Add controls from `apps/web` with `bunx --bun shadcn@latest add <component>`.
 
 Selecting a document or scan opens a quick preview over the right side of the table. The list stays usable. Arrow keys select items in the current list page. Enter or the Open control opens the same view at full size; close or Escape returns to the list with its filters and scroll position. Both collections share the preview frame, row controls, and keyboard behavior. Document tabs are PDF, Text, Summary, and Details. Scan tabs are PDF, Documents, Activity, and Details; filed documents use the shared document table and open the document preview. Tab changes keep the PDF mounted, including its zoom and page position.
+
+The document quick preview is read-only. Its Edit button opens `/documents/<id>?edit=true` in the full workspace. The editor changes title, owner, issue date, summary, tags, and extracted text. Save applies the draft; Cancel discards it. Both return to the full document view. The PDF stays mounted. Text corrections update search and future tagging without changing the original PDF. If another operation changes the saved document while a draft is open, Save reports a conflict and retains the draft.
 
 PDF previews use EmbedPDF 2 with Mira controls for pages, zoom, rotation, text search, and download. The shared viewer serves documents, original scans, and scan review, with one steady loading surface until the first page is ready. PDFium runs in a browser worker; its WebAssembly asset is bundled with the app. External font fallback requests are disabled, so PDFs must embed any fonts that PDFium does not provide. Rotation and zoom change the view only; download returns the saved PDF.
 
@@ -84,7 +87,8 @@ settings.toml                     model endpoint, OCR, and review settings
 inbox/                            incoming scanner PDFs
 scans/<sha256>/original.pdf        immutable original bytes
 scans/<sha256>/searchable.pdf      OCR copy with the same pages
-scans/<sha256>/scan.json           checkpoints, history, proposal, document links
+scans/<sha256>/scan.json           checkpoints, history, proposal, active document links
+scans/<sha256>/revisions/          previous groupings and replaced document files
 documents/<owner-id>/*.pdf         final searchable documents, one flat folder per owner
 documents/<owner-id>/*.toml        metadata, source pages, dates, tags, errors
 documents/<owner-id>/*.txt         extracted text
@@ -92,25 +96,30 @@ state/search.json                 rebuildable full-text index
 state/worker.json                 worker heartbeat
 ```
 
-A document date means the date printed on the document. If absent, the UTC scan date is used and marked as a fallback. Final filenames contain that date, the UTC scan timestamp, a normalized title, and a unique document ID. Every source page must occur exactly once in the review proposal. Blank pages stay with their document. Unknown is a reserved owner.
+A document date means the date printed on the document. If absent, the UTC scan date is used and marked as a fallback. Final filenames contain that date, the UTC scan timestamp, a normalized title, and a unique document ID. Every source page must occur exactly once in the review proposal. Blank pages stay with their document. Pages with no readable text require review, even when automatic filing is enabled. Unknown is a reserved owner.
 
 The worker resumes persisted stages after restart. A failed model call does not lose OCR output. Filing has deterministic IDs and paths, and publishes each file atomically. The original is removed from the inbox only after filing succeeds; its preserved copy remains in scan history. Exact duplicates link to the same scan. Later tagging replaces generated tags and preserves explicit user choices. Search currently uses a derived JSON text index; semantic embeddings are not required for the first pipeline.
 
-`Storage`, `OCR`, and `Inference` define the worker's boundaries. The first implementations use a configured directory, OCRmyPDF/Tesseract, and Pydantic AI with an explicit compatible endpoint. Compute provisioning and mount setup belong to deployment configuration. The app does not require a Pi or Homestack.
+Use **Edit page groups** from a full document editor or a filed scan to correct splits and merges. The review form starts with current document metadata. Save validates page coverage and checks that no document changed while the form was open. Unchanged page groups keep their IDs, file paths, tags, summaries, and text corrections. Changed groups get new IDs and pending tagging; their old PDFs, text, and metadata move to scan history after publication. The previous document set stays visible if filing fails. Retry resumes the approved revision. Metadata edits do not rename or move files.
+
+`Storage`, `OCR`, and `Inference` define the worker's boundaries. OCR and inference live in the standalone parser package, which accepts PDF bytes and returns searchable content and proposals. The server saves checkpoints and publishes approved files. The first implementations use a configured directory, OCRmyPDF/Tesseract, and Pydantic AI with an explicit compatible endpoint. Compute provisioning and mount setup belong to deployment configuration. The app does not require a Pi or Homestack.
 
 ## Development and checks
 
 ```text
-apps/web/                 React web app
-apps/server/paperman/     Python package: API, worker, and pipeline
-apps/server/tests/        Server tests and fixture manifests
-apps/server/scripts/      Demo setup and local model checks
-apps/server/pyproject.toml
-apps/server/uv.lock
-deploy/                   Container configuration
+apps/web/                               React web app
+apps/server/paperman/                    API, worker, review, storage, filing
+apps/server/tests/                       Server integration tests
+apps/server/scripts/                     Demo setup and local model checks
+packages/parser/paperman_parser/         Standalone OCR and AI parsing
+packages/parser/tests/                   Parser tests, no server required
+packages/parser/test-data/public-pdfs/    Public sample manifest and labels
+deploy/                                 Container configuration
 ```
 
-Run the commands below from the repository root. Python dependencies are installed in `apps/server/.venv`. Runtime commands use the root working directory, so `.env`, `data/`, `.demo-data/`, and generated `openapi.json` resolve there.
+Each Python project has its own `pyproject.toml` and `uv.lock`. The server installs the parser as a local editable dependency. See the [parser interface and DocJev research](packages/parser/README.md).
+
+Run the commands below from the repository root. Server dependencies are installed in `apps/server/.venv`; standalone parser checks use `packages/parser/.venv`. Runtime commands use the root working directory, so `.env`, `data/`, `.demo-data/`, and generated `openapi.json` resolve there.
 
 ```sh
 bun run generate:api  # FastAPI OpenAPI contract and TypeScript client types

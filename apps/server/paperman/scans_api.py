@@ -4,11 +4,12 @@ from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
+from paperman_parser.models import Analysis, Identifier, validate_analysis
 
-from paperman.api_models import ActionResult, ScanPage
+from paperman.api_models import ActionResult, ScanPage, ScanReview
 from paperman.config import Settings
-from paperman.models import Analysis, Event, Identifier, Scan, now, validate_analysis
-from paperman.storage import FileStorage, atomic_target
+from paperman.models import Event, Scan, now
+from paperman.storage import FileStorage, atomic_target, write_record
 
 
 def routes(storage: FileStorage, config: Settings) -> APIRouter:
@@ -63,17 +64,44 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
         return scan
 
     @router.put("/api/scans/{scan_id}/review", operation_id="approve_scan")
-    def approve_scan(scan_id: Identifier, value: Analysis) -> Scan:
+    def approve_scan(scan_id: Identifier, value: ScanReview) -> Scan:
         with storage.transaction():
             scan = storage.get_scan(scan_id)
-            if scan.status != "review":
-                raise HTTPException(409, "This scan is not waiting for review")
+            if scan.status not in ("review", "complete"):
+                raise HTTPException(
+                    409, "Wait for this scan to finish before editing its groups"
+                )
             validate_analysis(value, scan.page_count, storage.catalog())
-            scan.proposal = value
+            if scan.status == "complete":
+                documents = [storage.get_document(id) for id in scan.document_ids]
+                if value.document_revisions != {
+                    doc.id: doc.revision for doc in documents
+                }:
+                    raise HTTPException(
+                        409,
+                        "These documents changed. Reload the page before editing their groups",
+                    )
+                if any(doc.enrichment_status == "running" for doc in documents):
+                    raise HTTPException(
+                        409, "Wait for tagging to finish before editing page groups"
+                    )
+                write_record(
+                    storage.scan_path(
+                        scan.id, f"revisions/{scan.filing_revision}/scan.json"
+                    ),
+                    scan,
+                )
+                scan.filing_revision += 1
+            scan.proposal = Analysis(documents=value.documents)
             scan.status = "queued"
             scan.phase = "file"
             scan.history.append(
-                Event(stage="review", message="Filing details approved")
+                Event(
+                    stage="review",
+                    message="Document groups approved"
+                    if scan.filing_revision
+                    else "Filing details approved",
+                )
             )
             storage.save_scan(scan)
             (storage.root / "state" / "wake").touch()

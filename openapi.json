@@ -421,7 +421,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/Analysis-Input"
+                "$ref": "#/components/schemas/ScanReview"
               }
             }
           }
@@ -634,6 +634,54 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DocumentDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Edit Document",
+        "operationId": "edit_document",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentEdit"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -893,25 +941,7 @@
         ],
         "title": "ActionResult"
       },
-      "Analysis-Input": {
-        "properties": {
-          "documents": {
-            "items": {
-              "$ref": "#/components/schemas/DocumentProposal-Input"
-            },
-            "type": "array",
-            "minItems": 1,
-            "title": "Documents"
-          }
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": [
-          "documents"
-        ],
-        "title": "Analysis"
-      },
-      "Analysis-Output": {
+      "Analysis": {
         "properties": {
           "documents": {
             "items": {
@@ -1171,6 +1201,34 @@
             "title": "Summary",
             "default": ""
           },
+          "summary_edited": {
+            "type": "boolean",
+            "title": "Summary Edited",
+            "default": false
+          },
+          "text_override": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Override"
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array",
+            "title": "History"
+          },
           "enrichment_status": {
             "type": "string",
             "enum": [
@@ -1210,6 +1268,10 @@
           "generated_tags",
           "suggested_tags",
           "summary",
+          "summary_edited",
+          "text_override",
+          "revision",
+          "history",
           "enrichment_status",
           "enrichment_version",
           "enrichment_error"
@@ -1233,6 +1295,68 @@
           "text"
         ],
         "title": "DocumentDetail"
+      },
+      "DocumentEdit": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "owner_id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Owner Id"
+          },
+          "document_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Document Date"
+          },
+          "summary": {
+            "type": "string",
+            "maxLength": 10000,
+            "title": "Summary"
+          },
+          "tag_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+            },
+            "type": "array",
+            "title": "Tag Ids"
+          },
+          "text": {
+            "type": "string",
+            "maxLength": 1000000,
+            "title": "Text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "title",
+          "owner_id",
+          "document_date",
+          "summary",
+          "tag_ids",
+          "text"
+        ],
+        "title": "DocumentEdit"
       },
       "DocumentPage": {
         "properties": {
@@ -1717,7 +1841,7 @@
           "proposal": {
             "anyOf": [
               {
-                "$ref": "#/components/schemas/Analysis-Output"
+                "$ref": "#/components/schemas/Analysis"
               },
               {
                 "type": "null"
@@ -1730,6 +1854,11 @@
             },
             "type": "array",
             "title": "Document Ids"
+          },
+          "filing_revision": {
+            "type": "integer",
+            "title": "Filing Revision",
+            "default": 0
           },
           "history": {
             "items": {
@@ -1754,6 +1883,7 @@
           "attempts",
           "proposal",
           "document_ids",
+          "filing_revision",
           "history"
         ],
         "title": "Scan"
@@ -1789,6 +1919,33 @@
           "pages"
         ],
         "title": "ScanPage"
+      },
+      "ScanReview": {
+        "properties": {
+          "documents": {
+            "items": {
+              "$ref": "#/components/schemas/DocumentProposal-Input"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Documents"
+          },
+          "document_revisions": {
+            "patternProperties": {
+              "^[a-zA-Z0-9_-]{1,80}$": {
+                "type": "integer"
+              }
+            },
+            "type": "object",
+            "title": "Document Revisions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "documents"
+        ],
+        "title": "ScanReview"
       },
       "TagSelection": {
         "properties": {

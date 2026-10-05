@@ -4,17 +4,15 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
+from paperman_parser.models import Identifier
 
 from paperman.api_models import (
     DocumentDetail,
+    DocumentEdit,
     DocumentPage,
     TagSelection,
 )
-from paperman.models import (
-    Document,
-    Identifier,
-    SearchIndex,
-)
+from paperman.models import Document, Event, SearchIndex
 from paperman.storage import FileStorage, safe_path
 
 
@@ -50,7 +48,13 @@ def routes(storage: FileStorage) -> APIRouter:
             and (not after or doc.document_date >= after)
             and (not before or doc.document_date <= before)
             and all(
-                term in f"{doc.title} {doc.summary}".casefold() + text.get(doc.id, "")
+                term
+                in f"{doc.title} {doc.summary}".casefold()
+                + (
+                    doc.text_override.casefold()
+                    if doc.text_override is not None
+                    else text.get(doc.id, "")
+                )
                 for term in terms
             )
         ]
@@ -70,8 +74,57 @@ def routes(storage: FileStorage) -> APIRouter:
     @router.get("/api/documents/{document_id}", operation_id="document")
     def document(document_id: Identifier) -> DocumentDetail:
         doc = storage.get_document(document_id)
-        path = safe_path(storage.root, doc.final_path).with_suffix(".txt")
-        return DocumentDetail(document=doc, text=path.read_text())
+        return DocumentDetail(document=doc, text=storage.document_text(doc))
+
+    @router.put("/api/documents/{document_id}", operation_id="edit_document")
+    def edit_document(document_id: Identifier, value: DocumentEdit) -> DocumentDetail:
+        with storage.transaction():
+            doc = storage.get_document(document_id)
+            ensure_filed(storage, doc)
+            if doc.revision != value.revision:
+                raise HTTPException(
+                    409,
+                    "This document changed. Cancel and reopen the editor to load the latest version",
+                )
+            catalog = storage.catalog()
+            if value.owner_id not in {owner.id for owner in catalog.owners}:
+                raise ValueError("Select an owner from the catalog")
+            allowed_tags = {tag.id for tag in catalog.tags}
+            if not set(value.tag_ids) <= allowed_tags:
+                raise ValueError("Select tags from the catalog")
+
+            updates = {
+                "title": value.title != doc.title,
+                "owner": value.owner_id != doc.owner_id,
+                "date": (value.document_date or doc.scanned_at.date())
+                != doc.document_date
+                or (value.document_date is None)
+                != (doc.date_source == "scan_fallback"),
+                "summary": value.summary != doc.summary,
+                "tags": set(value.tag_ids) != effective_tags(doc),
+                "text": value.text != storage.document_text(doc),
+            }
+            changed = [name for name, different in updates.items() if different]
+            if not changed:
+                return DocumentDetail(document=doc, text=storage.document_text(doc))
+            doc.title = value.title
+            doc.owner_id = value.owner_id
+            doc.document_date = value.document_date or doc.scanned_at.date()
+            doc.date_source = "document" if value.document_date else "scan_fallback"
+            if updates["summary"]:
+                doc.summary = value.summary
+                doc.summary_edited = True
+            if updates["tags"]:
+                doc.user_tags = sorted(set(value.tag_ids))
+                doc.excluded_tags = sorted(allowed_tags - set(value.tag_ids))
+            if updates["text"]:
+                doc.text_override = value.text
+            doc.revision += 1
+            doc.history.append(
+                Event(stage="edit", message="Corrected " + ", ".join(changed))
+            )
+            storage.save_document(doc)
+            return DocumentDetail(document=doc, text=storage.document_text(doc))
 
     @router.get("/api/documents/{document_id}/pdf", operation_id="document_pdf")
     def document_pdf(document_id: Identifier) -> FileResponse:
@@ -87,11 +140,14 @@ def routes(storage: FileStorage) -> APIRouter:
     def document_tags(document_id: Identifier, value: TagSelection) -> Document:
         with storage.transaction():
             doc = storage.get_document(document_id)
+            ensure_filed(storage, doc)
             allowed = {tag.id for tag in storage.catalog().tags}
             if not set(value.tag_ids) <= allowed:
                 raise ValueError("Select tags from the catalog")
             doc.user_tags = sorted(set(value.tag_ids))
             doc.excluded_tags = sorted(allowed - set(value.tag_ids))
+            doc.revision += 1
+            doc.history.append(Event(stage="edit", message="Corrected tags"))
             storage.save_document(doc)
             return doc
 
@@ -99,6 +155,7 @@ def routes(storage: FileStorage) -> APIRouter:
     def enrich(document_id: Identifier) -> Document:
         with storage.transaction():
             doc = storage.get_document(document_id)
+            ensure_filed(storage, doc)
             if doc.enrichment_status == "running":
                 raise HTTPException(409, "Tagging is already running")
             doc.enrichment_status = "pending"
@@ -108,6 +165,17 @@ def routes(storage: FileStorage) -> APIRouter:
             return doc
 
     return router
+
+
+def ensure_filed(storage: FileStorage, document: Document) -> None:
+    try:
+        scan = storage.get_scan(document.scan_id)
+    except FileNotFoundError:
+        return
+    if scan.status != "complete":
+        raise HTTPException(
+            409, "This scan is being filed. Finish or retry it before editing documents"
+        )
 
 
 def effective_tags(document: Document) -> set[str]:

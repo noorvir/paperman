@@ -2,9 +2,10 @@ from typing import Literal
 from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException
+from paperman_parser.models import Catalog, CatalogEntry, Identifier
 
 from paperman.api_models import EntryInput, EntryRemoval
-from paperman.models import Catalog, CatalogEntry, Event, Identifier
+from paperman.models import Event
 from paperman.storage import FileStorage, slug, write_record
 
 
@@ -74,7 +75,7 @@ def routes(storage: FileStorage) -> APIRouter:
             if len(filtered) == len(entries):
                 raise FileNotFoundError()
 
-            documents = storage.list_documents()
+            documents = storage.list_documents(include_unpublished=True)
             scans = storage.list_scans()
             affected_documents = []
             affected_scans = []
@@ -107,6 +108,13 @@ def routes(storage: FileStorage) -> APIRouter:
                 if reassign_to is not None:
                     for document in affected_documents:
                         document.owner_id = reassign_to
+                        document.revision += 1
+                        document.history.append(
+                            Event(
+                                stage="ownership",
+                                message=f"Owner reassigned from {entry_id} to {reassign_to}",
+                            )
+                        )
                         storage.save_document(document)
                     for scan in affected_scans:
                         if scan.proposal is None:

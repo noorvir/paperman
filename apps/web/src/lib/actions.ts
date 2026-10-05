@@ -81,20 +81,20 @@ export const proposalInput = z.object({
     .min(1),
 });
 export const approveScan = createServerFn({ method: "POST" })
-  .validator(z.object({ id: z.string(), proposal: proposalInput }))
+  .validator(
+    z.object({
+      id: z.string(),
+      proposal: proposalInput.extend({
+        document_revisions: z
+          .record(z.string(), z.number().int().min(0))
+          .default({}),
+      }),
+    }),
+  )
   .handler(async ({ data: { id, proposal } }) => {
     const result = await client.PUT("/api/scans/{scan_id}/review", {
       params: { path: { scan_id: id } },
       body: proposal,
-    });
-    return unwrap(result);
-  });
-export const saveDocumentTags = createServerFn({ method: "POST" })
-  .validator(z.object({ id: z.string(), tags: z.array(z.string()) }))
-  .handler(async ({ data: { id, tags } }) => {
-    const result = await client.PUT("/api/documents/{document_id}/tags", {
-      params: { path: { document_id: id } },
-      body: { tag_ids: tags },
     });
     return unwrap(result);
   });
@@ -112,3 +112,26 @@ export const rebuildIndex = createServerFn({ method: "POST" }).handler(
     return unwrap(result);
   },
 );
+
+export const editDocument = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string(),
+      value: z.object({
+        revision: z.number().int().min(0),
+        title: z.string().trim().min(1).max(120),
+        owner_id: z.string(),
+        document_date: z.string().nullable(),
+        summary: z.string().max(10000),
+        tag_ids: z.array(z.string()),
+        text: z.string().max(1000000),
+      }),
+    }),
+  )
+  .handler(async ({ data: { id, value } }) => {
+    const result = await client.PUT("/api/documents/{document_id}", {
+      params: { path: { document_id: id } },
+      body: value,
+    });
+    return unwrap(result);
+  });

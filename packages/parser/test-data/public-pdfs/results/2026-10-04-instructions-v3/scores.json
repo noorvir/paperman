@@ -1,0 +1,350 @@
+{
+  "fields": {
+    "packets": {
+      "correct": 8,
+      "total": 8,
+      "rate": 1.0
+    },
+    "groups": {
+      "correct": 13,
+      "total": 13,
+      "rate": 1.0
+    },
+    "owner": {
+      "correct": 10,
+      "total": 13,
+      "rate": 0.7692307692307693
+    },
+    "date": {
+      "correct": 10,
+      "total": 13,
+      "rate": 0.7692307692307693
+    },
+    "title_keywords": {
+      "correct": 12,
+      "total": 13,
+      "rate": 0.9230769230769231
+    }
+  },
+  "boundaries": {
+    "true_positive": 5,
+    "false_positive": 0,
+    "false_negative": 0
+  },
+  "tags": {
+    "true_positive": 15,
+    "false_positive": 6,
+    "false_negative": 3
+  },
+  "text": {
+    "native": {
+      "characters": 12438,
+      "character_errors": 2687,
+      "words": 1900,
+      "word_errors": 463,
+      "actual_words": 1893,
+      "matching_words": 1888,
+      "cer": 0.2160315163209519,
+      "wer": 0.24368421052631578,
+      "word_coverage": 0.9936842105263158
+    },
+    "scanned": {
+      "characters": 7852,
+      "character_errors": 1804,
+      "words": 1213,
+      "word_errors": 420,
+      "actual_words": 1241,
+      "matching_words": 1165,
+      "cer": 0.22975038206826287,
+      "wer": 0.3462489694971146,
+      "word_coverage": 0.9604286892003298
+    }
+  },
+  "failures": [],
+  "samples": [
+    {
+      "id": "01",
+      "groups": [
+        {
+          "pages": [1, 2],
+          "checks": {
+            "groups": true,
+            "owner": false,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "quarry-lane",
+          "actual_owner": "cedar-bay",
+          "expected_date": "2026-09-01",
+          "actual_date": "2026-09-01",
+          "expected_tags": ["invoice"],
+          "actual_tags": ["invoice"]
+        }
+      ],
+      "seconds": {
+        "ocr": 0.49470945820212364,
+        "analyze": 5.795100040966645,
+        "enrich": 2.271340291015804,
+        "total": 8.563095916062593
+      }
+    },
+    {
+      "id": "02",
+      "groups": [
+        {
+          "pages": [1],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": false,
+            "title_keywords": true
+          },
+          "expected_owner": "willow-ridge",
+          "actual_owner": "willow-ridge",
+          "expected_date": "None",
+          "actual_date": "2026-10-15",
+          "expected_tags": ["purchase-order"],
+          "actual_tags": ["purchase-order"]
+        }
+      ],
+      "seconds": {
+        "ocr": 1.4195957081392407,
+        "analyze": 2.1951772081665695,
+        "enrich": 2.075217790901661,
+        "total": 5.691333791008219
+      }
+    },
+    {
+      "id": "03",
+      "groups": [
+        {
+          "pages": [1, 2],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "parker-quinn",
+          "actual_owner": "parker-quinn",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": ["insurance", "claim"],
+          "actual_tags": ["claim", "correspondence", "insurance"]
+        },
+        {
+          "pages": [3],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": false,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "2026-09-16",
+          "expected_tags": ["incident-report"],
+          "actual_tags": ["incident-report"]
+        },
+        {
+          "pages": [4, 5],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "morgan-wren",
+          "actual_owner": "morgan-wren",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": ["estimate"],
+          "actual_tags": ["correspondence", "estimate"]
+        },
+        {
+          "pages": [6, 7],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "2026-09-22",
+          "actual_date": "2026-09-22",
+          "expected_tags": ["invoice"],
+          "actual_tags": ["invoice"]
+        },
+        {
+          "pages": [8],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "cedar-bay",
+          "actual_owner": "cedar-bay",
+          "expected_date": "2026-09-25",
+          "actual_date": "2026-09-25",
+          "expected_tags": ["invoice"],
+          "actual_tags": ["invoice"]
+        },
+        {
+          "pages": [9],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "casey-rowan",
+          "actual_owner": "casey-rowan",
+          "expected_date": "2026-09-03",
+          "actual_date": "2026-09-03",
+          "expected_tags": ["insurance", "correspondence"],
+          "actual_tags": ["claim", "correspondence"]
+        }
+      ],
+      "seconds": {
+        "ocr": 0.44366695801727474,
+        "analyze": 8.905922999838367,
+        "enrich": 13.499155499972403,
+        "total": 22.849909957963973
+      }
+    },
+    {
+      "id": "04",
+      "groups": [
+        {
+          "pages": [1],
+          "checks": {
+            "groups": true,
+            "owner": false,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "susan-doe",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": ["banking", "reference"],
+          "actual_tags": ["invoice", "reference"]
+        }
+      ],
+      "seconds": {
+        "ocr": 0.7913711669389158,
+        "analyze": 2.3005333750043064,
+        "enrich": 2.057191292056814,
+        "total": 5.15058470913209
+      }
+    },
+    {
+      "id": "05",
+      "groups": [
+        {
+          "pages": [1, 2],
+          "checks": {
+            "groups": true,
+            "owner": false,
+            "date": false,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "jordan-smith",
+          "expected_date": "None",
+          "actual_date": "2014-03-20",
+          "expected_tags": ["banking", "reference"],
+          "actual_tags": ["banking", "contract", "correspondence"]
+        }
+      ],
+      "seconds": {
+        "ocr": 0.5326717500574887,
+        "analyze": 9.282035750104114,
+        "enrich": 3.4193114161025733,
+        "total": 13.235183290904388
+      }
+    },
+    {
+      "id": "06",
+      "groups": [
+        {
+          "pages": [1],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": ["reference"],
+          "actual_tags": ["reference"]
+        }
+      ],
+      "seconds": {
+        "ocr": 2.429381625028327,
+        "analyze": 3.1334963750559837,
+        "enrich": 2.5378525420092046,
+        "total": 8.10169529216364
+      }
+    },
+    {
+      "id": "07",
+      "groups": [
+        {
+          "pages": [1],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": true
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": ["reference", "music"],
+          "actual_tags": ["music", "reference"]
+        }
+      ],
+      "seconds": {
+        "ocr": 2.9847594171296805,
+        "analyze": 10.039142417022958,
+        "enrich": 3.243929750053212,
+        "total": 16.269145583035424
+      }
+    },
+    {
+      "id": "08",
+      "groups": [
+        {
+          "pages": [1],
+          "checks": {
+            "groups": true,
+            "owner": true,
+            "date": true,
+            "title_keywords": false
+          },
+          "expected_owner": "unknown",
+          "actual_owner": "unknown",
+          "expected_date": "None",
+          "actual_date": "None",
+          "expected_tags": ["reference"],
+          "actual_tags": ["reference"]
+        }
+      ],
+      "seconds": {
+        "ocr": 1.15027324995026,
+        "analyze": 2.2391587090678513,
+        "enrich": 1.6503618329297751,
+        "total": 5.048081499990076
+      }
+    }
+  ],
+  "policy": "All 8 packets and all 13 expected documents remain in the denominator. Field scores require an exact page-group match. Title is a frozen keyword rubric, not a semantic quality score. CER/WER include reading-order errors; word coverage ignores order. NFKC, case, curly quotes, dash and whitespace normalization; decorative bullets ignored. Optional tags count neither for nor against the score. No human label review; no held-out set."
+}

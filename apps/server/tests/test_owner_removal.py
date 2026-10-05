@@ -2,6 +2,7 @@ import asyncio
 from pathlib import Path
 
 from fastapi.testclient import TestClient
+from paperman_parser.models import CatalogEntry
 from test_pipeline import (
     FixtureInference,
     FixtureOCR,
@@ -12,7 +13,6 @@ from test_pipeline import (
 from paperman.api import create_app
 from paperman.api_models import DocumentPage, EntryRemoval
 from paperman.config import Settings
-from paperman.models import CatalogEntry
 from paperman.pipeline import process_scan
 from paperman.storage import FileStorage, file_hash, write_record
 
