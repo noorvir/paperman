@@ -10,8 +10,9 @@ import {
   documentSearch,
   scanSearch,
 } from "@/lib/queries";
-import { PageHeader, PageLoading, formatDate } from "@/components/page";
-import { DocumentMark } from "@/components/document-mark";
+import { PageHeader, PageLoading } from "@/components/page";
+import { FileIcon } from "@/components/file-icon";
+import { DocumentTagPopover } from "@/components/document-tag-popover";
 import { ScanStatus } from "@/components/collection";
 import { buttonVariants } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -153,22 +154,28 @@ function Overview() {
           </div>
           <div className="divide-y">
             {documents.items.slice(0, 8).map((doc) => (
-              <Link
+              <div
                 key={doc.id}
-                to="/documents/$documentId"
-                params={{ documentId: doc.id }}
-                search={{ preview: true }}
-                className="flex items-center gap-3 py-3 hover:bg-muted/40"
+                className="relative flex items-center gap-3 py-2.5 hover:bg-muted/40"
               >
-                <DocumentMark document={doc} catalog={catalog} />
-                <div className="min-w-0 flex-1">
+                <FileIcon filename={doc.final_path} />
+                <Link
+                  to="/documents/$documentId"
+                  params={{ documentId: doc.id }}
+                  search={{ preview: true }}
+                  className="min-w-0 flex-1 after:absolute after:inset-0 focus-visible:after:ring-2 focus-visible:after:ring-ring"
+                >
                   <p className="document-link">{doc.title}</p>
-                  <p className="document-caption">{doc.summary}</p>
-                </div>
-                <span className="shrink-0 text-xs text-muted-foreground">
-                  {formatDate(doc.document_date)}
-                </span>
-              </Link>
+                  <p className="document-caption" title={doc.final_path}>
+                    {doc.final_path.slice(doc.final_path.lastIndexOf("/") + 1)}
+                  </p>
+                </Link>
+                <DocumentTagPopover
+                  document={doc}
+                  catalog={catalog}
+                  search={documentSearch.parse({})}
+                />
+              </div>
             ))}
           </div>
           {documents.total === 0 && (

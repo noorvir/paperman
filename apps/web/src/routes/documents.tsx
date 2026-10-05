@@ -27,7 +27,8 @@ import {
 } from "@/components/document-filters";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CollectionWorkspace } from "@/components/collection-workspace";
-import { DocumentTable } from "@/components/document-table";
+import { DocumentCollection } from "@/components/document-collection";
+import { DocumentLayoutToggle } from "@/components/document-layout-toggle";
 
 export const Route = createFileRoute("/documents")({
   validateSearch: documentSearch,
@@ -51,7 +52,7 @@ export const Route = createFileRoute("/documents")({
 function Documents() {
   useLiveData();
   const { documents, catalog } = Route.useLoaderData();
-  const search = Route.useSearch();
+  const search = documentSearch.parse(Route.useSearch());
   const navigate = Route.useNavigate();
   const detail = useMatch({
     from: "/documents/$documentId",
@@ -79,7 +80,7 @@ function Documents() {
     >
       <PageHeader
         title="Documents"
-        description="Your paperwork, in one place."
+        description="documents/ · All folders"
         count={documents.total}
       >
         <Link to="/scans/upload" className={buttonVariants()}>
@@ -101,10 +102,19 @@ function Documents() {
               catalog={catalog}
               onChange={change}
             />
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-3">
               <DocumentSort
                 value={search.sort}
                 onChange={(sort) => change({ ...search, sort, page: 1 })}
+              />
+              <DocumentLayoutToggle
+                value={search.layout}
+                onChange={(layout) =>
+                  void navigate({
+                    search: (previous) => ({ ...previous, layout }),
+                    resetScroll: false,
+                  })
+                }
               />
             </div>
             <ActiveFilters
@@ -147,7 +157,8 @@ function Documents() {
             description="Try another search or change your filters."
           />
         ) : (
-          <DocumentTable
+          <DocumentCollection
+            layout={search.layout}
             documents={documents.items}
             catalog={catalog}
             search={search}

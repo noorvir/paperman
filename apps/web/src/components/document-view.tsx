@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import type { ComponentProps } from "react";
 import type { components } from "@/lib/schema";
 import { enrichDocument } from "@/lib/actions";
 import { ActionButton, ErrorNotice } from "./page";
@@ -11,12 +12,14 @@ export function DocumentView({
   catalog,
   view,
   allowActions,
+  search,
 }: {
   document: components["schemas"]["Document"];
   text: string;
   catalog: components["schemas"]["Catalog"];
   view: "pdf" | "text" | "summary" | "details";
   allowActions: boolean;
+  search: ComponentProps<typeof DocumentTags>["search"];
 }) {
   const views: (typeof view)[] = ["pdf", "text", "summary", "details"];
   return (
@@ -86,6 +89,7 @@ export function DocumentView({
               document={document}
               catalog={catalog}
               allowActions={allowActions}
+              search={search}
             />
             {allowActions && (
               <ActionButton

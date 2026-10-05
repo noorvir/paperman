@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocumentsRouteImport } from './routes/documents'
+import { Route as DocumentsTestRouteImport } from './routes/documents-test'
 import { Route as ScansRouteImport } from './routes/scans'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
@@ -31,6 +32,11 @@ const IndexRoute = IndexRouteImport.update({
 const DocumentsRoute = DocumentsRouteImport.update({
   id: '/documents',
   path: '/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DocumentsTestRoute = DocumentsTestRouteImport.update({
+  id: '/documents-test',
+  path: '/documents-test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScansRoute = ScansRouteImport.update({
@@ -93,6 +99,7 @@ const SettingsCatalogEntryIdEditRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/documents': typeof DocumentsRouteWithChildren
+  '/documents-test': typeof DocumentsTestRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
@@ -108,6 +115,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/documents': typeof DocumentsRouteWithChildren
+  '/documents-test': typeof DocumentsTestRoute
   '/scans': typeof ScansRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/documents/$documentId': typeof DocumentsDocumentIdRoute
@@ -123,6 +131,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/documents': typeof DocumentsRouteWithChildren
+  '/documents-test': typeof DocumentsTestRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
@@ -140,6 +149,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/documents'
+    | '/documents-test'
     | '/scans'
     | '/settings'
     | '/api/$'
@@ -155,6 +165,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/documents'
+    | '/documents-test'
     | '/scans'
     | '/api/$'
     | '/documents/$documentId'
@@ -169,6 +180,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/documents'
+    | '/documents-test'
     | '/scans'
     | '/settings'
     | '/api/$'
@@ -185,6 +197,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DocumentsRoute: typeof DocumentsRouteWithChildren
+  DocumentsTestRoute: typeof DocumentsTestRoute
   ScansRoute: typeof ScansRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
@@ -206,6 +219,13 @@ declare module '@tanstack/react-router' {
       path: '/documents'
       fullPath: '/documents'
       preLoaderRoute: typeof DocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/documents-test': {
+      id: '/documents-test'
+      path: '/documents-test'
+      fullPath: '/documents-test'
+      preLoaderRoute: typeof DocumentsTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scans': {
@@ -331,6 +351,7 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DocumentsRoute: DocumentsRouteWithChildren,
+  DocumentsTestRoute: DocumentsTestRoute,
   ScansRoute: ScansRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,

@@ -1,10 +1,12 @@
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import type { components } from "@/lib/schema";
 import { documentSearch } from "@/lib/queries";
 import { retryScan } from "@/lib/actions";
 import { ActionButton, EmptyState, formatDate } from "./page";
 import { PdfPreview } from "./pdf-preview";
-import { DocumentTable } from "./document-table";
+import { DocumentCollection } from "./document-collection";
+import { DocumentLayoutToggle } from "./document-layout-toggle";
 import { CollectionWorkspace } from "./collection-workspace";
 import { buttonVariants } from "./ui/button";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
@@ -21,6 +23,7 @@ export function ScanView({
   view: "pdf" | "documents" | "activity" | "details";
 }) {
   const navigate = useNavigate();
+  const [layout, setLayout] = useState<"list" | "grid">("list");
   const views: (typeof view)[] = ["pdf", "documents", "activity", "details"];
   return (
     <section className="detail-primary flex-1">
@@ -104,17 +107,24 @@ export function ScanView({
                 navigate({
                   to: "/documents/$documentId",
                   params: { documentId },
-                  search: { preview },
+                  search: { preview, layout },
                   resetScroll: false,
                 })
               }
             >
+              <div className="flex items-center justify-between gap-3 pt-3">
+                <p className="text-xs text-muted-foreground">
+                  {documents.length} filed documents
+                </p>
+                <DocumentLayoutToggle value={layout} onChange={setLayout} />
+              </div>
               <div className="collection-content">
                 <div className="collection-body">
-                  <DocumentTable
+                  <DocumentCollection
+                    layout={layout}
                     documents={documents}
                     catalog={catalog}
-                    search={documentSearch.parse({})}
+                    search={documentSearch.parse({ layout })}
                     selectedId={undefined}
                   />
                 </div>

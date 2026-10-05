@@ -3,11 +3,10 @@ import type { components } from "@/lib/schema";
 import type { documentSearch } from "@/lib/queries";
 import type { z } from "zod";
 import { HugeiconsIcon } from "@hugeicons/react";
-import { getDocumentTags, getTagIcon } from "@/lib/catalog-icons";
-import { DocumentMark } from "./document-mark";
+import { Folder01Icon } from "@hugeicons/core-free-icons";
+import { FileIcon } from "./file-icon";
+import { DocumentTagPopover } from "./document-tag-popover";
 import { OwnerLabel } from "./collection";
-import { formatDate } from "./page";
-import { Badge } from "./ui/badge";
 import {
   Table,
   TableHeader,
@@ -28,73 +27,79 @@ export function DocumentTable({
   search: z.output<typeof documentSearch>;
   selectedId: string | undefined;
 }) {
-  const owners = new Map(catalog.owners.map((entry) => [entry.id, entry.name]));
+  const owners = new Map(catalog.owners.map((owner) => [owner.id, owner.name]));
   return (
-    <Table>
+    <Table className="min-w-[920px] table-fixed [&_td]:py-2.5">
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[68%] md:w-[48%]">Document</TableHead>
-          <TableHead className="hidden md:table-cell">Owner</TableHead>
-          <TableHead className="hidden xl:table-cell">Tags</TableHead>
-          <TableHead>Date</TableHead>
+          <TableHead className="w-[36%]">Name</TableHead>
+          <TableHead className="w-[23%]">Title</TableHead>
+          <TableHead className="w-[14%]">Owner</TableHead>
+          <TableHead className="w-[12%]">Tag</TableHead>
+          <TableHead className="w-[15%]">Location</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {documents.map((doc) => {
-          const visibleTags = getDocumentTags(doc, catalog);
+          const filename = doc.final_path.slice(
+            doc.final_path.lastIndexOf("/") + 1,
+          );
+          const folder = doc.final_path.slice(
+            0,
+            doc.final_path.lastIndexOf("/"),
+          );
           return (
-            <CollectionRow
-              key={doc.id}
-              data-state={selectedId === doc.id ? "selected" : undefined}
-            >
+            <CollectionRow key={doc.id} itemId={doc.id}>
               <TableCell>
-                <div className="flex items-center gap-3">
-                  <DocumentMark document={doc} catalog={catalog} />
-                  <div className="min-w-0">
-                    <CollectionLink
-                      itemId={doc.id}
-                      selected={selectedId === doc.id}
-                      to="/documents/$documentId"
-                      params={{ documentId: doc.id }}
-                      search={{ ...search, preview: true, view: "pdf" }}
-                      resetScroll={false}
-                      aria-label={`Preview ${doc.title}`}
-                    >
-                      {doc.title}
-                    </CollectionLink>
-                    <p className="document-caption">
-                      {doc.summary ||
-                        `${doc.source_pages.length} pages · Ready for tagging`}
-                    </p>
-                  </div>
+                <div className="flex min-w-0 items-center gap-3">
+                  <FileIcon filename={filename} />
+                  <CollectionLink
+                    itemId={doc.id}
+                    selected={selectedId === doc.id}
+                    to="/documents/$documentId"
+                    params={{ documentId: doc.id }}
+                    search={{ ...search, preview: true, view: "pdf" }}
+                    resetScroll={false}
+                    title={doc.final_path}
+                    aria-label={`Preview ${doc.title}`}
+                  >
+                    <span className="flex min-w-0 font-normal">
+                      <span className="truncate">{filename.slice(0, -4)}</span>
+                      <span className="shrink-0">.pdf</span>
+                    </span>
+                  </CollectionLink>
                 </div>
               </TableCell>
-              <TableCell className="hidden md:table-cell">
-                <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
+              <TableCell>
+                <span className="block truncate" title={doc.title}>
+                  {doc.title}
+                </span>
               </TableCell>
-              <TableCell className="hidden xl:table-cell">
-                <div className="flex gap-1">
-                  {doc.enrichment_status === "failed" ? (
-                    <Badge variant="destructive">Tagging failed</Badge>
-                  ) : (
-                    visibleTags.slice(0, 2).map((tag) => (
-                      <Badge key={tag.id} variant="secondary">
-                        <HugeiconsIcon
-                          icon={getTagIcon(tag)}
-                          size={12}
-                          aria-hidden="true"
-                        />
-                        {tag.name}
-                      </Badge>
-                    ))
-                  )}
-                  {visibleTags.length > 2 && (
-                    <Badge variant="secondary">+{visibleTags.length - 2}</Badge>
-                  )}
+              <TableCell>
+                <div className="flex items-center">
+                  <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
                 </div>
               </TableCell>
-              <TableCell className="text-muted-foreground tabular-nums">
-                {formatDate(doc.document_date)}
+              <TableCell>
+                <DocumentTagPopover
+                  document={doc}
+                  catalog={catalog}
+                  search={search}
+                />
+              </TableCell>
+              <TableCell>
+                <span
+                  className="flex items-center gap-2 text-muted-foreground"
+                  title={folder}
+                >
+                  <HugeiconsIcon
+                    icon={Folder01Icon}
+                    size={16}
+                    className="shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">{folder}/</span>
+                </span>
               </TableCell>
             </CollectionRow>
           );

@@ -1,10 +1,6 @@
-import type { FormEvent, ReactNode, ComponentProps } from "react";
+import type { FormEvent, ReactNode } from "react";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  Search01Icon,
-  Cancel01Icon,
-  File01Icon,
-} from "@hugeicons/core-free-icons";
+import { Search01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
@@ -116,18 +112,6 @@ export function CollectionFooter({
         {children}
       </nav>
     </footer>
-  );
-}
-
-export function FileMark({
-  icon = File01Icon,
-}: {
-  icon?: ComponentProps<typeof HugeiconsIcon>["icon"];
-}) {
-  return (
-    <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted text-muted-foreground">
-      <HugeiconsIcon icon={icon} size={18} aria-hidden="true" />
-    </span>
   );
 }
 

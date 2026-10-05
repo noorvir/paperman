@@ -24,9 +24,9 @@ import {
   Collection,
   CollectionFooter,
   SearchField,
-  FileMark,
   ScanStatus,
 } from "@/components/collection";
+import { FileIcon } from "@/components/file-icon";
 import { SelectField } from "@/components/select-field";
 import { Button, buttonVariants } from "@/components/ui/button";
 import {
@@ -172,15 +172,10 @@ function Scans() {
             </TableHeader>
             <TableBody>
               {scans.items.map((scan) => (
-                <CollectionRow
-                  key={scan.id}
-                  data-state={
-                    detail?.params.scanId === scan.id ? "selected" : undefined
-                  }
-                >
+                <CollectionRow key={scan.id} itemId={scan.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
-                      <FileMark />
+                      <FileIcon filename={scan.original_name} />
                       <div className="min-w-0">
                         <CollectionLink
                           itemId={scan.id}

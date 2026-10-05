@@ -10,6 +10,7 @@ export const documentSearch = z.object({
   after: z.string().default(""),
   before: z.string().default(""),
   sort: z.enum(["date_desc", "date_asc", "title"]).default("date_desc"),
+  layout: z.enum(["list", "grid"]).default("list"),
   page: z.coerce.number().int().min(1).default(1),
 });
 export const scanSearch = z.object({
@@ -40,7 +41,7 @@ export const getSettings = createServerFn({ method: "GET" }).handler(
   },
 );
 export const getDocuments = createServerFn({ method: "GET" })
-  .validator(documentSearch)
+  .validator(documentSearch.omit({ layout: true }))
   .handler(async ({ data }) => {
     const result = await client.GET("/api/documents", {
       params: {

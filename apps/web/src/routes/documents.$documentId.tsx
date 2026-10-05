@@ -90,6 +90,7 @@ function DocumentDetail() {
             catalog={catalog}
             view={view}
             allowActions={!preview && !edit}
+            search={documentSearch.parse(search)}
           />
         </div>
         {edit && (

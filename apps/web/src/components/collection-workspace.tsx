@@ -1,6 +1,14 @@
-import type { ComponentProps, KeyboardEvent, ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  type ComponentProps,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react";
 import { createLink } from "@tanstack/react-router";
 import { TableRow } from "./ui/table";
+import { cn } from "cn";
 
 export function CollectionWorkspace({
   full,
@@ -15,6 +23,12 @@ export function CollectionWorkspace({
   onNavigate: (id: string, preview: boolean) => Promise<void>;
   children: ReactNode;
 }) {
+  const [lastSelectedId, setLastSelectedId] = useState(selectedId);
+  if (selectedId !== undefined && selectedId !== lastSelectedId) {
+    setLastSelectedId(selectedId);
+  }
+  const activeId = selectedId ?? lastSelectedId;
+
   function navigateItems(event: KeyboardEvent<HTMLDivElement>) {
     const target = event.target;
     if (
@@ -37,7 +51,7 @@ export function CollectionWorkspace({
       .closest("[data-collection-link]")
       ?.getAttribute("data-item-id");
     const index = items.findIndex(
-      (item) => item.id === (focusedId ?? selectedId),
+      (item) => item.id === (focusedId ?? activeId),
     );
     let next = index;
     if (event.key === "ArrowDown" || event.key === "ArrowRight") {
@@ -62,21 +76,32 @@ export function CollectionWorkspace({
     });
   }
   return (
-    <div
-      className="collection-workspace @container/library"
-      data-full={full}
-      onKeyDown={navigateItems}
-    >
-      {children}
-    </div>
+    <CollectionSelectionContext value={activeId}>
+      <div
+        className="collection-workspace @container/library"
+        data-full={full}
+        onKeyDown={navigateItems}
+      >
+        {children}
+      </div>
+    </CollectionSelectionContext>
   );
 }
 
-export function CollectionRow({ ...props }: ComponentProps<typeof TableRow>) {
+export const CollectionSelectionContext = createContext<string | undefined>(
+  undefined,
+);
+
+export function CollectionRow({
+  itemId,
+  ...props
+}: ComponentProps<typeof TableRow> & { itemId: string }) {
+  const activeId = useContext(CollectionSelectionContext);
   return (
     <TableRow
       {...props}
-      className="cursor-pointer"
+      data-state={activeId === itemId ? "selected" : undefined}
+      className="cursor-pointer has-[[data-collection-link]:focus-visible]:bg-muted"
       onClick={(event) => {
         if (
           event.target instanceof Element &&
@@ -97,8 +122,10 @@ export function CollectionRow({ ...props }: ComponentProps<typeof TableRow>) {
 export const CollectionLink = createLink(function CollectionAnchor({
   itemId,
   selected,
+  className,
   ...props
 }: ComponentProps<"a"> & { itemId: string; selected: boolean }) {
+  const activeId = useContext(CollectionSelectionContext);
   return (
     <a
       {...props}
@@ -107,8 +134,8 @@ export const CollectionLink = createLink(function CollectionAnchor({
       data-collection-link
       aria-haspopup="dialog"
       aria-expanded={selected}
-      aria-current={selected ? "true" : undefined}
-      className="document-link"
+      aria-current={activeId === itemId ? "true" : undefined}
+      className={cn("document-link outline-none hover:no-underline", className)}
     />
   );
 });
