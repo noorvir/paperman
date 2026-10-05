@@ -22,7 +22,9 @@ The Python worker and API, routed TanStack Start UI, and deployment configuratio
 
 ## Current local AI milestone
 
-- [x] Generate Sol Markdown transcript drafts for all 10 real source documents (15 pages). Preserve tables, form fields, page breaks, and source language. Page coverage, hashes, and table structure pass; visual spot checks are complete. Keep the 22 uncertain readings for review. Full transcript verification and plain-text references are still required before OCR scoring; fixed eval labels are unchanged.
+- [x] Apply all saved transcript edits and review notes; accept all 15 page references as directed by the user. Preserve 22 review decisions and freeze the dataset hashes. Production OCR retains nine existing text layers and adds text to six image-only pages; all outputs have text. Final diagnostic CER is 38.2% overall and 21.4% on new OCR. Reading order and unreadable regions affect scores; text-layer position remains unmeasured. Original field labels and model results are unchanged.
+
+- [x] Generate Sol Markdown transcript drafts for all 10 real source documents (15 pages). Preserve tables, form fields, page breaks, and source language. Page coverage, hashes, and table structure pass; visual spot checks are complete. User review, plain-text references, and OCR scoring are complete above; fixed field labels are unchanged.
 
 - [x] Rerun all eight public PDFs with Luna and image-only inputs. Exact groups, owners, and dates: 13/13. Title keywords: 12/13. Tag precision: 18/19; recall: 18/18. No failures. OCR was reused, not rerun; local model and Sol were not rerun. Keep frozen labels and saved evidence. Use "evals" for these model checks.
 - [x] Find and visually inspect ten real inputs with 15 pages from VRDU, FUNSD, and published personal receipts. Cache original files and upstream labels; record sources, hashes, and rights. These improve scan realism but do not cover modern German household mail.

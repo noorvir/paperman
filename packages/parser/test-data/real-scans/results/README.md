@@ -1,5 +1,8 @@
 # Real-scan eval results — 5 October 2026
 
+A later [OCR eval](2026-10-05-ocr/README.md) uses the user-accepted transcripts.
+The model results below are unchanged.
+
 Ten real documents, 15 pages. Two constructed batches contain seven complete
 documents. Three single-page excerpts count for field checks only. Labels were
 checked visually and frozen before inference. They have no independent human

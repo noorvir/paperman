@@ -1,0 +1,330 @@
+{
+  "status": "complete: user-accepted references; all saved notes and text edits applied",
+  "text": {
+    "all": {
+      "characters": 23944,
+      "character_errors": 9143,
+      "words": 3911,
+      "word_errors": 2262,
+      "actual_words": 3156,
+      "matching_words": 2414,
+      "cer": 0.3818493150684932,
+      "wer": 0.5783687036563538,
+      "word_coverage": 0.6172334441319356
+    },
+    "existing_text": {
+      "characters": 19155,
+      "character_errors": 8116,
+      "words": 3174,
+      "word_errors": 1950,
+      "actual_words": 2458,
+      "matching_words": 1943,
+      "cer": 0.4237013834507961,
+      "wer": 0.6143667296786389,
+      "word_coverage": 0.6121613106490233
+    },
+    "new_ocr": {
+      "characters": 4789,
+      "character_errors": 1027,
+      "words": 737,
+      "word_errors": 312,
+      "actual_words": 698,
+      "matching_words": 471,
+      "cer": 0.21444978074754645,
+      "wer": 0.4233378561736771,
+      "word_coverage": 0.6390773405698779
+    }
+  },
+  "pages": [
+    {
+      "source_id": "01",
+      "source_page": 1,
+      "batch": "01",
+      "batch_page": 1,
+      "kind": "existing_text",
+      "reference_sha256": "8670bbbe6398c1f0567836ea0a7eb346fb1a4948cbe48416f972ac7475ac5519",
+      "scores": {
+        "characters": 2018,
+        "character_errors": 604,
+        "words": 345,
+        "word_errors": 192,
+        "actual_words": 264,
+        "matching_words": 181,
+        "cer": 0.2993062438057483,
+        "wer": 0.5565217391304348,
+        "word_coverage": 0.5246376811594203
+      }
+    },
+    {
+      "source_id": "01",
+      "source_page": 2,
+      "batch": "01",
+      "batch_page": 2,
+      "kind": "existing_text",
+      "reference_sha256": "141485066ed05990e5f86ffbfb07d688c30c7cf1edbc334db30f57ed060d67f6",
+      "scores": {
+        "characters": 1879,
+        "character_errors": 630,
+        "words": 315,
+        "word_errors": 183,
+        "actual_words": 223,
+        "matching_words": 154,
+        "cer": 0.33528472591804154,
+        "wer": 0.580952380952381,
+        "word_coverage": 0.4888888888888889
+      }
+    },
+    {
+      "source_id": "01",
+      "source_page": 3,
+      "batch": "01",
+      "batch_page": 3,
+      "kind": "existing_text",
+      "reference_sha256": "b240d542b7b99d4f31627c7d5779ade4aca3b3446d6625733820c55607ec7762",
+      "scores": {
+        "characters": 1947,
+        "character_errors": 906,
+        "words": 325,
+        "word_errors": 219,
+        "actual_words": 245,
+        "matching_words": 168,
+        "cer": 0.46533127889060094,
+        "wer": 0.6738461538461539,
+        "word_coverage": 0.5169230769230769
+      }
+    },
+    {
+      "source_id": "01",
+      "source_page": 4,
+      "batch": "01",
+      "batch_page": 4,
+      "kind": "existing_text",
+      "reference_sha256": "76e45417af272eb9c20ec5cad4fe5740b79d65fe892c3c7736bb7ac41bc38040",
+      "scores": {
+        "characters": 963,
+        "character_errors": 563,
+        "words": 147,
+        "word_errors": 123,
+        "actual_words": 83,
+        "matching_words": 39,
+        "cer": 0.5846313603322949,
+        "wer": 0.8367346938775511,
+        "word_coverage": 0.2653061224489796
+      }
+    },
+    {
+      "source_id": "02",
+      "source_page": 1,
+      "batch": "01",
+      "batch_page": 5,
+      "kind": "existing_text",
+      "reference_sha256": "9cf0b891eacb1f503e33a2b1c1784d2ef74f4369be78fc198200511d8b94a1d9",
+      "scores": {
+        "characters": 1846,
+        "character_errors": 617,
+        "words": 292,
+        "word_errors": 193,
+        "actual_words": 192,
+        "matching_words": 147,
+        "cer": 0.33423618634886243,
+        "wer": 0.660958904109589,
+        "word_coverage": 0.5034246575342466
+      }
+    },
+    {
+      "source_id": "03",
+      "source_page": 1,
+      "batch": "01",
+      "batch_page": 6,
+      "kind": "existing_text",
+      "reference_sha256": "bd25e5423cefe75d0acd317757707428992f793017c77a0dd2a0d82272ce58cb",
+      "scores": {
+        "characters": 2534,
+        "character_errors": 950,
+        "words": 446,
+        "word_errors": 247,
+        "actual_words": 356,
+        "matching_words": 301,
+        "cer": 0.3749013417521705,
+        "wer": 0.5538116591928252,
+        "word_coverage": 0.6748878923766816
+      }
+    },
+    {
+      "source_id": "03",
+      "source_page": 2,
+      "batch": "01",
+      "batch_page": 7,
+      "kind": "existing_text",
+      "reference_sha256": "99fa1c548505476726ad931457351b52575adab216181639abb7fef99264d49e",
+      "scores": {
+        "characters": 2040,
+        "character_errors": 852,
+        "words": 337,
+        "word_errors": 185,
+        "actual_words": 293,
+        "matching_words": 266,
+        "cer": 0.4176470588235294,
+        "wer": 0.5489614243323442,
+        "word_coverage": 0.7893175074183977
+      }
+    },
+    {
+      "source_id": "04",
+      "source_page": 1,
+      "batch": "01",
+      "batch_page": 8,
+      "kind": "existing_text",
+      "reference_sha256": "15f33dd6f532a24dfc23d0dcb5a290bb90c9b798b2a6bbafea05d0d632a637aa",
+      "scores": {
+        "characters": 3089,
+        "character_errors": 1532,
+        "words": 508,
+        "word_errors": 315,
+        "actual_words": 419,
+        "matching_words": 358,
+        "cer": 0.49595338297183555,
+        "wer": 0.6200787401574803,
+        "word_coverage": 0.7047244094488189
+      }
+    },
+    {
+      "source_id": "04",
+      "source_page": 2,
+      "batch": "01",
+      "batch_page": 9,
+      "kind": "existing_text",
+      "reference_sha256": "bdd01eeeefb6cc2456e52695d3fb5cfc2c489aef0856a45585b0483b4355bfd1",
+      "scores": {
+        "characters": 2839,
+        "character_errors": 1462,
+        "words": 459,
+        "word_errors": 293,
+        "actual_words": 383,
+        "matching_words": 329,
+        "cer": 0.5149700598802395,
+        "wer": 0.6383442265795207,
+        "word_coverage": 0.7167755991285403
+      }
+    },
+    {
+      "source_id": "08",
+      "source_page": 1,
+      "batch": "02",
+      "batch_page": 1,
+      "kind": "new_ocr",
+      "reference_sha256": "e22bb08b9968a74bc675b388d8286d32f154edf52b1b0e89341c36734010a7ed",
+      "scores": {
+        "characters": 655,
+        "character_errors": 197,
+        "words": 103,
+        "word_errors": 53,
+        "actual_words": 84,
+        "matching_words": 56,
+        "cer": 0.300763358778626,
+        "wer": 0.5145631067961165,
+        "word_coverage": 0.5436893203883495
+      }
+    },
+    {
+      "source_id": "09",
+      "source_page": 1,
+      "batch": "02",
+      "batch_page": 2,
+      "kind": "new_ocr",
+      "reference_sha256": "768d209a344976f1e38c841dff4dce4c82ba31958c2628ac85fe1e11f58375f1",
+      "scores": {
+        "characters": 717,
+        "character_errors": 82,
+        "words": 113,
+        "word_errors": 24,
+        "actual_words": 107,
+        "matching_words": 92,
+        "cer": 0.11436541143654114,
+        "wer": 0.21238938053097345,
+        "word_coverage": 0.8141592920353983
+      }
+    },
+    {
+      "source_id": "10",
+      "source_page": 1,
+      "batch": "02",
+      "batch_page": 3,
+      "kind": "new_ocr",
+      "reference_sha256": "a367fa5cc9ba8d5c9ae97e554a19d3b6cdb3c6671a921cec3f4c0cb4eac59c99",
+      "scores": {
+        "characters": 854,
+        "character_errors": 68,
+        "words": 132,
+        "word_errors": 40,
+        "actual_words": 149,
+        "matching_words": 109,
+        "cer": 0.07962529274004684,
+        "wer": 0.30303030303030304,
+        "word_coverage": 0.8257575757575758
+      }
+    },
+    {
+      "source_id": "05",
+      "source_page": 1,
+      "batch": "03",
+      "batch_page": 1,
+      "kind": "new_ocr",
+      "reference_sha256": "075b5e182e2f3034c1ce6741488e14fabbad49634aecab15e2f82df9d789a368",
+      "scores": {
+        "characters": 1381,
+        "character_errors": 404,
+        "words": 212,
+        "word_errors": 110,
+        "actual_words": 184,
+        "matching_words": 109,
+        "cer": 0.29254163649529324,
+        "wer": 0.5188679245283019,
+        "word_coverage": 0.5141509433962265
+      }
+    },
+    {
+      "source_id": "06",
+      "source_page": 1,
+      "batch": "04",
+      "batch_page": 1,
+      "kind": "new_ocr",
+      "reference_sha256": "969edcf250b400606183fe7e7abe8c3bf90477442665bf1745282253b59210ae",
+      "scores": {
+        "characters": 737,
+        "character_errors": 205,
+        "words": 105,
+        "word_errors": 65,
+        "actual_words": 111,
+        "matching_words": 51,
+        "cer": 0.2781546811397558,
+        "wer": 0.6190476190476191,
+        "word_coverage": 0.4857142857142857
+      }
+    },
+    {
+      "source_id": "07",
+      "source_page": 1,
+      "batch": "05",
+      "batch_page": 1,
+      "kind": "new_ocr",
+      "reference_sha256": "eb9761279ea3b4e5c580a0605537ad29fb58b730474164d74c3cabe854e48b14",
+      "scores": {
+        "characters": 445,
+        "character_errors": 71,
+        "words": 72,
+        "word_errors": 20,
+        "actual_words": 63,
+        "matching_words": 54,
+        "cer": 0.15955056179775282,
+        "wer": 0.2777777777777778,
+        "word_coverage": 0.75
+      }
+    }
+  ],
+  "policy": "Existing TextScore normalization and Levenshtein CER/WER. Markdown syntax removed; tables read row by row, cells left to right; strikethrough keeps the printed characters. Editorial [illegible], [signature], and [cut off] markers omitted. Unreadable source areas are not fully masked from predictions; treat full-page scores as diagnostic. Reading order contributes to CER/WER; word coverage ignores order. Production OCR preserves 9 existing PDF text layers and runs Tesseract on 6 image-only pages. No models called or rescored.",
+  "scored_at": "2026-10-05T19:05:44.992568+00:00",
+  "reference_manifest_sha256": "d96b381a10a6bb0a32e15a77864a8c3a16ecb53ceb832e0198465bb0f281ca94",
+  "scorer_sha256": "70a0eec7f8c1078cdce59d6c6c33ade20ab7042d66cdbf9d5332dac4459a62c0",
+  "ocr_run_sha256": "abccd0a0e52af35b07b7c7b3805a4c3142a57dd95cab07d08bd300220a7bbdd6"
+}

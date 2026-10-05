@@ -82,11 +82,29 @@ scanner batches. There are seven complete documents and five true boundaries.
 All ten documents count for owner, date, title, and tag scores. Field scores
 require the correct page group. Missing or failed output stays in the denominator.
 
-No full transcript labels were created. **OCR accuracy and blank-page detection
-were not measured.** No test page is blank. This set is now used for evaluation;
+The original field evals had no transcript labels. **A separate OCR eval now uses
+the accepted references below.** Blank-page detection remains unmeasured; no
+test page is blank. This set is now used for evaluation;
 it must not be described as an unseen set after prompt changes use these results.
 
-## Markdown transcript drafts
+## Reviewed transcripts and OCR eval
+
+The user reviewed the Sol transcripts and accepted the set on 5 October 2026.
+All saved edits and written corrections were applied to 10 Markdown documents and
+15 page-level plain-text references. The accepted dataset is local at
+`.cache/real-scans/reviewed/2026-10-05/`. It includes the page map, all 22 review
+decisions, correction records, source provenance, and a fixed hash manifest.
+The original field labels and model scores are unchanged.
+
+The production OCR pipeline ran on all 15 pages. It kept nine existing text layers
+and added text to six image-only pages. All outputs have extractable text.
+Character error rate is 21.4% on new OCR and 38.2% overall. See the
+[OCR report](results/2026-10-05-ocr/README.md) for word scores and limitations.
+These are user-accepted Sol drafts, not independent double transcriptions.
+Known unreadable regions are recorded. Reading order and those regions affect the
+full-page scores. The results do not measure text-layer position or layout accuracy.
+
+## Original transcription run
 
 Sol transcript drafts are stored locally under
 `.cache/real-scans/transcripts/2026-10-05-sol/`. The folder contains one Markdown
@@ -94,11 +112,10 @@ file per source document, with page breaks, headings, tables, and form fields.
 Per-page JSON records list uncertain readings. Full transcripts stay outside Git
 under the source datasets' existing redistribution limits.
 
-These are model-generated drafts, not verified OCR ground truth. They do not
-change the fixed field labels or the saved eval scores. Before a scored OCR eval,
-check the text against the page images, resolve or mark illegible spans, and
-define the plain-text reading order. Markdown table syntax must not count as OCR
-errors. The current production OCR and searchable PDF layer remain unchanged.
+The original model drafts are preserved. Use the reviewed copy above for OCR
+references. Plain text follows block order and table rows from left to right;
+Markdown syntax and editorial illegibility markers are excluded from scoring.
+The production OCR implementation and searchable PDF layer remain unchanged.
 
 The typed prompt is `paperman_parser/prompt/transcribe.py`. Run from
 `packages/parser` with a new output directory and explicit PDF inputs:
