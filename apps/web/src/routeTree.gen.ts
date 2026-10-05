@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as DocumentsTestRouteImport } from './routes/documents-test'
+import { Route as NavigationPreviewRouteImport } from './routes/navigation-preview'
 import { Route as PipelinePreviewRouteImport } from './routes/pipeline-preview'
 import { Route as ScansRouteImport } from './routes/scans'
 import { Route as SettingsRouteImport } from './routes/settings'
@@ -38,6 +39,11 @@ const DocumentsRoute = DocumentsRouteImport.update({
 const DocumentsTestRoute = DocumentsTestRouteImport.update({
   id: '/documents-test',
   path: '/documents-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NavigationPreviewRoute = NavigationPreviewRouteImport.update({
+  id: '/navigation-preview',
+  path: '/navigation-preview',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PipelinePreviewRoute = PipelinePreviewRouteImport.update({
@@ -106,6 +112,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
+  '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
@@ -123,6 +130,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
+  '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/scans': typeof ScansRouteWithChildren
   '/api/$': typeof ApiSplatRoute
@@ -140,6 +148,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
+  '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
@@ -159,6 +168,7 @@ export interface FileRouteTypes {
     | '/'
     | '/documents'
     | '/documents-test'
+    | '/navigation-preview'
     | '/pipeline-preview'
     | '/scans'
     | '/settings'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/'
     | '/documents'
     | '/documents-test'
+    | '/navigation-preview'
     | '/pipeline-preview'
     | '/scans'
     | '/api/$'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/'
     | '/documents'
     | '/documents-test'
+    | '/navigation-preview'
     | '/pipeline-preview'
     | '/scans'
     | '/settings'
@@ -210,6 +222,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DocumentsRoute: typeof DocumentsRouteWithChildren
   DocumentsTestRoute: typeof DocumentsTestRoute
+  NavigationPreviewRoute: typeof NavigationPreviewRoute
   PipelinePreviewRoute: typeof PipelinePreviewRoute
   ScansRoute: typeof ScansRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
@@ -239,6 +252,13 @@ declare module '@tanstack/react-router' {
       path: '/documents-test'
       fullPath: '/documents-test'
       preLoaderRoute: typeof DocumentsTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/navigation-preview': {
+      id: '/navigation-preview'
+      path: '/navigation-preview'
+      fullPath: '/navigation-preview'
+      preLoaderRoute: typeof NavigationPreviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pipeline-preview': {
@@ -372,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DocumentsRoute: DocumentsRouteWithChildren,
   DocumentsTestRoute: DocumentsTestRoute,
+  NavigationPreviewRoute: NavigationPreviewRoute,
   PipelinePreviewRoute: PipelinePreviewRoute,
   ScansRoute: ScansRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,

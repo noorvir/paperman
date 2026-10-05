@@ -6,7 +6,7 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsLayout() {
   return (
-    <div className="workspace-page max-w-2xl">
+    <div className="workspace-page max-w-6xl">
       <Outlet />
     </div>
   );

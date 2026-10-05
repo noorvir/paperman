@@ -75,6 +75,8 @@ Research: [DocJev architecture](https://github.com/jerryjliu/docjev/blob/main/do
 
 ## Current UI milestone
 
+- [x] Centre breadcrumbs in the top bar, with Overview, Documents, and Scans tabs on the left and a Settings gear on the right. Restore page titles and descriptions. Derive the selected item from the active route for preview, full view, upload, review, and edit; parent links retain list filters. Omit breadcrumbs on Overview and Settings. Use a second row on narrow screens and collapse middle locations when the path exceeds three items. Web types, formatting, production build, and twenty-one page-response checks pass. Browser appearance and interactions remain for the user to check.
+
 - [x] Disable native image dragging and browser image selection in the shared PDF viewer so they cannot interrupt PDF text selection. Keep page interactions with the PDF selection layer across previews, full documents, scans, and review. Web types, formatting, and the production build pass. The drag gesture remains for the user to check in the browser.
 
 - [x] Use selective review by default: model confidence below 0.9, an explicit uncertainty reason, or a validation/OCR problem stops filing. Clear absence of an owner or date can use the existing fallback. Plain-English corrections update the review draft, with Undo and explicit approval before filing. Ten parser and eighteen server checks pass, plus strict types, lint, and the web build. Model accuracy and browser interactions remain unmeasured for this feature.
