@@ -1,10 +1,51 @@
 from datetime import date
-from typing import Literal
+from typing import Annotated, Literal
 
 from paperman_parser.models import Analysis, CatalogIcon, Identifier, Name, Record
 from pydantic import Field
 
-from paperman.models import Document, Scan, WorkerState
+from paperman.models import Document, Scan, ScanStatus, WorkerState
+
+PipelineStage = Literal["inbox", "ocr", "analyze", "review", "file", "tag", "ready"]
+
+
+class PipelineStep(Record):
+    id: PipelineStage
+    label: str
+    status: ScanStatus
+    detail: str
+    count: int | None = None
+
+
+class PipelineItem(Record):
+    id: Identifier
+    title: str
+    filename: str
+    status: ScanStatus
+    detail: str
+
+
+class PipelineScanItem(PipelineItem):
+    kind: Literal["scan"] = "scan"
+
+
+class PipelineDocumentItem(PipelineItem):
+    kind: Literal["document"] = "document"
+    document: Document
+
+
+class PipelinePage(Record):
+    status: ScanStatus
+    items: list[
+        Annotated[PipelineScanItem | PipelineDocumentItem, Field(discriminator="kind")]
+    ]
+    total: int
+    page: int
+    pages: int
+
+
+class ScanDetail(Scan):
+    pipeline: list[PipelineStep]
 
 
 class Dashboard(Record):
@@ -18,6 +59,8 @@ class Dashboard(Record):
     ocr_available: bool
     model_configured: bool
     inbox_path: str
+    counts: dict[ScanStatus, int]
+    pipeline_items: PipelinePage
 
 
 class DocumentPage(Record):

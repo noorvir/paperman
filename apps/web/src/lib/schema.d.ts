@@ -363,6 +363,11 @@ export interface components {
             model_configured: boolean;
             /** Inbox Path */
             inbox_path: string;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+            pipeline_items: components["schemas"]["PipelinePage"];
         };
         /** Document */
         Document: {
@@ -675,6 +680,84 @@ export interface components {
              */
             ocr_languages: string;
         };
+        /** PipelineDocumentItem */
+        PipelineDocumentItem: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "review" | "failed" | "complete";
+            /** Detail */
+            detail: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "document";
+            document: components["schemas"]["Document"];
+        };
+        /** PipelinePage */
+        PipelinePage: {
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "review" | "failed" | "complete";
+            /** Items */
+            items: (components["schemas"]["PipelineScanItem"] | components["schemas"]["PipelineDocumentItem"])[];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Pages */
+            pages: number;
+        };
+        /** PipelineScanItem */
+        PipelineScanItem: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Filename */
+            filename: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "review" | "failed" | "complete";
+            /** Detail */
+            detail: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            kind: "scan";
+        };
+        /** PipelineStep */
+        PipelineStep: {
+            /**
+             * Id
+             * @enum {string}
+             */
+            id: "inbox" | "ocr" | "analyze" | "review" | "file" | "tag" | "ready";
+            /** Label */
+            label: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "queued" | "running" | "review" | "failed" | "complete";
+            /** Detail */
+            detail: string;
+            /** Count */
+            count: number | null;
+        };
         /** Scan */
         Scan: {
             /** Id */
@@ -726,8 +809,72 @@ export interface components {
              * @default 0
              */
             filing_revision: number;
+            /** Filing Paths */
+            filing_paths: {
+                [key: string]: string;
+            };
             /** History */
             history: components["schemas"]["Event"][];
+        };
+        /** ScanDetail */
+        ScanDetail: {
+            /** Id */
+            id: string;
+            /** Content Hash */
+            content_hash: string;
+            /** Original Name */
+            original_name: string;
+            /**
+             * Scanned At
+             * Format: date-time
+             */
+            scanned_at: string;
+            /**
+             * Timestamp Source
+             * @default file_mtime
+             * @enum {string}
+             */
+            timestamp_source: "file_mtime" | "upload";
+            /** Arrivals */
+            arrivals: string[];
+            /**
+             * Page Count
+             * @default 0
+             */
+            page_count: number;
+            /**
+             * Status
+             * @default queued
+             * @enum {string}
+             */
+            status: "queued" | "running" | "review" | "failed" | "complete";
+            /**
+             * Phase
+             * @default ocr
+             * @enum {string}
+             */
+            phase: "ocr" | "analyze" | "file" | "done";
+            /**
+             * Attempts
+             * @default 0
+             */
+            attempts: number;
+            proposal: components["schemas"]["Analysis"] | null;
+            /** Document Ids */
+            document_ids: string[];
+            /**
+             * Filing Revision
+             * @default 0
+             */
+            filing_revision: number;
+            /** Filing Paths */
+            filing_paths: {
+                [key: string]: string;
+            };
+            /** History */
+            history: components["schemas"]["Event"][];
+            /** Pipeline */
+            pipeline: components["schemas"]["PipelineStep"][];
         };
         /** ScanPage */
         ScanPage: {
@@ -974,7 +1121,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["Scan"];
+                    "application/json": components["schemas"]["ScanDetail"];
                 };
             };
             /** @description Validation Error */
@@ -1323,7 +1470,10 @@ export interface operations {
     };
     dashboard: {
         parameters: {
-            query?: never;
+            query?: {
+                status?: "queued" | "running" | "review" | "failed" | "complete";
+                page?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1337,6 +1487,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Dashboard"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

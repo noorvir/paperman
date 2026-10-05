@@ -29,12 +29,19 @@ export const scanSearch = z.object({
 });
 export const catalogKind = z.enum(["owners", "tags"]);
 
-export const getDashboard = createServerFn({ method: "GET" }).handler(
-  async () => {
-    const result = await client.GET("/api/dashboard");
+export const dashboardSearch = z.object({
+  status: scanSearch.shape.status.unwrap().exclude([""]).optional(),
+  page: z.coerce.number().int().min(1).default(1),
+});
+
+export const getDashboard = createServerFn({ method: "GET" })
+  .validator(dashboardSearch)
+  .handler(async ({ data }) => {
+    const result = await client.GET("/api/dashboard", {
+      params: { query: { ...data, status: data.status ?? "complete" } },
+    });
     return unwrap(result);
-  },
-);
+  });
 export const getCatalog = createServerFn({ method: "GET" }).handler(
   async () => {
     const result = await client.GET("/api/catalog");

@@ -18,7 +18,9 @@ class Arguments(argparse.Namespace):
 
 def main() -> None:
     parser = argparse.ArgumentParser(prog="paperman")
-    parser.add_argument("command", choices=["serve", "worker", "schema", "index"])
+    parser.add_argument(
+        "command", choices=["serve", "worker", "schema", "index", "rename-documents"]
+    )
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=3000)
     args = parser.parse_args(namespace=Arguments())
@@ -42,6 +44,12 @@ def main() -> None:
         with TemporaryDirectory(prefix="paperman-schema-") as directory:
             app = create_app(Settings(data_dir=Path(directory)))
             Path("openapi.json").write_text(json.dumps(app.openapi(), indent=2) + "\n")
+    elif args.command == "rename-documents":
+        from paperman.document_names import rename_documents
+        from paperman.storage import FileStorage
+
+        count = rename_documents(FileStorage(Settings().data_dir))
+        print(f"Renamed {count} processed documents")
     else:
         from paperman.storage import FileStorage
 

@@ -290,7 +290,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Scan"
+                  "$ref": "#/components/schemas/ScanDetail"
                 }
               }
             }
@@ -856,6 +856,36 @@
       "get": {
         "summary": "Dashboard",
         "operationId": "dashboard",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "queued",
+                "running",
+                "review",
+                "failed",
+                "complete"
+              ],
+              "type": "string",
+              "default": "complete",
+              "title": "Status"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1,
+              "title": "Page"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -863,6 +893,16 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Dashboard"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
                 }
               }
             }
@@ -1124,6 +1164,25 @@
           "inbox_path": {
             "type": "string",
             "title": "Inbox Path"
+          },
+          "counts": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "propertyNames": {
+              "enum": [
+                "queued",
+                "running",
+                "review",
+                "failed",
+                "complete"
+              ]
+            },
+            "type": "object",
+            "title": "Counts"
+          },
+          "pipeline_items": {
+            "$ref": "#/components/schemas/PipelinePage"
           }
         },
         "additionalProperties": false,
@@ -1138,7 +1197,9 @@
           "worker_online",
           "ocr_available",
           "model_configured",
-          "inbox_path"
+          "inbox_path",
+          "counts",
+          "pipeline_items"
         ],
         "title": "Dashboard"
       },
@@ -1796,6 +1857,223 @@
         ],
         "title": "ModelSettings"
       },
+      "PipelineDocumentItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "review",
+              "failed",
+              "complete"
+            ],
+            "title": "Status"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "kind": {
+            "type": "string",
+            "const": "document",
+            "title": "Kind",
+            "default": "document"
+          },
+          "document": {
+            "$ref": "#/components/schemas/Document"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "filename",
+          "status",
+          "detail",
+          "kind",
+          "document"
+        ],
+        "title": "PipelineDocumentItem"
+      },
+      "PipelinePage": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "review",
+              "failed",
+              "complete"
+            ],
+            "title": "Status"
+          },
+          "items": {
+            "items": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/PipelineScanItem"
+                },
+                {
+                  "$ref": "#/components/schemas/PipelineDocumentItem"
+                }
+              ],
+              "discriminator": {
+                "propertyName": "kind",
+                "mapping": {
+                  "document": "#/components/schemas/PipelineDocumentItem",
+                  "scan": "#/components/schemas/PipelineScanItem"
+                }
+              }
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "total": {
+            "type": "integer",
+            "title": "Total"
+          },
+          "page": {
+            "type": "integer",
+            "title": "Page"
+          },
+          "pages": {
+            "type": "integer",
+            "title": "Pages"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "status",
+          "items",
+          "total",
+          "page",
+          "pages"
+        ],
+        "title": "PipelinePage"
+      },
+      "PipelineScanItem": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "filename": {
+            "type": "string",
+            "title": "Filename"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "review",
+              "failed",
+              "complete"
+            ],
+            "title": "Status"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "kind": {
+            "type": "string",
+            "const": "scan",
+            "title": "Kind",
+            "default": "scan"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "filename",
+          "status",
+          "detail",
+          "kind"
+        ],
+        "title": "PipelineScanItem"
+      },
+      "PipelineStep": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "enum": [
+              "inbox",
+              "ocr",
+              "analyze",
+              "review",
+              "file",
+              "tag",
+              "ready"
+            ],
+            "title": "Id"
+          },
+          "label": {
+            "type": "string",
+            "title": "Label"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "review",
+              "failed",
+              "complete"
+            ],
+            "title": "Status"
+          },
+          "detail": {
+            "type": "string",
+            "title": "Detail"
+          },
+          "count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "status",
+          "detail",
+          "count"
+        ],
+        "title": "PipelineStep"
+      },
       "Scan": {
         "properties": {
           "id": {
@@ -1887,6 +2165,13 @@
             "title": "Filing Revision",
             "default": 0
           },
+          "filing_paths": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Filing Paths"
+          },
           "history": {
             "items": {
               "$ref": "#/components/schemas/Event"
@@ -1911,9 +2196,145 @@
           "proposal",
           "document_ids",
           "filing_revision",
+          "filing_paths",
           "history"
         ],
         "title": "Scan"
+      },
+      "ScanDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+            "title": "Id"
+          },
+          "content_hash": {
+            "type": "string",
+            "title": "Content Hash"
+          },
+          "original_name": {
+            "type": "string",
+            "title": "Original Name"
+          },
+          "scanned_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scanned At"
+          },
+          "timestamp_source": {
+            "type": "string",
+            "enum": [
+              "file_mtime",
+              "upload"
+            ],
+            "title": "Timestamp Source",
+            "default": "file_mtime"
+          },
+          "arrivals": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Arrivals"
+          },
+          "page_count": {
+            "type": "integer",
+            "title": "Page Count",
+            "default": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "review",
+              "failed",
+              "complete"
+            ],
+            "title": "Status",
+            "default": "queued"
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "ocr",
+              "analyze",
+              "file",
+              "done"
+            ],
+            "title": "Phase",
+            "default": "ocr"
+          },
+          "attempts": {
+            "type": "integer",
+            "title": "Attempts",
+            "default": 0
+          },
+          "proposal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Analysis"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "document_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Document Ids"
+          },
+          "filing_revision": {
+            "type": "integer",
+            "title": "Filing Revision",
+            "default": 0
+          },
+          "filing_paths": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object",
+            "title": "Filing Paths"
+          },
+          "history": {
+            "items": {
+              "$ref": "#/components/schemas/Event"
+            },
+            "type": "array",
+            "title": "History"
+          },
+          "pipeline": {
+            "items": {
+              "$ref": "#/components/schemas/PipelineStep"
+            },
+            "type": "array",
+            "title": "Pipeline"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "content_hash",
+          "original_name",
+          "scanned_at",
+          "timestamp_source",
+          "arrivals",
+          "page_count",
+          "status",
+          "phase",
+          "attempts",
+          "proposal",
+          "document_ids",
+          "filing_revision",
+          "filing_paths",
+          "history",
+          "pipeline"
+        ],
+        "title": "ScanDetail"
       },
       "ScanPage": {
         "properties": {

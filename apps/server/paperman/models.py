@@ -4,6 +4,8 @@ from typing import Literal
 from paperman_parser.models import Analysis, Identifier, InferenceSettings, Record
 from pydantic import Field
 
+ScanStatus = Literal["queued", "running", "review", "failed", "complete"]
+
 
 def now() -> datetime:
     return datetime.now(UTC)
@@ -28,12 +30,13 @@ class Scan(Record):
     timestamp_source: Literal["file_mtime", "upload"] = "file_mtime"
     arrivals: list[str]
     page_count: int = 0
-    status: Literal["queued", "running", "review", "failed", "complete"] = "queued"
+    status: ScanStatus = "queued"
     phase: Literal["ocr", "analyze", "file", "done"] = "ocr"
     attempts: int = 0
     proposal: Analysis | None = None
     document_ids: list[str] = Field(default_factory=list)
     filing_revision: int = 0
+    filing_paths: dict[str, str] = Field(default_factory=dict)
     history: list[Event] = Field(default_factory=list)
 
 

@@ -6,9 +6,10 @@ from fastapi import APIRouter, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from paperman_parser.models import Analysis, Identifier, validate_analysis
 
-from paperman.api_models import ActionResult, ScanPage, ScanReview
+from paperman.api_models import ActionResult, ScanDetail, ScanPage, ScanReview
 from paperman.config import Settings
 from paperman.models import Event, Scan, now
+from paperman.progress import scan_progress
 from paperman.storage import FileStorage, atomic_target, write_record
 
 
@@ -33,8 +34,15 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
         )
 
     @router.get("/api/scans/{scan_id}", operation_id="scan")
-    def scan(scan_id: Identifier) -> Scan:
-        return storage.get_scan(scan_id)
+    def scan(scan_id: Identifier) -> ScanDetail:
+        with storage.transaction():
+            scan = storage.get_scan(scan_id)
+            documents = [
+                doc for doc in storage.list_documents() if doc.id in scan.document_ids
+            ]
+        return ScanDetail.model_validate(
+            scan.model_dump() | {"pipeline": scan_progress(scan, documents)}
+        )
 
     @router.get("/api/scans/{scan_id}/pdf", operation_id="scan_pdf")
     def scan_pdf(

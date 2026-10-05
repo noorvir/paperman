@@ -73,11 +73,23 @@ Research: [DocJev architecture](https://github.com/jerryjliu/docjev/blob/main/do
 
 ## Current UI milestone
 
+- [x] Store processed PDFs as `YYYY-MM-DD-title-with-dashes-<milliseconds>.pdf`. Reserve paths before publication and resolve collisions without overwrites. Renamed 87 local processed documents, including both demo libraries, with a backup and resumable migration. IDs, PDF/text contents, metadata, and source scans are preserved. All 36 live PDF links pass. Thirteen filing, rename, recovery, and ownership tests, strict types, lint, and the web build pass. Rows show only the filename below the title; browser layout remains for the user to check.
+
+- [x] Share the processed-document table across Overview, Documents, and scan results. Show the title above the saved output path, followed by Owner and Tags. Remove separate Title and Location columns. Status results carry the document record for the same table; retain panel bounds and existing preview/filter actions. Five API tests, strict types, lint, and the production build pass. The live API confirms saved output paths and metadata. Browser layout remains for the user to check.
+
+- [x] Keep Timeline as the Overview summary. Remove the variant switch, extra heading, and top divider. Group it with the page header. Keep moderate end spacing and center labels below their nodes. Preserve the stable list and attention panel. Desktop/phone checks, types, and the production build pass for the header change; the final spacing adjustment needs a user visual check.
+
+- [x] Try Counters, Timeline, and Tabs as alternative Overview summaries. Show one summary and replace the existing main list when a status is selected. Preserve both panel bounds, retain results while loading, and scroll each panel internally. Desktop and phone checks cover empty/single/paginated results, keyboard use, view changes, and reload; bounds remain unchanged. Status counts include tagging failures and exclude unpublished work. Five API tests, strict types, and the production build pass. Keep detailed stages on scan details.
+
+- [x] Preview one shared horizontal pipeline component at `/pipeline-preview` before integration. Show scan steps and counts at each step, with compact green/yellow/red states for complete, remaining, and failed work. Processing, review, failure, and completion examples pass desktop and phone browser checks. Web types and production build pass.
+- [x] Integrate the shared timeline into scan details with separate status messages and read-only nodes. Derive progress from saved state, combine split/identify as Analysis, and include tagging failures after filing. Desktop/phone checks cover scan links and horizontal scrolling. API tests cover failure/retry, review, filing, and enrichment. Types and production build pass.
+- [ ] Add the top-right processing ring and scrollable work menu, with entries linked to scan progress. Put loading behavior in the shared button: replace its icon with a spinner, or replace its text when no icon exists; preserve button width.
+
 - [x] Replace duplicate filter chips with one set of controls. Owners and tags accept multiple values; match any value within a group and intersect groups. Use one compact date-range control with Apply, Cancel, and Clear. Desktop and phone browser checks cover multiple selections, keyboard use, metadata links, reload/back, list/grid previews, pagination reset, and nested mobile controls. The API regression, strict types, lint, and production web build pass. EmbedPDF reports a worker-cleanup warning on a full reload from the grid; filter checks have no errors.
 
 - [x] Share metadata filter links across tags, owners, and document dates. Keep other filters, sort, and layout; reset pagination. Reuse them in document lists, grids, scan documents, and quick/full document headers. Desktop and phone checks cover combined filters, exact dates, keyboard activation, scan navigation, and layout-preserving reset. Web types and build pass.
 
-- [x] Integrate the file list and first-page grid into Documents and scan details. Show the saved filename, AI title, owner, tags, and folder. Reuse PDF icons and tag links in Overview and document summaries; tag popups use a 200 ms hover delay. Keep the last selection after Escape and show focus on the row background. Desktop/phone navigation, tag filters, list/grid selection, formatting, web types, and production build pass. Existing saved filenames and paths are unchanged; shorter on-disk naming remains a separate decision.
+- [x] Integrate the file list and first-page grid into Documents and scan details. Show the saved filename, AI title, owner, tags, and folder. Reuse PDF icons and tag links in Overview and document summaries; tag popups use a 200 ms hover delay. Keep the last selection after Escape and show focus on the row background. Desktop/phone navigation, tag filters, list/grid selection, formatting, web types, and production build pass.
 
 - [x] Match PDF loading controls to the ready toolbar through one shared layout. Use faint static placeholders, remove visible loading text and the guessed page shape, and keep the same background. Desktop and phone geometry checks pass; phone controls fit without overflow. Web types and build pass.
 
@@ -173,7 +185,7 @@ The worker owns processing decisions and recovery. The storage implementation ow
 
 - Extract the date printed on the letter/document. If no reliable date is found, use the scan date and record that fallback. The field is document_date: it records the issue date, not proof of actual delivery.
 - AI proposes a short, useful title, such as "Physiotherapy invoice" or "Electricity bill". Apply uniform filename rules in code. The title need not express every detail because tags follow.
-- Filename contains the selected document date, scan date/time, title, and a unique identifier. Illustrative shape: `<date>__scanned-<timestamp>__<title>__<id>.pdf`; the implementation uses UTC scan timestamps and the full scan hash plus document number.
+- Filename is `<document-date>-<title-with-dashes>-<unix-milliseconds>.pdf`. Start with the scan timestamp in milliseconds and advance by one if the name is occupied. Reserve each document's path in the scan checkpoint before writing files; keep IDs in metadata. Existing local processed documents are renamed explicitly with their sidecars.
 - Each owner has one flat directory of final PDFs and adjacent metadata files. Settle splitting, owner, dates, and filename before publication. Final document identities and paths remain fixed during later processing.
 - Each metadata file identifies its original scan, source pages, and later tags. Review corrects owner/name/split before filing. Full-page edit mode corrects filed metadata and extracted search text. Page-group correction after filing remains required. Ordinary enrichment must not relocate files or overwrite explicit user corrections.
 - Removing an owner can reassign filed documents through metadata. Keep their original storage paths and update scan proposals so interrupted filing can resume.
@@ -199,7 +211,7 @@ TOML is the canonical document sidecar and catalog format. JSON holds per-scan c
 Owner: id, name                         # includes a reserved unknown owner
 Tag: id, name, icon(auto | supported icon key)
 Scan: id, scanned_at, timestamp_source, original_name, content_hash,
-      original_location, document_ids, stage_states
+      original_location, document_ids, filing_paths(document_id -> reserved path), stage_states
 Document: id, scan_id, source_pages, owner_id, title, document_date,
           date_source(document | scan_fallback), scanned_at, final_path,
           user_tags, generated_tags, enrichment_version, stage_states

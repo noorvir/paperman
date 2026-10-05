@@ -2,14 +2,13 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import type { components } from "@/lib/schema";
 import { documentSearch } from "@/lib/queries";
-import { retryScan } from "@/lib/actions";
-import { ActionButton, EmptyState, formatDate } from "./page";
+import { EmptyState, formatDate } from "./page";
 import { PdfPreview } from "./pdf-preview";
 import { DocumentCollection } from "./document-collection";
 import { DocumentLayoutToggle } from "./document-layout-toggle";
 import { CollectionWorkspace } from "./collection-workspace";
-import { buttonVariants } from "./ui/button";
-import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
+import { PipelineProgress } from "./ui/pipeline-progress";
+import { ScanProcessingMessage } from "./scan-processing-message";
 
 export function ScanView({
   scan,
@@ -17,7 +16,7 @@ export function ScanView({
   catalog,
   view,
 }: {
-  scan: components["schemas"]["Scan"];
+  scan: components["schemas"]["ScanDetail"];
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
   view: "pdf" | "documents" | "activity" | "details";
@@ -27,6 +26,13 @@ export function ScanView({
   const views: (typeof view)[] = ["pdf", "documents", "activity", "details"];
   return (
     <section className="detail-primary flex-1">
+      <div className="shrink-0 border-b pb-2">
+        <PipelineProgress
+          label="Scan processing stages"
+          steps={scan.pipeline}
+        />
+      </div>
+      <ScanProcessingMessage scan={scan} documents={documents} />
       <nav aria-label="Scan view" className="view-tabs">
         {views.map((tab) => (
           <Link
@@ -51,33 +57,6 @@ export function ScanView({
           </Link>
         ))}
       </nav>
-      {scan.status === "failed" && (
-        <Alert variant="destructive">
-          <AlertTitle>Processing stopped</AlertTitle>
-          <AlertDescription>
-            {scan.history.at(-1)?.message}
-            <div className="mt-2">
-              <ActionButton action={() => retryScan({ data: scan.id })}>
-                Retry failed stage
-              </ActionButton>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-      {scan.status === "review" && (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-md bg-muted p-3">
-          <p className="text-xs text-muted-foreground">
-            Check the document groups and owners before filing.
-          </p>
-          <Link
-            to="/scans/$scanId/review"
-            params={{ scanId: scan.id }}
-            className={buttonVariants()}
-          >
-            Review documents
-          </Link>
-        </div>
-      )}
       <div className="document-panels">
         <div
           className="document-panel"
