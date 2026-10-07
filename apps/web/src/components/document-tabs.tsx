@@ -8,12 +8,14 @@ export function DocumentTabs({
   view,
   preview,
   edit,
+  verify = false,
 }: {
   documentId: string;
   search: z.output<typeof documentSearch>;
   view: z.output<typeof documentView>;
   preview: boolean;
   edit: boolean;
+  verify?: boolean;
 }) {
   const views: (typeof view)[] = ["pdf", "text", "summary", "details"];
   return (
@@ -27,7 +29,7 @@ export function DocumentTabs({
           : linkOptions({
               to: "/documents/$documentId",
               params: { documentId },
-              search: { ...search, view: tab, edit },
+              search: { ...search, view: tab, edit, verify },
             });
         return (
           <Link

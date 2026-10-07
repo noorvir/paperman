@@ -20,6 +20,7 @@ from paperman_parser.models import (
     Catalog,
     Enrichment,
     InferenceSettings,
+    Ownership,
     ProcessingUsage,
     Record,
     validate_analysis,
@@ -28,9 +29,8 @@ from paperman_parser.ocr import LocalOCR
 from paperman_parser.pdf import select_pages
 
 
-class ExpectedDocument(Record):
+class ExpectedDocument(Ownership):
     pages: list[int]
-    owner_id: str
     document_date: date | None
     required_tags: list[str]
     optional_tags: list[str]
@@ -172,26 +172,28 @@ async def evaluate(
             partial(record_prediction_usage, prediction, result_path),
         )
         started = perf_counter()
-        phase = "ocr"
+        phase = "analyze"
         stage_started = started
-        print(f"{sample.id}: OCR", flush=True)
+        print(f"{sample.id}: split, orientation, and fields", flush=True)
         try:
+            source = (pdfs / f"{sample.id}.pdf").read_bytes()
+            prediction.analysis = await inference.analyze(source, catalog)
+            prediction.seconds[phase] = perf_counter() - stage_started
+            save(result_path, prediction)
+
+            phase = "ocr"
+            stage_started = perf_counter()
+            print(f"{sample.id}: OCR", flush=True)
             content = await asyncio.to_thread(
                 ocr.searchable,
-                (pdfs / f"{sample.id}.pdf").read_bytes(),
+                source,
                 sample.ocr_languages,
+                rotations=prediction.analysis.page_rotations,
             )
             prediction.seconds[phase] = perf_counter() - stage_started
             prediction.pages = content.pages
-            (output / f"{sample.id}.pdf").write_bytes(content.pdf)
-            save(result_path, prediction)
-
-            phase = "analyze"
-            stage_started = perf_counter()
-            print(f"{sample.id}: split and fields", flush=True)
-            prediction.analysis = await inference.analyze(content.pdf, catalog)
             validate_analysis(prediction.analysis, len(content.pages), catalog)
-            prediction.seconds[phase] = perf_counter() - stage_started
+            (output / f"{sample.id}.pdf").write_bytes(content.pdf)
             save(result_path, prediction)
 
             phase = "enrich"

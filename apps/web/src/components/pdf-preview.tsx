@@ -15,6 +15,8 @@ export function PdfPreview({
   title,
   rotations,
   onRotatePage,
+  initialPage,
+  highlightedPages,
 }: Omit<ComponentProps<typeof PdfViewer>, "onReady">) {
   const [display, setDisplay] = useState({ url, ready: false });
   if (display.url !== url) {
@@ -53,6 +55,8 @@ export function PdfPreview({
                 onReady={markReady}
                 rotations={rotations}
                 onRotatePage={onRotatePage}
+                initialPage={initialPage}
+                highlightedPages={highlightedPages}
               />
             </Suspense>
           </ClientOnly>

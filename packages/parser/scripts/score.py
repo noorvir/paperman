@@ -142,7 +142,8 @@ def score(labels: Path, run: Path) -> None:
             )
             checks = {
                 "groups": matched is not None,
-                "owner": matched is not None and matched.owner_id == expected.owner_id,
+                "owner": matched is not None
+                and matched.owner_ids == expected.owner_ids,
                 "date": matched is not None
                 and matched.document_date == expected.document_date,
                 "title_keywords": matched is not None
@@ -163,8 +164,8 @@ def score(labels: Path, run: Path) -> None:
                 {
                     "pages": expected.pages,
                     "checks": checks,
-                    "expected_owner": expected.owner_id,
-                    "actual_owner": matched.owner_id if matched else None,
+                    "expected_owner": expected.owner_ids,
+                    "actual_owner": matched.owner_ids if matched else None,
                     "expected_date": str(expected.document_date),
                     "actual_date": str(matched.document_date) if matched else None,
                     "expected_tags": expected.required_tags,

@@ -389,6 +389,33 @@
   .document-panel[data-active="true"] {
     @apply visible;
   }
+  .verification-panels {
+    @apply grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)];
+  }
+  .verification-panel {
+    @apply invisible col-start-1 row-start-1 flex min-h-0 min-w-0 flex-col gap-3;
+  }
+  .verification-panel[data-active="true"] {
+    @apply visible;
+  }
+  .verification-panel:not([data-active="true"])
+    .document-panel[data-active="true"] {
+    visibility: inherit;
+  }
+  @container preview (min-width: 48rem) {
+    .verification-mobile-tabs {
+      @apply hidden;
+    }
+    .verification-panels {
+      @apply grid-cols-2 gap-6;
+    }
+    .verification-panel {
+      @apply visible;
+    }
+    .verification-panel + .verification-panel {
+      @apply col-start-2 border-l pl-6;
+    }
+  }
 }
 
 @keyframes collection-preview-enter {

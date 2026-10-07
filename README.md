@@ -1,147 +1,76 @@
 # PaperMan
 
-PaperMan receives PDF scans, creates searchable PDFs, proposes document groups and owners, and files approved documents. Tags and search can be rebuilt without moving the files. All persistent state is stored in ordinary files. No database is required.
+PaperMan turns scanned PDFs into a searchable document library. It splits scan batches into documents, identifies owners and dates, and adds titles, tags, and summaries. A web interface lets you review uncertain results and correct document groups.
 
-## Run
+## Goals
 
-Install Bun 1.3+, uv, Poppler, and Tesseract with the required language data. Poppler renders the page images sent to the model (`brew install poppler` on macOS; `poppler-utils` on Linux). On macOS, `brew install tesseract` installs English OCR; use `brew install tesseract-lang` for more languages. Linux packages are `tesseract-ocr` and language packages such as `tesseract-ocr-deu`.
+- Keep original scans and store documents as ordinary PDF, text, and metadata files.
+- Automate filing, with review when a page or field is unclear.
+- Let you choose the storage location, document source, and AI provider.
+
+## Get started
+
+Install Python 3.13+, [uv](https://docs.astral.sh/uv/), [Bun](https://bun.sh/) 1.3+, Poppler, and Tesseract. Install Tesseract language data for the documents you expect to scan.
+
+On macOS, the system packages are available with `brew install poppler tesseract tesseract-lang`. On Debian or Ubuntu, use `poppler-utils` and `tesseract-ocr`, plus the required language packages.
+
+From the repository root:
 
 ```sh
 uv sync --project apps/server
-uv sync --project packages/parser  # Standalone parser checks
 bun install
 bun run dev
 ```
 
-Open <http://127.0.0.1:3001>. This starts the Python API, the independent worker, and the web server. In Settings, add owner names and aliases, then set the model endpoint and name. The endpoint must support the OpenAI Chat Completions protocol. Ollama uses an endpoint such as `http://gpu-host:11434/v1`. Real inference requires an endpoint; PaperMan never selects a cloud fallback. A required endpoint credential belongs in `PAPERMAN_MODEL_API_KEY`, not in a committed config file.
+Open <http://127.0.0.1:3001>. In **Settings**, add owners and choose a model endpoint and model ID. The model must support multiple image inputs and structured output through an OpenAI-compatible API or Ollama. Supply any API key through `PAPERMAN_MODEL_API_KEY`.
 
-Upload a PDF on the Scans page, or put one in `data/inbox`. The worker listens for file events and scans periodically. It waits for files to settle, preserves their bytes under a SHA-256 identity, and runs OCR. Clear scans are filed automatically by default. Model confidence below 0.9, an explicit review reason, invalid page coverage, unreadable retained pages, and all-blank scans require review. A clearly absent owner or date can use Unknown or the scan date. Failed steps have retry controls. The overview reports an offline worker and failed scans or tagging.
+Upload a PDF from **Scans**, or put it in `data/inbox/`. Processing runs in the background. Review items can be corrected with manual controls or plain-English instructions.
 
-## Local inference
+The model checks page orientation and document groups from the original images. PaperMan then turns pages upright and runs OCR once. A document can have several owners. It appears once in the library, with PDF, text, and metadata copies in each owner's folder. Owner changes update these copies; original scans stay unchanged.
 
-Llama and Ollama are separate apps with separate model lists and endpoints. Check the server for the app that holds the installed model. In Settings, use **Compatible API** for Llama's llama.cpp server or **Ollama** for Ollama, then enter the endpoint and model ID. Select **Native JSON schema**. Enable **Review all scans before filing** if every scan must be checked. Existing saved settings are retained.
+To apply new processing settings to a completed scan, open it in **Scans** and select **Reprocess**. Confirm to replace all its results, including manual edits. PaperMan starts from the original PDF and keeps existing documents available until the new PDFs are filed. If processing fails or needs review, the old documents remain available. After filing, previous PDFs, text, and metadata are archived under that scan's `revisions/` directory, and tags and summaries are generated again. **Retry failed stage** resumes a failed run without starting over.
 
-On the review page, use the manual controls or **Describe changes** to give instructions in plain English. **Update proposal** uses the configured model and the current draft to revise page groups and document details. The result stays in the form and can be undone; **Approve and file** saves it. The same controls can correct page groups after filing. Model confidence is a self-reported estimate, not measured accuracy.
+Each document records its source scan, source pages, and processing run. The scan's **Details** tab shows model cost estimates by run, including recorded retries. Document cost estimates include only their own run. These estimates exclude hardware, storage, tax, and test calls made outside the worker.
 
-Verified local Llama settings:
+For a filed document, select **Reprocess** and confirm to generate tags, tag suggestions, and a summary again. Only that document's PDF goes to the current model. Its page groups, owners, date, title, PDF, and file location stay unchanged; OCR and scan analysis do not run again. Saved tag choices and summary or text corrections take priority. A failure keeps the previous results and can be retried with the same action. Additional model usage is included in the document's **Details** cost table.
 
-| Setting       | Value                               |
-| ------------- | ----------------------------------- |
-| Server type   | Compatible API                      |
-| Endpoint URL  | `http://127.0.0.1:9931/v1`          |
-| Model name    | `ggml-org/gemma-4-E2B-it-GGUF:Q8_0` |
-| Output format | Native JSON schema                  |
-| Reasoning     | none                                |
+**Processed at** shows the last successful document processing time in the user's local time zone. Successful reprocessing updates it; manual edits and failed runs do not. Older records use their saved completion event or successful model call timing when available. Missing times show `-`.
 
-The Llama app must be running. These settings belong to this local installation; the endpoint and model stay configurable for other hosts. Ollama usually uses `http://127.0.0.1:11434/v1` on the same machine.
+Documents start as unverified. Select **Verify** to compare a document with its source scan. The scan opens at the first source page; other pages are dimmed. On small screens, switch between Document and Source scan without losing your page position. Check the PDF, text, summary, and details, then select **Mark as verified**. Cancel or Escape leaves review without saving. Its metadata stores the reviewer name and verification time. Verified document headers show a green badge; unverified headers show the amber Verify button. Cards and the table show green or amber verification badges. Edits and document reprocessing retain verification. Scan reprocessing retains it when the document has the same source pages. The reviewer is saved as `unknown` until reviewer identification is added.
 
-Pydantic AI makes separate requests for document boundaries, each document's recipient/title/issue date, and later tags/summary. Code turns boundaries into consecutive page groups so no pages are lost. Invalid boundaries, owner IDs, tag IDs, or output shapes get at most two validation retries. Valid JSON does not prove that the model understood the document. Review is still required to catch incorrect splits, names, owners, and dates.
+Select a document or scan to preview it. Select the same row again to open the full page. Full scan pages show scan details and links to the extracted documents in a sidebar.
 
-Run the opt-in check against the model saved in the selected storage directory:
+Document editing shows the PDF beside Details, Summary, and Text tabs. In edit mode, the PDF rotate button turns the current page by 90 degrees. Save changes updates the filed PDF and all owner copies; Cancel discards the rotation. The text layer and original scan are retained. Outside edit mode, rotation changes only the view. Changes stay in one draft until you select **Save changes**. **Edit pages** opens the source scan's page groups. Leaving any edit form with unsaved changes asks you to keep editing or discard them; reloading or closing the tab uses the browser's confirmation.
 
-```sh
-PAPERMAN_DATA_DIR=data uv run --project apps/server python apps/server/scripts/check_inference.py
-```
+To try the interface without an AI service, run `bun run demo` instead. It uses fictional documents in a separate `.demo-data/` directory.
 
-The check sends fictional mail through the worker, OCR, real model, review API, filing, and repeat tagging. It uses temporary storage and does not change existing documents, owners, or settings. A pass requires three correct document groups, known and unknown owners, issue dates, missing-date fallback, expected tags, unchanged file paths, and preserved user tags. It exits with an error if any check fails. Only the configured endpoint receives the sample text.
+## Connect your setup
 
-The earlier text-input pipeline with Gemma 4 E2B Q8_0 passed the full mixed-mail check through the Llama app on 2 October 2026: three correct groups, owners, dates, titles, tags, review, filing, and repeat tagging. The test used fictional English mail; real scans and longer batches still need review. Qwen3.5 0.8B through Ollama failed the same accuracy check. Gemma 3 1B and 4B are also installed in Llama but have not been evaluated.
+- **Storage:** set `PAPERMAN_DATA_DIR` to a writable directory. It defaults to `data/`.
+- **Document source:** upload PDFs through the web app/API, or have a scanner or import job write to the inbox.
+- **AI service:** configure the endpoint, model, and output mode in Settings. Document images go to that endpoint; OCR runs locally.
+- **Hosting:** run the API, worker, and web app together. Use your own network access controls and back up the complete data directory.
 
-The [public PDF test set](packages/parser/test-data/public-pdfs/README.md) has eight PDFs with 18 pages, including image-only scans, financial tables, French text, and a six-document claim packet. Ground truth was written from page images before evaluation. Both the standalone parser evaluation and the application upload/review/filing checks are complete. See [accuracy, workflow checks, and limits](packages/parser/test-data/public-pdfs/results/README.md). The current model still needs review for owners, dates, and tags.
+See [deployment](deploy/README.md) for Docker Compose, configuration, and backups. The [parser package](packages/parser/README.md) can also be used on its own.
 
-## Local demo
+## Development
+
+The React/TanStack web app is in `apps/web`; the Python API and worker are in `apps/server`. The parser provides OCR and model interfaces. The API contract is in [openapi.json](openapi.json).
 
 ```sh
-bun run demo
+uv sync --project packages/parser
+bun run check         # Formatting, types, tests, and build
+bun run generate:api  # Refresh OpenAPI and web client types
 ```
 
-This creates 36 fictional documents and 14 scans in `.demo-data/`, then starts the API, worker, and web app at the usual address. Stop `bun run dev` first because both use the same ports. The demo includes searchable PDF previews, owner and tag catalogs, one review scan, and one retryable failure. Existing demo edits are preserved on subsequent runs. The normal `data/` folder is unchanged.
-
-The Demo model adapter returns deterministic local sample responses behind the `Inference` interface. It makes no network calls. Upload, OCR, review, filing, search, and saved tag edits use the real local pipeline. Sample responses do not evaluate model quality. Switch the server type in Settings to use a real endpoint later.
-
-## Routes and UI
-
-Overview uses a centered 1152 px content area with a document list and a 288 px attention panel. Settings and its catalog forms share a centered 672 px area. Document and scan workspaces use the available width. Shared body padding grows from 16 px on phones to 32 px at desktop width.
-
-TanStack Start serves complete pages with server rendering and route loaders. Documents, scans, scan review, document detail, owner editing, tag editing, and settings have separate URLs. Search terms, filters, sorting, pagination, and document views use URL parameters. Form drafts remain local until Save or Approve.
-
-The UI uses shadcn Mira, Base UI, Tailwind CSS 4.3, Inter Variable, and Hugeicons. A compact top bar provides navigation. Shared workspace classes own page padding, headings, and section spacing. Use plain sections and table/list separators. Avoid cards inside cards. Keep Mira's control dimensions. The collection layout owns its search toolbar, scrolling table, empty state, and bottom pagination. Document filters sit beside search when space permits and use a popover on smaller screens; applied filters appear as removable labels. The document preview fills the remaining space. Summary and assigned tags have a separate tab. Scan review uses separate scrolling for the preview and inspector. Back navigation uses one outlined chevron control. Add controls from `apps/web` with `bunx --bun shadcn@latest add <component>`.
-
-Selecting a document or scan opens a quick preview over the right side of the table. The list stays usable. Arrow keys select items in the current list page. Enter or the Open control opens the same view at full size; close or Escape returns to the list with its filters and scroll position. Both collections share the preview frame, row controls, and keyboard behavior. Document tabs are PDF, Text, Summary, and Details. Scan tabs are PDF, Documents, Activity, and Details; filed documents use the shared document table and open the document preview. Tab changes keep the PDF mounted, including its zoom and page position.
-
-The document quick preview is read-only. Its Edit button opens `/documents/<id>?edit=true` in the full workspace. The editor changes title, owner, issue date, summary, tags, and extracted text. Save applies the draft; Cancel discards it. Both return to the full document view. The PDF stays mounted. Text corrections update search and future tagging without changing the original PDF. If another operation changes the saved document while a draft is open, Save reports a conflict and retains the draft.
-
-PDF previews use EmbedPDF 2 with Mira controls for pages, zoom, rotation, text search, and download. The shared viewer serves documents, original scans, and scan review, with one steady loading surface until the first page is ready. PDFium runs in a browser worker; its WebAssembly asset is bundled with the app. External font fallback requests are disabled, so PDFs must embed any fonts that PDFium does not provide. Rotation and zoom change the view only; download returns the saved PDF.
-
-## Processing and files
-
-Model images have a 1600-pixel longest edge. Original and searchable PDFs retain their resolution.
-
-Document **Details** shows estimated model API costs by step. Each scan's JSON record keeps the original usage records; each document's TOML sidecar keeps its allocated share. Shared costs are divided across retained pages. Retries add cost records, while repeated filing does not. Local OCR records elapsed time and zero model API charge; hardware, storage, and tax are excluded. Old documents without records show unknown cost.
-
-For cost estimates, add a `pricing` table to `settings.toml`, or supply it through the settings API. It contains `model`, `base_url`, `input_usd_per_million`, `output_usd_per_million`, optional `cached_input_usd_per_million`, `source`, and `checked_on`. See the [GLM eval settings](packages/parser/test-data/real-scans/together-glm-settings.json) for an example. Rates apply only to that model and endpoint and are saved with each call. Missing prices or usage show as unknown. Partial reported costs are shown as a subtotal. These are estimates, not the provider's final bill. Changing unrelated settings preserves the rates; changing the model or endpoint without supplying rates clears them.
-
-Tags have selectable icons in Settings. The catalog stores a stable icon key. Older catalogs use `auto`, which supplies icons for standard tags and a document icon for custom tags. Document rows use a subject tag icon when available.
-
-Dropdowns use shared Mira selects, including their open menus, focus colors, and selection marks. Filters, Settings, owner reassignment, scan review, and PDF zoom use the same control. Date filters and scan review use one Mira calendar with neutral selection colors, keyboard navigation, Clear, and Today actions. Tables share header styling and cell spacing. On phones, the review PDF has a bounded height so the form is accessible below it.
-
-Remove owners in Settings. If an owner has filed documents or scan proposals, select a replacement in the dialog; Unknown is selected by default. Reassignment updates metadata and scan proposals before removing the owner. Document IDs, PDFs, and stored paths stay unchanged, so the original owner folder can remain on disk. Removal waits until active scan processing finishes. Unknown cannot be removed.
-
-`PAPERMAN_DATA_DIR` selects storage and defaults to `data/`. The old scaffold's `index.json` tag catalog is imported once if no catalog exists. The original index is retained.
-
-```text
-catalog.toml                      owner names, aliases, and tag catalog
-settings.toml                     model endpoint, OCR, and review settings
-inbox/                            incoming scanner PDFs
-scans/<sha256>/original.pdf        immutable original bytes
-scans/<sha256>/searchable.pdf      OCR copy with the same pages
-scans/<sha256>/scan.json           checkpoints, history, proposal, active document links
-scans/<sha256>/revisions/          previous groupings and replaced document files
-documents/<owner-id>/*.pdf         final searchable documents, one flat folder per owner
-documents/<owner-id>/*.toml        metadata, source pages, dates, tags, errors
-documents/<owner-id>/*.txt         extracted text
-state/search.json                 rebuildable full-text index
-state/worker.json                 worker heartbeat
-```
-
-A document date means the date printed on the document. If absent, the UTC scan date is used and marked as a fallback. Final filenames use `YYYY-MM-DD-title-with-dashes-<milliseconds>.pdf`. The suffix starts with the scan's Unix timestamp in milliseconds and increases by one if that name is occupied. The worker saves the allocated path before writing the PDF so retries use the same name. Document IDs stay in metadata. Every source page must occur exactly once in a document group or in the proposal's blank-page list. The split model identifies blank pages from images; filed documents omit them, while originals retain all pages. Retained pages with no readable text and entirely blank scans require review, even when automatic filing is enabled. Review can restore omitted pages. Unknown is a reserved owner.
-
-To rename an existing library, stop its API and worker, then run `PAPERMAN_DATA_DIR=/path/to/library uv run --project apps/server paperman rename-documents`. Back up the library first. The command renames each PDF with its text and metadata files, updates saved paths, and preserves document IDs and source scans. If interrupted, run the same command again before starting the services. A saved rename plan lets it resume without choosing new destinations.
-
-The worker resumes persisted stages after restart. A failed model call does not lose OCR output. Filing has deterministic IDs and saved paths, and publishes each file atomically. The original is removed from the inbox only after filing succeeds; its preserved copy remains in scan history. Exact duplicates link to the same scan. Later tagging replaces generated tags and preserves explicit user choices. Search currently uses a derived JSON text index; semantic embeddings are not required for the first pipeline.
-
-Use **Edit page groups** from a full document editor or a filed scan to correct splits and merges. The review form starts with current document metadata. Save validates page coverage and checks that no document changed while the form was open. Unchanged page groups keep their IDs, file paths, tags, summaries, and text corrections. Changed groups get new IDs and pending tagging; their old PDFs, text, and metadata move to scan history after publication. The previous document set stays visible if filing fails. Retry resumes the approved revision. Metadata edits do not rename or move files.
-
-`Storage`, `OCR`, and `Inference` define the worker's boundaries. OCR and inference live in the standalone parser package, which accepts PDF bytes and returns searchable content and proposals. The server saves checkpoints and publishes approved files. The first implementations use a configured directory, OCRmyPDF/Tesseract, and Pydantic AI with an explicit compatible endpoint. Model requests use only rendered PDF page images plus instructions and catalogs; OCR text stays local for search and review. The configured model must accept multiple images. Compute provisioning and mount setup belong to deployment configuration. The app does not require a Pi or Homestack.
-
-## Development and checks
-
-```text
-apps/web/                               React web app
-apps/server/paperman/                    API, worker, review, storage, filing
-apps/server/tests/                       Server integration tests
-apps/server/scripts/                     Demo setup and local model checks
-packages/parser/paperman_parser/         Standalone OCR and AI parsing
-packages/parser/tests/                   Parser tests, no server required
-packages/parser/test-data/public-pdfs/    Public sample manifest and labels
-deploy/                                 Container configuration
-```
-
-Each Python project has its own `pyproject.toml` and `uv.lock`. The server installs the parser as a local editable dependency. See the [parser interface and DocJev research](packages/parser/README.md).
-
-Run the commands below from the repository root. Server dependencies are installed in `apps/server/.venv`; standalone parser checks use `packages/parser/.venv`. Runtime commands use the root working directory, so `.env`, `data/`, `.demo-data/`, and generated `openapi.json` resolve there.
+For the document navigation browser check, start the web app with at least one document and Chrome with remote debugging enabled. Set both URLs for that test environment:
 
 ```sh
-bun run generate:api  # FastAPI OpenAPI contract and TypeScript client types
-bun run check        # format, lint, strict types, tests, production web build
-uv run --project apps/server paperman index
-bun run build
-# Production: start API and worker, then the web server on its own port.
-uv run --project apps/server paperman serve
-uv run --project apps/server paperman worker
-PORT=3001 bun run --filter @paperman/web start
+PAPERMAN_WEB_URL=http://127.0.0.1:3001 \
+PAPERMAN_BROWSER_URL=http://127.0.0.1:9224 \
+bun --filter @paperman/web test:browser
 ```
 
-The API defaults to port 3000. `PAPERMAN_API_URL` configures the web server's API connection. API credentials and storage paths remain server-side. Python uses uv, Ruff, Basedpyright strict, Pydantic, and pytest. Tests cover original preservation, OCR, page coverage, review, duplicates, retry, repeat tagging, and file-copy restoration.
+This checks preview links, second-click navigation, Escape, editor tabs, the shared scan/document sidebar, and unsaved-change warnings across forms. Save success and failure use intercepted responses. The tests do not change stored documents or settings.
 
-See [deployment](deploy/README.md) for the Compose setup and Homestack SSD integration. The [active plan](.agent/plans/2026-10-01-paperman-document-pipeline.md) records the remaining live integration checks.
+Model checks use [public PDF samples](packages/parser/test-data/public-pdfs/README.md) and [scanned documents](packages/parser/test-data/real-scans/README.md). Results describe those test sets, not expected accuracy on every document.

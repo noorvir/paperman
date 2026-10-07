@@ -10,7 +10,7 @@ import {
   Download04Icon,
   Search01Icon,
 } from "@hugeicons/core-free-icons";
-import { useScroll } from "@embedpdf/plugin-scroll/react";
+import { useScroll, useScrollCapability } from "@embedpdf/plugin-scroll/react";
 import { useZoom, ZoomMode } from "@embedpdf/plugin-zoom/react";
 import { useRotate } from "@embedpdf/plugin-rotate/react";
 import { useSearch } from "@embedpdf/plugin-search/react";
@@ -27,13 +27,28 @@ export function PdfToolbar({
   url,
   editing,
   onRotatePage,
+  initialPage = 1,
 }: {
   documentId: string;
   url: string;
   editing: boolean;
   onRotatePage?: (page: number) => void;
+  initialPage?: number;
 }) {
   const { state: scroll, provides: navigation } = useScroll(documentId);
+  const { provides: scrollCapability } = useScrollCapability();
+  useEffect(() => {
+    if (initialPage === 1 || !scrollCapability) {
+      return;
+    }
+    return scrollCapability.onLayoutReady((event) => {
+      if (event.documentId === documentId && event.isInitial) {
+        scrollCapability
+          .forDocument(documentId)
+          .scrollToPage({ pageNumber: initialPage, behavior: "instant" });
+      }
+    });
+  }, [documentId, initialPage, scrollCapability]);
   const { state: zoom, provides: magnification } = useZoom(documentId);
   const { provides: rotation } = useRotate(documentId);
   const { state: search, provides: searchActions } = useSearch(documentId);

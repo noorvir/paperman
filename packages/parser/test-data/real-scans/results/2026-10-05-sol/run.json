@@ -5,7 +5,7 @@
     "reasoning_effort": "high"
   },
   "transport": "codex exec",
-  "auth": "existing ChatGPT login; no API key",
+  "auth": "Codex CLI authentication",
   "codex_version": "codex-cli 0.156.1",
   "source_run": null,
   "ocr": "not run; no transcript ground truth",

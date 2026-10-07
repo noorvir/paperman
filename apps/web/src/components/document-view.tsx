@@ -123,17 +123,21 @@ export function DocumentView({
           aria-hidden={Boolean(editor) || view !== "details"}
           inert={Boolean(editor) || view !== "details"}
         >
-          {sidebar && (
-            <div className="detail-information-compact border-b p-3">
-              <DocumentInformation
-                document={document}
-                scanName={scanName}
-                catalog={catalog}
-                search={search}
-                allowActions={allowActions}
-              />
-            </div>
-          )}
+          <div
+            className={
+              sidebar
+                ? "detail-information-compact border-b p-3"
+                : "border-b p-3"
+            }
+          >
+            <DocumentInformation
+              document={document}
+              scanName={scanName}
+              catalog={catalog}
+              search={search}
+              allowActions={allowActions}
+            />
+          </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 break-all p-3 text-xs leading-relaxed">
             <dt>Source scan</dt>
             <dd>

@@ -4,7 +4,7 @@
   "pages": 18,
   "documents": 13,
   "local_model": "ggml-org/gemma-4-E2B-it-GGUF:Q8_0",
-  "endpoint": "http://127.0.0.1:9931/v1",
+  "endpoint": "http://model.example/v1",
   "labels_sha256": "27bc114855e4c4ecae583477a5294896bd25f296609b258601725a91b08e9e3f",
   "review_applied": true,
   "accuracy_note": "Review applies frozen ground truth; use standalone results for model accuracy.",

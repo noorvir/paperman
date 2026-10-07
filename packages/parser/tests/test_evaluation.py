@@ -23,7 +23,7 @@ def test_scores_include_missing_results_and_detect_false_boundaries(
             documents=[
                 DocumentProposal(
                     pages=expected.pages,
-                    owner_id=expected.owner_id,
+                    owner_ids=expected.owner_ids,
                     title=expected.title_any[0],
                     document_date=expected.document_date,
                     confidence=1,

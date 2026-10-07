@@ -7,6 +7,7 @@ data/
 .agent/current.md
 .agent/session-handoff.md
 .agent/sessions/
+.agent/plans/
 
 .venv/
 __pycache__/

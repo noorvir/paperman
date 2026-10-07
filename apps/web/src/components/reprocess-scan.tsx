@@ -80,25 +80,28 @@ export function ReprocessScan({
       </DialogTrigger>
       <DialogContent showCloseButton={!pending}>
         <DialogHeader>
-          <DialogTitle>Replace {documents.length} documents?</DialogTitle>
+          <DialogTitle>Replace this scan’s document set?</DialogTitle>
           <DialogDescription>
-            Reprocess this scan with the current model and settings.
+            Reprocess the original scan with the current model and settings.
           </DialogDescription>
         </DialogHeader>
         <ul className="list-disc space-y-2 pl-5 text-muted-foreground">
           <li>
             <strong className="font-medium text-foreground">
-              Replace results.
+              Replace the whole set.
             </strong>{" "}
-            New documents will replace the current files and manual edits.
+            The new set replaces all {documents.length} current{" "}
+            {documents.length === 1 ? "document" : "documents"} from this scan.
+            It may contain more or fewer documents.
           </li>
           <li>
             <strong className="font-medium text-foreground">
-              Keep the original.
+              Archive current results.
             </strong>{" "}
-            Current results stay available until replacements are filed, then
-            move to the archive.
+            Current documents stay available until all replacement PDFs are
+            filed. Then their files and manual edits move to the archive.
           </li>
+          <li>The original scan PDF stays unchanged.</li>
           <li>Model usage may incur a new charge.</li>
         </ul>
         <ErrorNotice message={error} />

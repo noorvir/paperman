@@ -1,0 +1,6 @@
+FROM debian:trixie-slim
+RUN apt-get update && apt-get install -y --no-install-recommends samba smbclient && rm -rf /var/lib/apt/lists/*
+ARG PAPERMAN_UID=1000
+ARG PAPERMAN_GID=1000
+RUN groupadd -g "${PAPERMAN_GID}" scanner && useradd -u "${PAPERMAN_UID}" -g scanner -M -s /usr/sbin/nologin scanner
+CMD ["smbd", "--foreground", "--no-process-group", "--debug-stdout"]

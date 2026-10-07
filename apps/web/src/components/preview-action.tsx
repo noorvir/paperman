@@ -5,12 +5,13 @@ import { Button } from "./ui/button";
 export function PreviewAction({
   icon,
   children,
+  variant = "outline",
   ...props
-}: Omit<ComponentProps<typeof Button>, "variant" | "size"> & {
+}: Omit<ComponentProps<typeof Button>, "size"> & {
   icon: ComponentProps<typeof HugeiconsIcon>["icon"];
 }) {
   return (
-    <Button {...props} variant="outline">
+    <Button {...props} variant={variant}>
       <HugeiconsIcon icon={icon} aria-hidden="true" />
       {children}
     </Button>

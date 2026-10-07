@@ -1,0 +1,18 @@
+services:
+  scanner:
+    build:
+      context: .
+      dockerfile: deploy/Dockerfile.scanner
+      args:
+        PAPERMAN_UID: ${PAPERMAN_UID:-1000}
+        PAPERMAN_GID: ${PAPERMAN_GID:-1000}
+    restart: unless-stopped
+    ports:
+      - "${PAPERMAN_SCANNER_BIND:?Set the private LAN address}:445:445"
+    volumes:
+      - ${PAPERMAN_DATA_DIR:?Set the document directory}/inbox:/inbox
+      - ${PAPERMAN_SAMBA_CONFIG:?Set the absolute Samba config path}:/etc/samba/smb.conf:ro
+      - scanner_accounts:/var/lib/samba
+
+volumes:
+  scanner_accounts:

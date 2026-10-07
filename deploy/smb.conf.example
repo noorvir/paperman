@@ -1,0 +1,23 @@
+[global]
+    server role = standalone server
+    security = user
+    map to guest = Never
+    server min protocol = SMB2_02
+    smb ports = 445
+    disable netbios = yes
+    load printers = no
+    disable spoolss = yes
+    printcap name = /dev/null
+    printing = bsd
+    log level = 1
+    hosts allow = 127.0.0.1 PRINTER_IP
+    hosts deny = ALL
+
+[PaperMan Inbox]
+    path = /inbox
+    valid users = scanner
+    read only = no
+    browseable = no
+    guest ok = no
+    create mask = 0600
+    directory mask = 0700

@@ -41,15 +41,16 @@ export function useWorkspaceBreadcrumbs() {
             search={{
               ...document.search,
               edit: false,
+              verify: false,
             }}
             resetScroll={false}
           />
         ),
       });
-      if (document.search.edit) {
+      if (document.search.edit || document.search.verify) {
         breadcrumbs.push({
-          id: "edit",
-          label: "Edit",
+          id: document.search.edit ? "edit" : "verify",
+          label: document.search.edit ? "Edit" : "Verify",
           link: (
             <Link
               to="/documents/$documentId"

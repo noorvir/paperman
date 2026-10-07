@@ -36,16 +36,11 @@
   "documents": [
     {
       "sample": "01",
-      "pages": [
-        1,
-        2,
-        3,
-        4
-      ],
+      "pages": [1, 2, 3, 4],
       "id": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630-1",
       "title": "Television advertising invoice",
       "owner_id": "bluewest",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/bluewest/2020-03-01-television-advertising-invoice-1791213460023.toml",
+      "metadata": "documents/bluewest/2020-03-01-television-advertising-invoice-1791213460023.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.001663044444444444444444444444",
@@ -56,13 +51,11 @@
     },
     {
       "sample": "01",
-      "pages": [
-        5
-      ],
+      "pages": [5],
       "id": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630-2",
       "title": "Television advertising invoice",
       "owner_id": "buying-time",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/buying-time/2020-02-09-television-advertising-invoice-1791213460023.toml",
+      "metadata": "documents/buying-time/2020-02-09-television-advertising-invoice-1791213460023.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.0004157611111111111111111111111",
@@ -73,14 +66,11 @@
     },
     {
       "sample": "01",
-      "pages": [
-        6,
-        7
-      ],
+      "pages": [6, 7],
       "id": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630-3",
       "title": "Television advertising invoice",
       "owner_id": "assembly",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/assembly/2020-02-23-television-advertising-invoice-1791213460023.toml",
+      "metadata": "documents/assembly/2020-02-23-television-advertising-invoice-1791213460023.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.0008315222222222222222222222221",
@@ -91,14 +81,11 @@
     },
     {
       "sample": "01",
-      "pages": [
-        8,
-        9
-      ],
+      "pages": [8, 9],
       "id": "1dede48316bb60afc37acd365c055e7e0bbffe3e14afde0598c8eeea96a13630-4",
       "title": "Television advertising contract",
       "owner_id": "groundswell",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/groundswell/2020-02-20-television-advertising-contract-1791213460023.toml",
+      "metadata": "documents/groundswell/2020-02-20-television-advertising-contract-1791213460023.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.0008315222222222222222222222221",
@@ -109,13 +96,11 @@
     },
     {
       "sample": "02",
-      "pages": [
-        1
-      ],
+      "pages": [1],
       "id": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6-1",
       "title": "Hair salon receipt",
       "owner_id": "unknown",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/unknown/2020-11-04-hair-salon-receipt-1791213460030.toml",
+      "metadata": "documents/unknown/2020-11-04-hair-salon-receipt-1791213460030.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.0004424500000000000000000000000",
@@ -126,13 +111,11 @@
     },
     {
       "sample": "02",
-      "pages": [
-        2
-      ],
+      "pages": [2],
       "id": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6-2",
       "title": "Zara Home credit note",
       "owner_id": "unknown",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/unknown/2020-11-10-zara-home-credit-note-1791213460030.toml",
+      "metadata": "documents/unknown/2020-11-10-zara-home-credit-note-1791213460030.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.0004424500000000000000000000000",
@@ -143,13 +126,11 @@
     },
     {
       "sample": "02",
-      "pages": [
-        3
-      ],
+      "pages": [3],
       "id": "cf47c8b53d3527f00008f8585a56d34d0610ebab6855f26058b34011d30080a6-3",
       "title": "Flying Tiger purchase receipt",
       "owner_id": "unknown",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/unknown/2021-05-06-flying-tiger-purchase-receipt-1791213460030.toml",
+      "metadata": "documents/unknown/2021-05-06-flying-tiger-purchase-receipt-1791213460030.toml",
       "costs_usd": {
         "ocr": "0E-28",
         "split": "0.0004424500000000000000000000000",
@@ -160,13 +141,11 @@
     },
     {
       "sample": "03",
-      "pages": [
-        1
-      ],
+      "pages": [1],
       "id": "652822db97016eb89c0efa3b1d795eb5e53f2f0096155d2025510452de15a1a3-1",
       "title": "Confidential facsimile transmission cover sheet",
       "owner_id": "george-barody",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/george-barody/1998-12-10-confidential-facsimile-transmission-cover-sheet-1791213460032.toml",
+      "metadata": "documents/george-barody/1998-12-10-confidential-facsimile-transmission-cover-sheet-1791213460032.toml",
       "costs_usd": {
         "ocr": "0",
         "split": "0.00049053",
@@ -177,13 +156,11 @@
     },
     {
       "sample": "04",
-      "pages": [
-        1
-      ],
+      "pages": [1],
       "id": "188b248a1f6a14f2f0f33ec40b3e100b6e64f176f6f882713e7b7995668e002d-1",
       "title": "Direct mail coupon initiation form",
       "owner_id": "kelli-scruggs",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/kelli-scruggs/2000-01-21-direct-mail-coupon-initiation-form-1791213460034.toml",
+      "metadata": "documents/kelli-scruggs/2000-01-21-direct-mail-coupon-initiation-form-1791213460034.toml",
       "costs_usd": {
         "ocr": "0",
         "split": "0.00048443",
@@ -194,13 +171,11 @@
     },
     {
       "sample": "05",
-      "pages": [
-        1
-      ],
+      "pages": [1],
       "id": "5b378fccd8d7ebea1b3433dd0bc7cb63b106aec20d71afc4c11145bf5eda1edd-1",
       "title": "Fax cover page",
       "owner_id": "mike-mozina",
-      "metadata": "/Users/noorvir/code/paperman/.cache/real-scans/runs/2026-10-05-together-glm53-e2e/workspace/documents/mike-mozina/1998-08-31-fax-cover-page-1791213460035.toml",
+      "metadata": "documents/mike-mozina/1998-08-31-fax-cover-page-1791213460035.toml",
       "costs_usd": {
         "ocr": "0",
         "split": "0.00048103",

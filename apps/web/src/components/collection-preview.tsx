@@ -15,6 +15,7 @@ export function CollectionPreview({
   preview,
   back,
   openLink,
+  primaryAction,
   actions,
   navigation,
   onClose,
@@ -27,6 +28,7 @@ export function CollectionPreview({
   preview: boolean;
   back: ReactNode;
   openLink: ReactNode;
+  primaryAction?: ReactNode;
   actions?: ReactNode;
   navigation?: ReactNode;
   onClose: () => void;
@@ -45,6 +47,7 @@ export function CollectionPreview({
         badge={badge}
         back={!preview && back}
       >
+        {primaryAction}
         {preview && openLink}
         {actions}
         {preview && (

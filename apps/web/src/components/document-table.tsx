@@ -36,7 +36,7 @@ export function DocumentTable({
           <TableHead>Document</TableHead>
           <TableHead className="w-40">Owners</TableHead>
           <TableHead className="w-36">Tags</TableHead>
-          <TableHead className="w-28 text-center">Verification</TableHead>
+          <TableHead className="w-36">Verification</TableHead>
           <TableHead className="w-48">Processed at</TableHead>
         </TableRow>
       </TableHeader>
@@ -89,10 +89,11 @@ export function DocumentTable({
               />
             </TableCell>
             <TableCell>
-              <div className="flex items-center justify-center">
+              <div className="flex items-center gap-1.5 text-xs whitespace-nowrap">
                 <DocumentVerificationBadge
                   verified={Boolean(doc.verification)}
                 />
+                <span>{doc.verification ? "Verified" : "Not verified"}</span>
               </div>
             </TableCell>
             <TableCell className="whitespace-nowrap text-xs text-muted-foreground">

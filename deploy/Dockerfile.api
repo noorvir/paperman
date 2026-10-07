@@ -6,6 +6,6 @@ COPY apps/server/pyproject.toml apps/server/uv.lock ./apps/server/
 COPY apps/server/paperman ./apps/server/paperman
 COPY packages/parser/pyproject.toml ./packages/parser/
 COPY packages/parser/paperman_parser ./packages/parser/paperman_parser
-RUN uv sync --project apps/server --frozen --no-dev
+RUN uv sync --project apps/server --frozen --no-dev && chmod -R a+rX /app
 ENV PATH="/app/apps/server/.venv/bin:$PATH" PAPERMAN_DATA_DIR=/data PYDANTIC_AI_NO_BANNER=1
 CMD ["paperman", "serve", "--host", "0.0.0.0"]

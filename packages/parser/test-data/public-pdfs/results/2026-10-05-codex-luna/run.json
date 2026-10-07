@@ -3,9 +3,9 @@
   "model": "gpt-6-luna",
   "reasoning_effort": "high",
   "transport": "codex exec",
-  "auth": "existing ChatGPT login; no API key",
+  "auth": "Codex CLI authentication",
   "codex_version": "codex-cli 0.156.1",
-  "source_run": "/Users/noorvir/code/paperman/packages/parser/test-data/public-pdfs/results/2026-10-04-instructions-v3",
+  "source_run": "2026-10-04-instructions-v3",
   "source_sha256": {
     "01.json": "cb6fb175a6ac373a88f1d35387ca3b0d42e3a74887746e4771bd7fc91ebaf459",
     "02.json": "d81fe3f8904b294887c4f116a0b84a3ad655bcb0717159ad13a321badd470440",

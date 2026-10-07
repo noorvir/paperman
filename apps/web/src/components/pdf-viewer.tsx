@@ -40,12 +40,16 @@ export default function PdfViewer({
   onReady,
   rotations,
   onRotatePage,
+  initialPage,
+  highlightedPages,
 }: {
   url: string;
   title: string;
   onReady: () => void;
   rotations?: number[];
   onRotatePage?: (page: number) => void;
+  initialPage?: number;
+  highlightedPages?: number[];
 }) {
   const { engine, error } = usePdfiumEngine({
     // Blob workers need an absolute URL for the bundled WebAssembly asset.
@@ -119,6 +123,7 @@ export default function PdfViewer({
                     url={url}
                     editing={Boolean(rotations)}
                     onRotatePage={onRotatePage}
+                    initialPage={initialPage}
                   />
                   <Viewport
                     documentId={activeDocumentId}
@@ -131,7 +136,13 @@ export default function PdfViewer({
                       documentId={activeDocumentId}
                       renderPage={({ width, height, pageIndex }) => (
                         <div
-                          className="bg-white shadow-sm"
+                          className="bg-white shadow-sm data-[included=false]:opacity-25"
+                          data-page-number={pageIndex + 1}
+                          data-included={
+                            highlightedPages
+                              ? highlightedPages.includes(pageIndex + 1)
+                              : undefined
+                          }
                           style={{ width, height }}
                         >
                           <div

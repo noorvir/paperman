@@ -7,6 +7,7 @@ services:
     user: "${PAPERMAN_UID:-1000}:${PAPERMAN_GID:-1000}"
     environment:
       PAPERMAN_DATA_DIR: /data
+      PAPERMAN_MODEL_API_KEY: ${PAPERMAN_MODEL_API_KEY:-local}
     volumes:
       - ${PAPERMAN_DATA_DIR:?Set PAPERMAN_DATA_DIR to an existing document directory}:/data
   worker:

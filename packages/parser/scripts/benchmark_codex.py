@@ -282,11 +282,11 @@ async def benchmark(
         "transport": "compatible endpoint" if settings else "codex exec",
         "auth": "endpoint credential supplied by caller"
         if settings
-        else "existing ChatGPT login; no API key",
+        else "Codex CLI authentication",
         "codex_version": subprocess.check_output(
             ["codex", "--version"], text=True
         ).strip(),
-        "source_run": str(source) if source is not None else None,
+        "source_run": source.name if source is not None else None,
         "ocr": "cached" if source is not None else "not run; inference-only eval",
         "model_input": "rendered PDF page images only",
         "image_max_edge": image_max_edge or 1600,

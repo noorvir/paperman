@@ -10,7 +10,7 @@ import { BackLink } from "@/components/back-link";
 import { formatDate } from "@/components/page";
 import { DocumentView } from "@/components/document-view";
 import { DocumentTabs } from "@/components/document-tabs";
-import { DocumentVerificationBadge } from "@/components/document-verification-badge";
+import { DocumentVerificationBadge } from "./document-verification-badge";
 import { VerifyDocument } from "@/components/verify-document";
 import { ReprocessDocument } from "@/components/reprocess-document";
 import { DocumentFilterLink } from "@/components/document-filter-link";
@@ -67,9 +67,7 @@ export function DocumentDetail({
     <CollectionPreview
       id={document.id}
       title={document.title}
-      badge={
-        <DocumentVerificationBadge verified={Boolean(document.verification)} />
-      }
+      badge={document.verification && <DocumentVerificationBadge verified />}
       description={
         <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
           {document.owner_ids.map((id) => {
@@ -137,6 +135,11 @@ export function DocumentDetail({
           resetScroll={false}
         />
       }
+      primaryAction={
+        !edit && (
+          <VerifyDocument document={document} search={search} view={view} />
+        )
+      }
       actions={
         edit ? (
           <PreviewAction
@@ -153,7 +156,6 @@ export function DocumentDetail({
           </PreviewAction>
         ) : (
           <>
-            {!document.verification && <VerifyDocument document={document} />}
             <PreviewAction icon={Pen01Icon} onClick={() => setEditing(true)}>
               Edit
             </PreviewAction>
