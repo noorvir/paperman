@@ -41,7 +41,6 @@ export function useWorkspaceBreadcrumbs() {
             search={{
               ...document.search,
               edit: false,
-              preview: document.search.preview && !document.search.edit,
             }}
             resetScroll={false}
           />

@@ -4,16 +4,19 @@ import {
   stripSearchParams,
 } from "@tanstack/react-router";
 import { z } from "zod";
+import { Pen01Icon } from "@hugeicons/core-free-icons";
 import { getScan, getCatalog, getDocument, scanSearch } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
-import { formatDate } from "@/components/page";
+import { LocalTime } from "@/components/local-time";
 import { ScanStatus } from "@/components/collection";
 import {
   CollectionPreview,
   OpenPreviewLink,
 } from "@/components/collection-preview";
 import { ScanView } from "@/components/scan-view";
-import { buttonVariants } from "@/components/ui/button";
+import { ScanNavigation } from "@/components/scan-navigation";
+import { ReprocessScan } from "@/components/reprocess-scan";
+import { PreviewAction } from "@/components/preview-action";
 
 export const Route = createFileRoute("/scans/$scanId")({
   validateSearch: z.object({
@@ -45,20 +48,33 @@ function ScanDetail() {
     <CollectionPreview
       id={scan.id}
       title={scan.original_name}
-      description={`${scan.page_count || "—"} pages · Scanned ${formatDate(scan.scanned_at)}`}
+      badge={<ScanStatus status={scan.status} />}
+      description={
+        <>
+          {scan.page_count || "—"} pages · Scanned{" "}
+          <LocalTime value={scan.scanned_at} dateOnly />
+        </>
+      }
       preview={search.preview}
+      navigation={
+        <ScanNavigation scan={scan} documents={documents} view={search.view} />
+      }
       actions={
         <>
           {scan.status === "complete" && (
-            <Link
-              to="/scans/$scanId/review"
-              params={{ scanId: scan.id }}
-              className={buttonVariants({ variant: "outline" })}
+            <PreviewAction
+              icon={Pen01Icon}
+              nativeButton={false}
+              render={
+                <Link to="/scans/$scanId/review" params={{ scanId: scan.id }} />
+              }
             >
-              Edit page groups
-            </Link>
+              Edit pages
+            </PreviewAction>
           )}
-          <ScanStatus status={scan.status} />
+          {scan.status === "complete" && (
+            <ReprocessScan scan={scan} documents={documents} />
+          )}
         </>
       }
       onClose={() =>
@@ -91,6 +107,7 @@ function ScanDetail() {
         catalog={catalog}
         documents={documents}
         view={search.view}
+        sidebar={!search.preview}
       />
     </CollectionPreview>
   );

@@ -1,7 +1,15 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/inter";
+
+@font-face {
+  font-family: "Inter Variable";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: optional;
+  src: url("@fontsource-variable/inter/files/inter-latin-wght-normal.woff2")
+    format("woff2");
+}
 
 @custom-variant dark (&:is(.dark *));
 
@@ -130,25 +138,64 @@
 }
 @layer components {
   .workspace-toolbar {
-    @apply grid min-h-11 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b px-3 sm:gap-x-6 sm:px-4 md:grid-cols-[auto_minmax(0,1fr)_auto] xl:grid-cols-3;
+    @apply grid min-h-11 shrink-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-b px-3 sm:gap-x-6 sm:px-4;
+  }
+  .workspace-toolbar[data-breadcrumbs="true"] {
+    @apply grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)];
   }
   .workspace-toolbar-start {
     @apply col-start-1 row-start-1 flex h-11 min-w-0 items-center gap-3 sm:gap-6;
+    container: navigation / inline-size;
   }
   .workspace-toolbar-breadcrumbs {
-    @apply col-span-2 row-start-2 flex min-w-0 items-center justify-center pb-2 md:col-span-1 md:col-start-2 md:row-start-1 md:pb-0;
+    @apply col-start-2 row-start-1 flex min-w-0 max-w-[min(32rem,36vw)] items-center justify-center;
   }
   .workspace-toolbar-end {
-    @apply col-start-2 row-start-1 flex h-11 items-center justify-end gap-3 md:col-start-3;
+    @apply col-start-2 row-start-1 flex h-11 min-w-0 items-center justify-end gap-3;
+  }
+  .workspace-toolbar[data-breadcrumbs="true"] .workspace-toolbar-end {
+    @apply col-start-3;
+    container: navigation / inline-size;
   }
   .workspace-nav {
+    @apply flex h-full shrink-0 items-center;
+  }
+  .workspace-nav-tabs {
     @apply flex h-full items-center gap-1;
   }
-  .workspace-nav a {
+  .workspace-nav-tabs a {
     @apply rounded-md px-2 py-1.5 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground sm:px-3;
   }
-  .workspace-nav a[aria-current="page"] {
+  .workspace-nav-tabs a[aria-current="page"] {
     @apply bg-muted font-medium text-foreground;
+  }
+  .workspace-nav-menu {
+    @apply hidden;
+  }
+  .workspace-toolbar-controls {
+    @apply flex items-center gap-3;
+  }
+  @container navigation (max-width: 22.25rem) {
+    .workspace-toolbar[data-breadcrumbs="true"] .workspace-nav-tabs,
+    .workspace-toolbar[data-breadcrumbs="true"] .workspace-toolbar-controls {
+      @apply hidden;
+    }
+    .workspace-toolbar[data-breadcrumbs="true"] .workspace-nav-menu {
+      @apply block;
+    }
+  }
+  @media (width < 40rem) {
+    @container navigation (min-width: 15.25rem) {
+      .workspace-toolbar[data-breadcrumbs="true"] .workspace-nav-tabs {
+        @apply flex;
+      }
+      .workspace-toolbar[data-breadcrumbs="true"] .workspace-toolbar-controls {
+        @apply flex;
+      }
+      .workspace-toolbar[data-breadcrumbs="true"] .workspace-nav-menu {
+        @apply hidden;
+      }
+    }
   }
   .workspace-content {
     @apply flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:px-6 sm:pb-6 lg:px-8;
@@ -257,10 +304,12 @@
   .view-tabs {
     @apply flex shrink-0 gap-5 overflow-x-auto border-b;
   }
-  .view-tabs a {
+  .view-tabs a,
+  .view-tabs [role="tab"] {
     @apply whitespace-nowrap border-b-2 border-transparent py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground;
   }
-  .view-tabs a[data-active="true"] {
+  .view-tabs a[data-active="true"],
+  .view-tabs [role="tab"][aria-selected="true"] {
     @apply border-foreground font-medium text-foreground;
   }
 }
@@ -295,31 +344,43 @@
   .document-panels {
     @apply grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)];
   }
-  .document-edit-layout {
+  .detail-view-layout {
     @apply grid min-h-0 flex-1 grid-cols-[minmax(0,1fr)] grid-rows-[minmax(0,1fr)];
   }
-  .document-read-view {
-    @apply col-start-1 row-start-1 min-h-0 min-w-0;
+  .detail-sidebar {
+    @apply hidden;
   }
-  .document-edit-panel {
-    @apply z-10 col-start-1 row-start-1 flex min-h-0 min-w-0 flex-col bg-background;
+  .detail-view-layout > .detail-primary {
+    @apply col-start-1 row-start-1;
   }
-  .document-edit-layout[data-editing="true"] > .document-read-view,
-  .document-edit-layout[data-editing="true"]
-    .document-panel[data-active="true"] {
-    @apply invisible;
+  .detail-view-layout[data-editing="true"] {
+    @apply grid-rows-[minmax(12rem,1fr)_minmax(20rem,1fr)] gap-4 overflow-y-auto;
+  }
+  .detail-editor {
+    @apply col-start-1 row-start-2 flex min-h-0 min-w-0 flex-col overflow-hidden;
+  }
+  .editor-panel {
+    @apply flex min-h-0 flex-1 flex-col gap-3 outline-none;
+  }
+  .editor-panel[hidden] {
+    @apply hidden;
   }
   @container preview (min-width: 48rem) {
-    .document-edit-layout[data-editing="true"] {
-      @apply grid-cols-[minmax(0,1fr)_22rem] gap-4;
+    .detail-view-layout[data-sidebar="true"] {
+      @apply grid-cols-[minmax(0,1fr)_18rem] gap-6;
     }
-    .document-edit-layout[data-editing="true"] > .document-read-view,
-    .document-edit-layout[data-editing="true"]
-      .document-panel[data-active="true"] {
-      @apply visible;
+    .detail-sidebar {
+      @apply flex min-h-0 min-w-0 flex-col overflow-y-auto overscroll-contain border-l pl-6;
+      scrollbar-gutter: stable;
     }
-    .document-edit-panel {
-      @apply col-start-2 border-l;
+    .detail-information-compact {
+      @apply hidden;
+    }
+    .detail-view-layout[data-editing="true"] {
+      @apply grid-cols-2 grid-rows-[minmax(0,1fr)] gap-6 overflow-hidden;
+    }
+    .detail-editor {
+      @apply col-start-2 row-start-1 border-l pl-6;
     }
   }
   .document-panel {

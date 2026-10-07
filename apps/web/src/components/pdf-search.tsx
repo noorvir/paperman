@@ -36,6 +36,8 @@ export function PdfSearch({
       aria-label="Search PDF text"
       onKeyDown={(event) => {
         if (event.key === "Escape") {
+          event.preventDefault();
+          event.stopPropagation();
           onClose();
         }
       }}

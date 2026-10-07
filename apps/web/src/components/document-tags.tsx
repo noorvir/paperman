@@ -1,4 +1,6 @@
 import type { ComponentProps } from "react";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Add01Icon } from "@hugeicons/core-free-icons";
 import { getDocumentTags } from "@/lib/catalog-icons";
 import type { components } from "@/lib/schema";
 import { saveEntry } from "@/lib/actions";
@@ -17,6 +19,19 @@ export function DocumentTags({
   search: ComponentProps<typeof TagLink>["search"];
 }) {
   const tags = getDocumentTags(document, catalog);
+  const knownNames = new Set(
+    catalog.tags.map((tag) => formatTagName(tag.name).toLowerCase()),
+  );
+  const suggestions: string[] = [];
+  for (const value of document.suggested_tags) {
+    const name = formatTagName(value);
+    const key = name.toLowerCase();
+    if (!name || knownNames.has(key)) {
+      continue;
+    }
+    knownNames.add(key);
+    suggestions.push(name);
+  }
   return (
     <>
       <section className="workspace-section border-y py-4">
@@ -35,20 +50,18 @@ export function DocumentTags({
           )}
         </div>
       </section>
-      {allowActions &&
-        document.suggested_tags
-          .filter(
-            (name) =>
-              !catalog.tags.some(
-                (tag) => tag.name.toLowerCase() === name.toLowerCase(),
-              ),
-          )
-          .map((name) => (
-            <div key={name} className="workspace-section">
-              <p className="text-xs text-muted-foreground">
-                Suggested tag: {name}
-              </p>
+      {allowActions && suggestions.length > 0 && (
+        <section className="workspace-section">
+          <h3 className="text-xs font-medium">Suggested tags</h3>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((name) => (
               <ActionButton
+                key={name}
+                variant="secondary"
+                size="sm"
+                className="max-w-full gap-1.5 rounded-full px-2 font-normal"
+                aria-label={`Add ${name} to catalog`}
+                title={`Add ${name} to catalog`}
                 action={() =>
                   saveEntry({
                     data: {
@@ -59,10 +72,18 @@ export function DocumentTags({
                   })
                 }
               >
-                Add to catalog
+                <HugeiconsIcon icon={Add01Icon} aria-hidden="true" />
+                <span className="truncate">{name}</span>
               </ActionButton>
-            </div>
-          ))}
+            ))}
+          </div>
+        </section>
+      )}
     </>
   );
+}
+
+function formatTagName(value: string) {
+  const name = value.replace(/_/g, " ").trim().replace(/\s+/g, " ");
+  return name.charAt(0).toUpperCase() + name.slice(1);
 }

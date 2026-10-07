@@ -8,8 +8,7 @@ import { DocumentTagPopover } from "./document-tag-popover";
 import type { DocumentTable } from "./document-table";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import wasmUrl from "@embedpdf/pdfium/pdfium.wasm?url";
-import { OwnerLabel } from "./collection";
-import { DocumentFilterLink } from "./document-filter-link";
+import { DocumentOwners } from "./document-owners";
 
 export default function DocumentGrid({
   documents,
@@ -22,7 +21,6 @@ export default function DocumentGrid({
     wasmUrl: new URL(wasmUrl, window.location.href).href,
     fontFallback: null,
   });
-  const owners = new Map(catalog.owners.map((owner) => [owner.id, owner.name]));
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4 py-4">
       {documents.map((doc) => {
@@ -38,9 +36,8 @@ export default function DocumentGrid({
             <CollectionLink
               itemId={doc.id}
               selected={selectedId === doc.id}
-              to="/documents/$documentId"
-              params={{ documentId: doc.id }}
-              search={{ ...search, preview: true, view: "pdf" }}
+              to="/documents"
+              search={{ ...search, preview: doc.id, view: "pdf" }}
               resetScroll={false}
               aria-label={`Preview ${doc.title}`}
               title={doc.final_path}
@@ -61,14 +58,11 @@ export default function DocumentGrid({
               {doc.title}
             </p>
             <div className="mt-3 flex items-center justify-between gap-2 text-xs">
-              <DocumentFilterLink
+              <DocumentOwners
+                ownerIds={doc.owner_ids}
+                owners={catalog.owners}
                 search={search}
-                filter={{ owner: [doc.owner_id] }}
-                aria-label={`Filter by owner: ${owners.get(doc.owner_id) ?? doc.owner_id}`}
-                className="-ml-1"
-              >
-                <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
-              </DocumentFilterLink>
+              />
               <DocumentTagPopover
                 document={doc}
                 catalog={catalog}

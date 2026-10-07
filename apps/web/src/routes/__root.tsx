@@ -11,7 +11,8 @@ import { cn } from "cn";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getSettings } from "@/lib/queries";
-import styles from "@/style.css?url";
+import "@/style.css";
+import interFont from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 
 export const Route = createRootRoute({
   loader: () => getSettings(),
@@ -21,7 +22,15 @@ export const Route = createRootRoute({
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "PaperMan" },
     ],
-    links: [{ rel: "stylesheet", href: styles }],
+    links: [
+      {
+        rel: "preload",
+        href: interFont,
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+    ],
   }),
   component: Root,
   notFoundComponent: () => (

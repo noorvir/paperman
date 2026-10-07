@@ -1,3 +1,5 @@
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate, useRouter } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
@@ -5,14 +7,14 @@ import { approveScan, reviseScan } from "@/lib/actions";
 import { ErrorNotice } from "./page";
 import { Input } from "./ui/input";
 import { Button, buttonVariants } from "./ui/button";
-import { SelectField } from "./select-field";
+import { OwnerSelection } from "./owner-selection";
 import { DatePicker } from "./date-picker";
 import { ReviewFeedback } from "./review-feedback";
 
 type Proposal = NonNullable<components["schemas"]["Scan"]["proposal"]>;
 type Draft = {
   pages: string;
-  owner_id: string;
+  owner_ids: string[];
   title: string;
   document_date: string;
   review_reason: string;
@@ -32,10 +34,16 @@ export function ReviewForm({
   const [drafts, setDrafts] = useState<Draft[]>(toDrafts(proposal));
   const [pending, setPending] = useState(false);
   const [blankPages, setBlankPages] = useState(proposal.blank_pages.join(", "));
+  const [rotations, setRotations] = useState(proposal.page_rotations);
   const [error, setError] = useState("");
+  const [instructions, setInstructions] = useState("");
+  const unsaved = useUnsavedChanges(
+    JSON.stringify({ drafts, blankPages, rotations, instructions }),
+  );
   const [previous, setPrevious] = useState<{
     drafts: Draft[];
     blankPages: string;
+    rotations: Proposal["page_rotations"];
   } | null>(null);
   const navigate = useNavigate();
   const router = useRouter();
@@ -50,6 +58,7 @@ export function ReviewForm({
   }
   function getProposal() {
     return {
+      page_rotations: rotations,
       documents: drafts.map((draft) => ({
         ...draft,
         pages: draft.pages.split(",").map((page) => Number(page.trim())),
@@ -67,7 +76,8 @@ export function ReviewForm({
       const result = await reviseScan({
         data: { id: scan.id, proposal: getProposal(), instructions },
       });
-      setPrevious({ drafts, blankPages });
+      setPrevious({ drafts, blankPages, rotations });
+      setRotations(result.page_rotations);
       setDrafts(toDrafts(result));
       setBlankPages(result.blank_pages.join(", "));
     } finally {
@@ -94,10 +104,12 @@ export function ReviewForm({
           proposal: {
             documents,
             blank_pages: current.blank_pages,
+            page_rotations: current.page_rotations,
             document_revisions: revisions,
           },
         },
       });
+      unsaved.markSaved();
       await router.invalidate();
       await navigate({ to: "/scans/$scanId", params: { scanId: scan.id } });
     } catch (error) {
@@ -113,12 +125,15 @@ export function ReviewForm({
       className="workspace-section"
       onSubmit={(event) => void submit(event)}
     >
+      <UnsavedChangesDialog blocker={unsaved.blocker} />
       <p className="text-xs leading-relaxed text-muted-foreground">
         Account for pages 1 through {scan.page_count}, once each, in a document
         group or as a blank page. Keep document pages in source order. A blank
         date uses the scan date. Check the fields marked in amber.
       </p>
       <ReviewFeedback
+        instructions={instructions}
+        onInstructionsChange={setInstructions}
         disabled={pending}
         onRevise={revise}
         onUndo={
@@ -126,6 +141,7 @@ export function ReviewForm({
             ? () => {
                 setDrafts(previous.drafts);
                 setBlankPages(previous.blankPages);
+                setRotations(previous.rotations);
                 setPrevious(null);
               }
             : undefined
@@ -147,6 +163,17 @@ export function ReviewForm({
           restore a page, remove its number here and add it to a document group.
         </span>
       </label>
+      {rotations.length > 0 && (
+        <p className="text-xs text-muted-foreground">
+          Page corrections:{" "}
+          {rotations
+            .map(
+              ({ page, clockwise }) => `page ${page}: ${clockwise}° clockwise`,
+            )
+            .join(", ")}
+          . These are applied when filing. The source preview is unchanged.
+        </p>
+      )}
       {drafts.length === 0 && (
         <p className="text-xs leading-relaxed text-muted-foreground">
           No documents will be filed. Confirm that every source page is blank,
@@ -222,23 +249,11 @@ export function ReviewForm({
               </label>
             </div>
             <div className="grid grid-cols-2 gap-3">
-              <label className="field-label">
-                Owner
-                <SelectField
-                  label={`Document ${index + 1} owner`}
-                  value={draft.owner_id}
-                  attention={
-                    draft.owner_id === "unknown"
-                      ? "Owner not identified. Select an owner or keep Unknown."
-                      : undefined
-                  }
-                  onValueChange={(value) => update(index, { owner_id: value })}
-                  items={owners.map((owner) => ({
-                    value: owner.id,
-                    label: owner.name,
-                  }))}
-                />
-              </label>
+              <OwnerSelection
+                owners={owners}
+                value={draft.owner_ids}
+                onChange={(owner_ids) => update(index, { owner_ids })}
+              />
               <label className="field-label">
                 Document date
                 <DatePicker
@@ -270,7 +285,7 @@ export function ReviewForm({
               {
                 pages: "",
                 title: "",
-                owner_id: "unknown",
+                owner_ids: ["unknown"],
                 document_date: "",
                 review_reason: "",
                 confidence: 1,

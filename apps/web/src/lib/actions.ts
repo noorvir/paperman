@@ -66,11 +66,26 @@ export const retryScan = createServerFn({ method: "POST" })
     });
     return unwrap(result);
   });
+export const reprocessScan = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string(),
+      filing_revision: z.number().int().min(0),
+      document_revisions: z.record(z.string(), z.number().int().min(0)),
+    }),
+  )
+  .handler(async ({ data: { id, ...confirmation } }) => {
+    const result = await client.POST("/api/scans/{scan_id}/reprocess", {
+      params: { path: { scan_id: id } },
+      body: confirmation,
+    });
+    return unwrap(result);
+  });
 export const proposalInput = z.object({
   documents: z.array(
     z.object({
       pages: z.array(z.number().int().min(1)).min(1),
-      owner_id: z.string(),
+      owner_ids: z.array(z.string()).min(1),
       title: z.string().trim().min(1),
       document_date: z.string().nullable(),
       confidence: z.number().min(0).max(1),
@@ -78,6 +93,14 @@ export const proposalInput = z.object({
     }),
   ),
   blank_pages: z.array(z.number().int().min(1)).default([]),
+  page_rotations: z
+    .array(
+      z.object({
+        page: z.number().int().min(1),
+        clockwise: z.union([z.literal(90), z.literal(180), z.literal(270)]),
+      }),
+    )
+    .default([]),
 });
 export const approveScan = createServerFn({ method: "POST" })
   .validator(
@@ -134,7 +157,7 @@ export const editDocument = createServerFn({ method: "POST" })
       value: z.object({
         revision: z.number().int().min(0),
         title: z.string().trim().min(1).max(120),
-        owner_id: z.string(),
+        owner_ids: z.array(z.string()).min(1),
         document_date: z.string().nullable(),
         summary: z.string().max(10000),
         tag_ids: z.array(z.string()),

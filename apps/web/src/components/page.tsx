@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ComponentProps, ReactNode } from "react";
 import { useState } from "react";
 import { useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
@@ -17,12 +17,14 @@ export function PageHeader({
   children,
   count,
   back,
+  badge,
 }: {
   title: string;
   description: ReactNode;
   count?: number;
   children?: ReactNode;
   back?: ReactNode;
+  badge?: ReactNode;
 }) {
   return (
     <header className="workspace-heading">
@@ -36,6 +38,7 @@ export function PageHeader({
             >
               {title}
             </h1>
+            {badge && <span className="shrink-0">{badge}</span>}
             {count !== undefined && (
               <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
                 {count}
@@ -153,10 +156,10 @@ export function ActionButton({
   action,
   children,
   disabled = false,
-}: {
+  variant = "outline",
+  ...props
+}: Omit<ComponentProps<typeof Button>, "onClick"> & {
   action: () => Promise<unknown>;
-  children: ReactNode;
-  disabled?: boolean;
 }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -176,7 +179,8 @@ export function ActionButton({
   return (
     <div className="inline-flex max-w-full flex-col items-start gap-2">
       <Button
-        variant="outline"
+        {...props}
+        variant={variant}
         disabled={pending || disabled}
         onClick={() => void run()}
       >

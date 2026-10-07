@@ -1,4 +1,5 @@
 import { useLiveData } from "@/hooks/use-live-data";
+import { z } from "zod";
 import {
   createFileRoute,
   redirect,
@@ -13,7 +14,15 @@ import {
   ArrowRight01Icon,
   Upload04Icon,
 } from "@hugeicons/core-free-icons";
-import { documentSearch, getCatalog, getDocuments } from "@/lib/queries";
+import {
+  documentSearch,
+  documentView,
+  getCatalog,
+  getDocuments,
+  getDocument,
+  getScan,
+} from "@/lib/queries";
+import { DocumentDetail } from "@/components/document-detail";
 import { EmptyState, PageHeader } from "@/components/page";
 import {
   Collection,
@@ -27,13 +36,31 @@ import { DocumentCollection } from "@/components/document-collection";
 import { DocumentLayoutToggle } from "@/components/document-layout-toggle";
 
 export const Route = createFileRoute("/documents")({
-  validateSearch: documentSearch,
-  search: { middlewares: [stripSearchParams(documentSearch.parse({}))] },
-  loaderDeps: ({ search }) => search,
+  validateSearch: documentSearch.extend({
+    preview: z
+      .union([z.string(), z.literal(true)])
+      .catch("")
+      .default(""),
+    view: documentView.default("pdf"),
+  }),
+  search: {
+    middlewares: [
+      stripSearchParams({
+        ...documentSearch.parse({}),
+        preview: "",
+        view: "pdf",
+      }),
+    ],
+  },
+  loaderDeps: ({ search }) => ({
+    ...documentSearch.parse(search),
+    preview: typeof search.preview === "string" ? search.preview : "",
+  }),
   loader: async ({ deps }) => {
-    const [documents, catalog] = await Promise.all([
+    const [documents, catalog, preview] = await Promise.all([
       getDocuments({ data: deps }),
       getCatalog(),
+      deps.preview ? getDocument({ data: deps.preview }) : null,
     ]);
     if (deps.page > documents.pages) {
       throw redirect({
@@ -41,38 +68,49 @@ export const Route = createFileRoute("/documents")({
         search: { ...deps, page: documents.pages },
       });
     }
-    return { documents, catalog };
+    let scanName = "";
+    if (preview) {
+      const scan = await getScan({ data: preview.document.scan_id });
+      scanName = scan.original_name;
+    }
+    return { documents, catalog, preview, scanName };
   },
   component: Documents,
 });
 function Documents() {
   useLiveData();
-  const { documents, catalog } = Route.useLoaderData();
-  const search = documentSearch.parse(Route.useSearch());
+  const { documents, catalog, preview, scanName } = Route.useLoaderData();
+  const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const detail = useMatch({
     from: "/documents/$documentId",
     shouldThrow: false,
   });
-  const full =
-    detail !== undefined && (!detail.search.preview || detail.search.edit);
-  const change = (next: typeof search) => {
-    void navigate({ to: "/documents", search: next });
+  const full = detail !== undefined;
+  const change = (next: z.output<typeof documentSearch>) => {
+    void navigate({ to: "/documents", search: documentSearch.parse(next) });
   };
   return (
     <CollectionWorkspace
       full={full}
       items={documents.items}
-      selectedId={detail?.params.documentId}
-      onNavigate={(documentId, preview) =>
-        navigate({
+      selectedId={preview?.document.id}
+      onNavigate={(documentId, preview) => {
+        if (preview) {
+          return navigate({
+            to: "/documents",
+            search: { ...search, preview: documentId },
+            resetScroll: false,
+            replace: Boolean(search.preview),
+          });
+        }
+        return navigate({
           to: "/documents/$documentId",
           params: { documentId },
-          search: { ...search, preview, view: detail?.search.view ?? "pdf" },
+          search: { ...documentSearch.parse(search), view: search.view },
           resetScroll: false,
-          replace: preview && detail !== undefined,
-        })
-      }
+        });
+      }}
     >
       <PageHeader
         title="Documents"
@@ -85,7 +123,23 @@ function Documents() {
         </Link>
       </PageHeader>
       <Collection
-        preview={<Outlet />}
+        preview={
+          full ? (
+            <Outlet />
+          ) : (
+            preview && (
+              <DocumentDetail
+                {...preview}
+                scanName={scanName}
+                catalog={catalog}
+                search={documentSearch.parse(search)}
+                view={search.view}
+                preview
+                edit={false}
+              />
+            )
+          )
+        }
         toolbar={
           <>
             <SearchField
@@ -153,7 +207,7 @@ function Documents() {
             documents={documents.items}
             catalog={catalog}
             search={search}
-            selectedId={detail?.params.documentId}
+            selectedId={preview?.document.id}
           />
         )}
       </Collection>

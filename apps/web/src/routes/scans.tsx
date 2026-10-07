@@ -19,7 +19,8 @@ import {
   CollectionRow,
 } from "@/components/collection-workspace";
 import { scanSearch, getScans } from "@/lib/queries";
-import { EmptyState, PageHeader, formatDate } from "@/components/page";
+import { EmptyState, PageHeader } from "@/components/page";
+import { LocalTime } from "@/components/local-time";
 import {
   Collection,
   CollectionFooter,
@@ -205,7 +206,7 @@ function Scans() {
                     {scan.document_ids.length || "—"}
                   </TableCell>
                   <TableCell className="hidden text-muted-foreground tabular-nums sm:table-cell">
-                    {formatDate(scan.scanned_at)}
+                    <LocalTime value={scan.scanned_at} dateOnly />
                   </TableCell>
                 </CollectionRow>
               ))}

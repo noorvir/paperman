@@ -7,6 +7,7 @@
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
     "typecheck": "tsc --project tsconfig.json",
+    "test:browser": "node --test --test-concurrency=1 tests/*.test.mjs",
     "start": "node .output/server/index.mjs",
     "generate:api": "openapi-typescript ../../openapi.json -o src/lib/schema.d.ts"
   },
@@ -48,6 +49,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^6.1.1",
     "openapi-typescript": "^7.13.0",
+    "playwright-core": "1.62.1",
     "tailwindcss": "^4.3.3",
     "vite": "^8.3.2"
   }

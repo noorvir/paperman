@@ -13,5 +13,5 @@ export const Route = createFileRoute("/settings/$catalog_/$entryId/edit")({
 });
 function EditEntry() {
   const { kind, entry } = Route.useLoaderData();
-  return <CatalogForm kind={kind} entry={entry} />;
+  return <CatalogForm key={`${kind}-${entry.id}`} kind={kind} entry={entry} />;
 }

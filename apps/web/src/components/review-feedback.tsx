@@ -4,15 +4,18 @@ import { Textarea } from "./ui/textarea";
 import { ErrorNotice } from "./page";
 
 export function ReviewFeedback({
+  instructions,
+  onInstructionsChange,
   disabled,
   onRevise,
   onUndo,
 }: {
+  instructions: string;
+  onInstructionsChange: (value: string) => void;
   disabled: boolean;
   onRevise: (instructions: string) => Promise<void>;
   onUndo?: () => void;
 }) {
-  const [instructions, setInstructions] = useState("");
   const [pending, setPending] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -39,10 +42,7 @@ export function ReviewFeedback({
   }
 
   return (
-    <section
-      className="workspace-section rounded-md border p-3"
-      aria-label="Review feedback"
-    >
+    <section className="workspace-section" aria-label="Review feedback">
       <label className="field-label">
         Describe changes
         <Textarea
@@ -51,7 +51,7 @@ export function ReviewFeedback({
           maxLength={4000}
           rows={3}
           placeholder="For example: Keep pages 1–4 together. Page 5 starts a new document. Assign both to Sam."
-          onChange={(event) => setInstructions(event.target.value)}
+          onChange={(event) => onInstructionsChange(event.target.value)}
         />
       </label>
       <p className="workspace-description">

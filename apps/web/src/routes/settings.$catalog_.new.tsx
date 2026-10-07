@@ -6,5 +6,6 @@ export const Route = createFileRoute("/settings/$catalog_/new")({
   component: NewEntry,
 });
 function NewEntry() {
-  return <CatalogForm kind={Route.useLoaderData()} entry={null} />;
+  const kind = Route.useLoaderData();
+  return <CatalogForm key={kind} kind={kind} entry={null} />;
 }

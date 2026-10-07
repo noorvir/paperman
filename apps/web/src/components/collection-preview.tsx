@@ -1,34 +1,77 @@
 import { useRef, type ComponentProps, type ReactNode } from "react";
 import { createLink } from "@tanstack/react-router";
 import { Dialog } from "@base-ui/react/dialog";
-import { cn } from "cn";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cancel01Icon, FullScreenIcon } from "@hugeicons/core-free-icons";
 import { PageHeader } from "./page";
-import { Button, buttonVariants } from "./ui/button";
+import { Button } from "./ui/button";
+import { PreviewAction } from "./preview-action";
 
 export function CollectionPreview({
   id,
   title,
   description,
+  badge,
   preview,
   back,
   openLink,
   actions,
+  navigation,
   onClose,
   children,
 }: {
   id: string;
   title: string;
   description: ReactNode;
+  badge?: ReactNode;
   preview: boolean;
   back: ReactNode;
   openLink: ReactNode;
   actions?: ReactNode;
+  navigation?: ReactNode;
   onClose: () => void;
   children: ReactNode;
 }) {
   const container = useRef<HTMLDivElement>(null);
+  const heading = (
+    <div
+      className="flex shrink-0 flex-col gap-3 data-[navigation=false]:border-b data-[navigation=false]:pb-3"
+      data-slot="collection-header"
+      data-navigation={Boolean(navigation)}
+    >
+      <PageHeader
+        title={title}
+        description={description}
+        badge={badge}
+        back={!preview && back}
+      >
+        {preview && openLink}
+        {actions}
+        {preview && (
+          <Dialog.Close
+            render={<Button variant="ghost" size="icon" />}
+            aria-label="Close preview"
+            title="Close preview"
+          >
+            <HugeiconsIcon icon={Cancel01Icon} />
+          </Dialog.Close>
+        )}
+      </PageHeader>
+      {navigation}
+    </div>
+  );
+  if (!preview) {
+    return (
+      <section
+        className="collection-preview"
+        data-preview={false}
+        aria-label={title}
+      >
+        {heading}
+        {children}
+      </section>
+    );
+  }
   return (
     <div ref={container} className="contents">
       <Dialog.Root
@@ -49,25 +92,7 @@ export function CollectionPreview({
             initialFocus={false}
             finalFocus={() => document.getElementById(`collection-item-${id}`)}
           >
-            <PageHeader
-              title={title}
-              description={description}
-              back={!preview && back}
-            >
-              {actions}
-              {preview && (
-                <>
-                  {openLink}
-                  <Dialog.Close
-                    render={<Button variant="ghost" size="icon" />}
-                    aria-label="Close preview"
-                    title="Close preview"
-                  >
-                    <HugeiconsIcon icon={Cancel01Icon} />
-                  </Dialog.Close>
-                </>
-              )}
-            </PageHeader>
+            {heading}
             {children}
           </Dialog.Popup>
         </Dialog.Portal>
@@ -80,14 +105,14 @@ export const OpenPreviewLink = createLink(function OpenPreviewAnchor({
   ...props
 }: ComponentProps<"a">) {
   return (
-    <a
-      {...props}
-      className={cn(buttonVariants({ variant: "outline" }))}
+    <PreviewAction
+      render={(buttonProps) => <a {...props} {...buttonProps} />}
+      nativeButton={false}
+      icon={FullScreenIcon}
       title="Open full view"
       aria-label="Open full view"
     >
-      <HugeiconsIcon icon={FullScreenIcon} />
       Open
-    </a>
+    </PreviewAction>
   );
 });

@@ -124,6 +124,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scans/{scan_id}/reprocess": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reprocess Scan */
+        post: operations["reprocess_scan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scans/{scan_id}/review": {
         parameters: {
             query?: never;
@@ -310,6 +327,8 @@ export interface components {
         "Analysis-Input": {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Input"][];
+            /** Page Rotations */
+            page_rotations?: components["schemas"]["PageRotation"][];
             /**
              * Blank Pages
              * @description Confirmed blank source pages omitted from filed documents. Originals retain every page.
@@ -320,6 +339,8 @@ export interface components {
         "Analysis-Output": {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Output"][];
+            /** Page Rotations */
+            page_rotations: components["schemas"]["PageRotation"][];
             /**
              * Blank Pages
              * @description Confirmed blank source pages omitted from filed documents. Originals retain every page.
@@ -382,14 +403,21 @@ export interface components {
         };
         /** Document */
         Document: {
+            /** Owner Ids */
+            owner_ids: string[];
             /** Id */
             id: string;
             /** Scan Id */
             scan_id: string;
             /** Source Pages */
             source_pages: number[];
-            /** Owner Id */
-            owner_id: string;
+            /**
+             * Processing Run
+             * @default 1
+             */
+            processing_run: number;
+            /** Page Rotations */
+            page_rotations: components["schemas"]["PageRotation"][];
             /** Title */
             title: string;
             /**
@@ -409,6 +437,8 @@ export interface components {
             scanned_at: string;
             /** Final Path */
             final_path: string;
+            /** Processed At */
+            processed_at: string | null;
             /** User Tags */
             user_tags: string[];
             /** Excluded Tags */
@@ -463,12 +493,12 @@ export interface components {
         };
         /** DocumentEdit */
         DocumentEdit: {
+            /** Owner Ids */
+            owner_ids: string[];
             /** Revision */
             revision: number;
             /** Title */
             title: string;
-            /** Owner Id */
-            owner_id: string;
             /** Document Date */
             document_date: string | null;
             /** Summary */
@@ -492,14 +522,13 @@ export interface components {
         /** DocumentProposal */
         "DocumentProposal-Input": {
             /**
-             * Owner Id
-             * @description Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.
-             * @default unknown
+             * Owner Ids
+             * @description All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches.
              */
-            owner_id: string;
+            owner_ids?: string[];
             /**
              * Title
-             * @description Short document type and subject, such as Electricity bill. No recipient, reference number, or date.
+             * @description Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date.
              */
             title: string;
             /**
@@ -527,14 +556,13 @@ export interface components {
         /** DocumentProposal */
         "DocumentProposal-Output": {
             /**
-             * Owner Id
-             * @description Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.
-             * @default unknown
+             * Owner Ids
+             * @description All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches.
              */
-            owner_id: string;
+            owner_ids: string[];
             /**
              * Title
-             * @description Short document type and subject, such as Electricity bill. No recipient, reference number, or date.
+             * @description Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date.
              */
             title: string;
             /**
@@ -735,6 +763,20 @@ export interface components {
              */
             ocr_languages: string;
         };
+        /** PageRotation */
+        PageRotation: {
+            /**
+             * Page
+             * @description One-based source page number.
+             */
+            page: number;
+            /**
+             * Clockwise
+             * @description Clockwise correction needed to make the supplied page image upright.
+             * @enum {integer}
+             */
+            clockwise: 90 | 180 | 270;
+        };
         /** PipelineDocumentItem */
         PipelineDocumentItem: {
             /** Id */
@@ -898,10 +940,12 @@ export interface components {
             status: "queued" | "running" | "review" | "failed" | "complete";
             /**
              * Phase
-             * @default ocr
+             * @default analyze
              * @enum {string}
              */
             phase: "ocr" | "analyze" | "file" | "done";
+            /** Ocr Rotations */
+            ocr_rotations: components["schemas"]["PageRotation"][] | null;
             /**
              * Attempts
              * @default 0
@@ -915,6 +959,11 @@ export interface components {
              * @default 0
              */
             filing_revision: number;
+            /**
+             * Processing Run
+             * @default 1
+             */
+            processing_run: number;
             /** Filing Paths */
             filing_paths: {
                 [key: string]: string;
@@ -922,7 +971,7 @@ export interface components {
             /** History */
             history: components["schemas"]["Event"][];
             /** Processing */
-            processing: components["schemas"]["ProcessingUsage"][];
+            processing: components["schemas"]["ScanUsage"][];
         };
         /** ScanDetail */
         ScanDetail: {
@@ -958,10 +1007,12 @@ export interface components {
             status: "queued" | "running" | "review" | "failed" | "complete";
             /**
              * Phase
-             * @default ocr
+             * @default analyze
              * @enum {string}
              */
             phase: "ocr" | "analyze" | "file" | "done";
+            /** Ocr Rotations */
+            ocr_rotations: components["schemas"]["PageRotation"][] | null;
             /**
              * Attempts
              * @default 0
@@ -975,6 +1026,11 @@ export interface components {
              * @default 0
              */
             filing_revision: number;
+            /**
+             * Processing Run
+             * @default 1
+             */
+            processing_run: number;
             /** Filing Paths */
             filing_paths: {
                 [key: string]: string;
@@ -982,7 +1038,7 @@ export interface components {
             /** History */
             history: components["schemas"]["Event"][];
             /** Processing */
-            processing: components["schemas"]["ProcessingUsage"][];
+            processing: components["schemas"]["ScanUsage"][];
             /** Pipeline */
             pipeline: components["schemas"]["PipelineStep"][];
         };
@@ -1003,10 +1059,21 @@ export interface components {
             /** Pages */
             pages: number;
         };
+        /** ScanReprocess */
+        ScanReprocess: {
+            /** Filing Revision */
+            filing_revision: number;
+            /** Document Revisions */
+            document_revisions: {
+                [key: string]: number;
+            };
+        };
         /** ScanReview */
         ScanReview: {
             /** Documents */
             documents: components["schemas"]["DocumentProposal-Input"][];
+            /** Page Rotations */
+            page_rotations?: components["schemas"]["PageRotation"][];
             /**
              * Blank Pages
              * @description Confirmed blank source pages omitted from filed documents. Originals retain every page.
@@ -1016,6 +1083,62 @@ export interface components {
             document_revisions?: {
                 [key: string]: number;
             };
+        };
+        /** ScanUsage */
+        ScanUsage: {
+            /** Id */
+            id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            /**
+             * Stage
+             * @enum {string}
+             */
+            stage: "ocr" | "split" | "details" | "tagging" | "review" | "transcription";
+            /** Source Pages */
+            source_pages: number[];
+            /** Model */
+            model: string;
+            /** Base Url */
+            base_url: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "complete" | "failed";
+            /** Seconds */
+            seconds: number;
+            /**
+             * Requests
+             * @default 0
+             */
+            requests: number;
+            /** Input Tokens */
+            input_tokens: number | null;
+            /** Cached Input Tokens */
+            cached_input_tokens: number | null;
+            /** Output Tokens */
+            output_tokens: number | null;
+            /** Token Details */
+            token_details: {
+                [key: string]: number;
+            };
+            /**
+             * Usage Complete
+             * @default false
+             */
+            usage_complete: boolean;
+            pricing: components["schemas"]["ModelPricing-Output"] | null;
+            /** Estimated Cost Usd */
+            estimated_cost_usd: string | null;
+            /**
+             * Processing Run
+             * @default 1
+             */
+            processing_run: number;
         };
         /** TagSelection */
         TagSelection: {
@@ -1302,6 +1425,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Scan"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reprocess_scan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ScanReprocess"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

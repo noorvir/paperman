@@ -1,3 +1,5 @@
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { useRef, useState, type FormEvent } from "react";
 import { Link, useRouter } from "@tanstack/react-router";
 import { z } from "zod";
@@ -18,6 +20,9 @@ export function UploadForm() {
   const [error, setError] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
+  const unsaved = useUnsavedChanges(
+    !scanId && file ? `${file.name}:${file.size}:${file.lastModified}` : "",
+  );
   async function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!file || pending) {
@@ -85,6 +90,7 @@ export function UploadForm() {
       className="mx-auto flex w-full max-w-xl flex-col gap-5 py-6"
       onSubmit={(event) => void upload(event)}
     >
+      <UnsavedChangesDialog blocker={unsaved.blocker} />
       <div
         className={`flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-14 text-center transition-colors ${dragging ? "border-foreground bg-muted" : "bg-muted/30"}`}
         onDragOver={(event) => {

@@ -5,7 +5,12 @@ import tailwindcss from "@tailwindcss/vite";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 export default defineConfig({
-  plugins: [tailwindcss(), tanstackStart(), nitro(), react()],
+  plugins: [
+    tailwindcss(),
+    tanstackStart(),
+    nitro({ compressPublicAssets: true }),
+    react(),
+  ],
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     dedupe: ["react", "react-dom"],

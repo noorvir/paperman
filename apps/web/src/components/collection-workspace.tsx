@@ -81,6 +81,27 @@ export function CollectionWorkspace({
         className="collection-workspace @container/library"
         data-full={full}
         onKeyDown={navigateItems}
+        onClickCapture={(event) => {
+          if (
+            full ||
+            !selectedId ||
+            event.defaultPrevented ||
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.altKey ||
+            event.shiftKey ||
+            !(event.target instanceof Element)
+          ) {
+            return;
+          }
+          const link = event.target.closest("[data-collection-link]");
+          if (link?.getAttribute("data-item-id") === selectedId) {
+            event.preventDefault();
+            event.stopPropagation();
+            void onNavigate(selectedId, false);
+          }
+        }}
       >
         {children}
       </div>

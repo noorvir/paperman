@@ -1,62 +1,36 @@
-import { Link, useNavigate } from "@tanstack/react-router";
+import { useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import type { components } from "@/lib/schema";
 import { documentSearch } from "@/lib/queries";
-import { EmptyState, formatDate } from "./page";
+import { EmptyState } from "./page";
+import { LocalTime } from "./local-time";
 import { PdfPreview } from "./pdf-preview";
 import { DocumentCollection } from "./document-collection";
 import { DocumentLayoutToggle } from "./document-layout-toggle";
 import { CollectionWorkspace } from "./collection-workspace";
-import { PipelineProgress } from "./ui/pipeline-progress";
-import { ScanProcessingMessage } from "./scan-processing-message";
+import { ScanCost } from "./scan-cost";
+import { DetailViewLayout } from "./detail-view-layout";
+import { ScanInformation } from "./scan-information";
 
 export function ScanView({
   scan,
   documents,
   catalog,
   view,
+  sidebar,
 }: {
   scan: components["schemas"]["ScanDetail"];
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
   view: "pdf" | "documents" | "activity" | "details";
+  sidebar: boolean;
 }) {
   const navigate = useNavigate();
   const [layout, setLayout] = useState<"list" | "grid">("list");
-  const views: (typeof view)[] = ["pdf", "documents", "activity", "details"];
   return (
-    <section className="detail-primary flex-1">
-      <div className="shrink-0 border-b pb-2">
-        <PipelineProgress
-          label="Scan processing stages"
-          steps={scan.pipeline}
-        />
-      </div>
-      <ScanProcessingMessage scan={scan} documents={documents} />
-      <nav aria-label="Scan view" className="view-tabs">
-        {views.map((tab) => (
-          <Link
-            key={tab}
-            from="/scans/$scanId"
-            to="/scans/$scanId"
-            params={{ scanId: scan.id }}
-            search={(previous) => ({ ...previous, view: tab })}
-            replace
-            resetScroll={false}
-            data-active={view === tab}
-            aria-current={view === tab ? "page" : undefined}
-          >
-            {
-              {
-                pdf: "PDF",
-                documents: "Documents",
-                activity: "Activity",
-                details: "Details",
-              }[tab]
-            }
-          </Link>
-        ))}
-      </nav>
+    <DetailViewLayout
+      sidebar={sidebar && <ScanInformation scan={scan} documents={documents} />}
+    >
       <div className="document-panels">
         <div
           className="document-panel"
@@ -82,14 +56,21 @@ export function ScanView({
               full={false}
               items={documents}
               selectedId={undefined}
-              onNavigate={(documentId, preview) =>
-                navigate({
+              onNavigate={(documentId, preview) => {
+                if (preview) {
+                  return navigate({
+                    to: "/documents",
+                    search: { preview: documentId, layout },
+                    resetScroll: false,
+                  });
+                }
+                return navigate({
                   to: "/documents/$documentId",
                   params: { documentId },
-                  search: { preview, layout },
+                  search: { layout },
                   resetScroll: false,
-                })
-              }
+                });
+              }}
             >
               <div className="flex items-center justify-between gap-3 pt-3">
                 <p className="text-xs text-muted-foreground">
@@ -122,7 +103,7 @@ export function ScanView({
               <li key={`${event.at}-${index}`} className="border-l-2 pl-3">
                 <p className="text-xs leading-relaxed">{event.message}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  <time>{formatDate(event.at)}</time> ·{" "}
+                  <LocalTime value={event.at} /> ·{" "}
                   <span className="capitalize">{event.stage}</span>
                 </p>
               </li>
@@ -135,18 +116,24 @@ export function ScanView({
           aria-hidden={view !== "details"}
           inert={view !== "details"}
         >
+          <div
+            className={
+              sidebar
+                ? "detail-information-compact border-b p-3"
+                : "border-b p-3"
+            }
+          >
+            <ScanInformation scan={scan} documents={documents} />
+          </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 break-all p-3 text-xs leading-relaxed">
             <dt>SHA-256</dt>
             <dd>{scan.content_hash}</dd>
             <dt>Timestamp source</dt>
             <dd>{scan.timestamp_source}</dd>
-            <dt>Scanned</dt>
-            <dd>{scan.scanned_at}</dd>
-            <dt>Pages</dt>
-            <dd>{scan.page_count || "Not processed"}</dd>
           </dl>
+          <ScanCost scan={scan} />
         </div>
       </div>
-    </section>
+    </DetailViewLayout>
   );
 }

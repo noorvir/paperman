@@ -1,3 +1,5 @@
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { TagIconPicker } from "./tag-icon-picker";
 import { BackLink } from "@/components/back-link";
 import { useState, type FormEvent } from "react";
@@ -15,11 +17,16 @@ export function CatalogForm({
   kind: "owners" | "tags";
   entry: components["schemas"]["CatalogEntry"] | null;
 }) {
+  const [entryName, setEntryName] = useState(entry?.name ?? "");
+  const [aliases, setAliases] = useState(entry?.aliases.join(", ") ?? "");
   const [icon, setIcon] = useState(entry?.icon ?? "auto");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const navigate = useNavigate();
   const router = useRouter();
+  const unsaved = useUnsavedChanges(
+    JSON.stringify({ entryName, aliases, icon }),
+  );
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -34,6 +41,7 @@ export function CatalogForm({
       await saveEntry({
         data: { kind, id: entry?.id ?? "", value: { name, aliases, icon } },
       });
+      unsaved.markSaved();
       await router.invalidate({ sync: true });
       await navigate({ to: "/settings/$catalog", params: { catalog: kind } });
     } catch (error) {
@@ -47,6 +55,7 @@ export function CatalogForm({
   const name = kind === "owners" ? "owner" : "tag";
   return (
     <>
+      <UnsavedChangesDialog blocker={unsaved.blocker} />
       <PageHeader
         back={
           <BackLink
@@ -73,7 +82,8 @@ export function CatalogForm({
             name="name"
             required
             maxLength={120}
-            defaultValue={entry?.name ?? ""}
+            value={entryName}
+            onChange={(event) => setEntryName(event.target.value)}
           />
         </label>
         {kind === "owners" && (
@@ -81,7 +91,8 @@ export function CatalogForm({
             Aliases, separated by commas
             <Input
               name="aliases"
-              defaultValue={entry?.aliases.join(", ") ?? ""}
+              value={aliases}
+              onChange={(event) => setAliases(event.target.value)}
             />
           </label>
         )}

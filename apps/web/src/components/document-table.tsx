@@ -4,8 +4,8 @@ import type { documentSearch } from "@/lib/queries";
 import type { z } from "zod";
 import { FileIcon } from "./file-icon";
 import { DocumentTagPopover } from "./document-tag-popover";
-import { OwnerLabel } from "./collection";
-import { DocumentFilterLink } from "./document-filter-link";
+import { DocumentOwners } from "./document-owners";
+import { LocalTime } from "./local-time";
 import {
   Table,
   TableHeader,
@@ -26,14 +26,14 @@ export function DocumentTable({
   search: z.output<typeof documentSearch>;
   selectedId: string | undefined;
 }) {
-  const owners = new Map(catalog.owners.map((owner) => [owner.id, owner.name]));
   return (
-    <Table className="min-w-[640px] table-fixed [&_td]:py-2.5">
+    <Table className="min-w-[800px] table-fixed [&_td]:py-2.5">
       <TableHeader>
         <TableRow>
           <TableHead>Document</TableHead>
-          <TableHead className="w-40">Owner</TableHead>
+          <TableHead className="w-40">Owners</TableHead>
           <TableHead className="w-36">Tags</TableHead>
+          <TableHead className="w-48">Processed at</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -45,9 +45,8 @@ export function DocumentTable({
                 <CollectionLink
                   itemId={doc.id}
                   selected={selectedId === doc.id}
-                  to="/documents/$documentId"
-                  params={{ documentId: doc.id }}
-                  search={{ ...search, preview: true, view: "pdf" }}
+                  to="/documents"
+                  search={{ ...search, preview: doc.id, view: "pdf" }}
                   resetScroll={false}
                   title={doc.final_path.slice(
                     doc.final_path.lastIndexOf("/") + 1,
@@ -63,14 +62,11 @@ export function DocumentTable({
               </div>
             </TableCell>
             <TableCell>
-              <DocumentFilterLink
+              <DocumentOwners
+                ownerIds={doc.owner_ids}
+                owners={catalog.owners}
                 search={search}
-                filter={{ owner: [doc.owner_id] }}
-                aria-label={`Filter by owner: ${owners.get(doc.owner_id) ?? doc.owner_id}`}
-                className="-ml-1"
-              >
-                <OwnerLabel name={owners.get(doc.owner_id) ?? doc.owner_id} />
-              </DocumentFilterLink>
+              />
             </TableCell>
             <TableCell>
               <DocumentTagPopover
@@ -78,6 +74,9 @@ export function DocumentTable({
                 catalog={catalog}
                 search={search}
               />
+            </TableCell>
+            <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
+              <LocalTime value={doc.processed_at} />
             </TableCell>
           </CollectionRow>
         ))}

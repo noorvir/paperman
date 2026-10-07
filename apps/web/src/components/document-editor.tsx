@@ -1,60 +1,82 @@
-import { useState, type FormEvent } from "react";
-import { Link, useRouter } from "@tanstack/react-router";
+import { useEffect, useState, type FormEvent } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { Tabs } from "@base-ui/react/tabs";
 import type { components } from "@/lib/schema";
 import { editDocument } from "@/lib/actions";
-import { getTagIcon } from "@/lib/catalog-icons";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { ErrorNotice } from "./page";
-import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
-import { Button, buttonVariants } from "./ui/button";
-import { Checkbox } from "./ui/checkbox";
-import { SelectField } from "./select-field";
-import { DatePicker } from "./date-picker";
+import { Button } from "./ui/button";
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
+import { DocumentEditorDetails } from "./document-editor-details";
 
 export function DocumentEditor({
   document,
   text,
   catalog,
+  initialTab,
   onDone,
 }: {
   document: components["schemas"]["Document"];
   text: string;
   catalog: components["schemas"]["Catalog"];
+  initialTab: "details" | "summary" | "text";
   onDone: () => void;
 }) {
-  const [draft, setDraft] = useState(() => ({
-    revision: document.revision,
-    title: document.title,
-    owner_id: document.owner_id,
-    document_date:
-      document.date_source === "document" ? document.document_date : "",
-    summary: document.summary,
-    text,
-    tag_ids: [
-      ...new Set([
-        ...document.user_tags,
-        ...document.generated_tags.filter(
-          (id) => !document.excluded_tags.includes(id),
-        ),
-      ]),
-    ],
-  }));
+  const [draft, setDraft] = useState<components["schemas"]["DocumentEdit"]>(
+    () => ({
+      revision: document.revision,
+      title: document.title,
+      owner_ids: document.owner_ids,
+      document_date:
+        document.date_source === "document" ? document.document_date : null,
+      summary: document.summary,
+      text,
+      tag_ids: [
+        ...new Set([
+          ...document.user_tags,
+          ...document.generated_tags.filter(
+            (id) => !document.excluded_tags.includes(id),
+          ),
+        ]),
+      ],
+    }),
+  );
+  const [tab, setTab] = useState(initialTab);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+  const unsaved = useUnsavedChanges(
+    JSON.stringify({
+      ...draft,
+      owner_ids: [...draft.owner_ids].sort(),
+      tag_ids: [...draft.tag_ids].sort(),
+    }),
+  );
+
+  useEffect(() => {
+    function cancel(event: KeyboardEvent) {
+      if (event.key === "Escape" && !event.defaultPrevented && !pending) {
+        event.preventDefault();
+        onDone();
+      }
+    }
+    window.addEventListener("keydown", cancel);
+    return () => window.removeEventListener("keydown", cancel);
+  }, [onDone, pending]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!draft.title.trim()) {
+      setTab("details");
+      setError("Enter a document title.");
+      return;
+    }
     setPending(true);
     setError("");
     try {
-      await editDocument({
-        data: {
-          id: document.id,
-          value: { ...draft, document_date: draft.document_date || null },
-        },
-      });
+      await editDocument({ data: { id: document.id, value: draft } });
+      unsaved.markSaved();
       await router.invalidate();
       onDone();
     } catch (error) {
@@ -71,116 +93,65 @@ export function DocumentEditor({
       className="flex min-h-0 flex-1 flex-col"
       onSubmit={(event) => void submit(event)}
       aria-label="Edit document"
+      noValidate
     >
-      <fieldset
-        disabled={pending}
-        className="min-h-0 flex-1 space-y-4 overflow-auto p-3"
+      <UnsavedChangesDialog blocker={unsaved.blocker} />
+      <Tabs.Root
+        value={tab}
+        onValueChange={(value) => {
+          if (value === "details" || value === "summary" || value === "text") {
+            setTab(value);
+          }
+        }}
+        className="flex min-h-0 flex-1 flex-col gap-4"
       >
-        <legend className="sr-only">Document information</legend>
-        <div className="space-y-2">
-          <Link
-            to="/scans/$scanId/review"
-            params={{ scanId: document.scan_id }}
-            className={buttonVariants({ variant: "outline" })}
-          >
-            Edit page groups
-          </Link>
+        <Tabs.List className="view-tabs" aria-label="Edit document sections">
+          <Tabs.Tab value="details">Details</Tabs.Tab>
+          <Tabs.Tab value="summary">Summary</Tabs.Tab>
+          <Tabs.Tab value="text">Text</Tabs.Tab>
+        </Tabs.List>
+        <Tabs.Panel value="details" keepMounted className="editor-panel">
+          <DocumentEditorDetails
+            catalog={catalog}
+            value={draft}
+            onChange={setDraft}
+            disabled={pending}
+          />
+        </Tabs.Panel>
+        <Tabs.Panel value="summary" keepMounted className="editor-panel">
+          <label className="field-label min-h-0 flex-1">
+            Summary
+            <Textarea
+              className="min-h-0 flex-1 resize-none font-normal text-sm leading-relaxed"
+              maxLength={10000}
+              value={draft.summary}
+              disabled={pending}
+              onChange={(event) =>
+                setDraft({ ...draft, summary: event.target.value })
+              }
+            />
+          </label>
+        </Tabs.Panel>
+        <Tabs.Panel value="text" keepMounted className="editor-panel">
+          <label className="field-label min-h-0 flex-1">
+            Extracted text
+            <Textarea
+              className="min-h-0 flex-1 resize-none font-mono font-normal text-sm leading-relaxed"
+              value={draft.text}
+              maxLength={1000000}
+              disabled={pending}
+              onChange={(event) =>
+                setDraft({ ...draft, text: event.target.value })
+              }
+            />
+          </label>
           <p className="text-xs text-muted-foreground">
-            Split or merge documents from the original scan. Save this draft
-            before leaving.
+            Corrections update search and future tagging. The PDF stays
+            unchanged.
           </p>
-        </div>
-        <label className="field-label">
-          Title
-          <Input
-            required
-            maxLength={120}
-            value={draft.title}
-            onChange={(event) =>
-              setDraft({ ...draft, title: event.target.value })
-            }
-          />
-        </label>
-        <label className="field-label">
-          Owner
-          <SelectField
-            label="Owner"
-            value={draft.owner_id}
-            items={catalog.owners.map((owner) => ({
-              value: owner.id,
-              label: owner.name,
-            }))}
-            onValueChange={(owner_id) => setDraft({ ...draft, owner_id })}
-          />
-        </label>
-        <div className="field-label">
-          Issue date
-          <DatePicker
-            label="Issue date"
-            value={draft.document_date}
-            onValueChange={(document_date) =>
-              setDraft({ ...draft, document_date })
-            }
-          />
-          <p className="text-xs font-normal text-muted-foreground">
-            Leave blank to use the scan date.
-          </p>
-        </div>
-        <label className="field-label">
-          Summary
-          <Textarea
-            rows={4}
-            maxLength={10000}
-            value={draft.summary}
-            onChange={(event) =>
-              setDraft({ ...draft, summary: event.target.value })
-            }
-          />
-        </label>
-        <fieldset className="space-y-2">
-          <legend className="mb-2 text-xs font-medium">Tags</legend>
-          <div className="grid grid-cols-2 gap-2">
-            {catalog.tags.map((tag) => (
-              <label key={tag.id} className="flex items-center gap-2 text-xs">
-                <Checkbox
-                  disabled={pending}
-                  checked={draft.tag_ids.includes(tag.id)}
-                  onCheckedChange={(checked) =>
-                    setDraft({
-                      ...draft,
-                      tag_ids: checked
-                        ? [...draft.tag_ids, tag.id]
-                        : draft.tag_ids.filter((id) => id !== tag.id),
-                    })
-                  }
-                />
-                <HugeiconsIcon
-                  icon={getTagIcon(tag)}
-                  size={14}
-                  aria-hidden="true"
-                />
-                {tag.name}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <label className="field-label">
-          Extracted text
-          <Textarea
-            rows={10}
-            value={draft.text}
-            maxLength={1000000}
-            onChange={(event) =>
-              setDraft({ ...draft, text: event.target.value })
-            }
-          />
-          <span className="text-xs font-normal text-muted-foreground">
-            Corrections update search and future tagging. The PDF and original
-            scan stay unchanged.
-          </span>
-        </label>
-      </fieldset>
-      <div className="shrink-0 space-y-2 border-t p-3">
+        </Tabs.Panel>
+      </Tabs.Root>
+      <div className="mt-4 shrink-0 space-y-2 border-t pt-3">
         <ErrorNotice message={error} />
         <div className="flex justify-end gap-2">
           <Button

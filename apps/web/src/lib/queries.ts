@@ -20,6 +20,7 @@ export const documentSearch = z.object({
   layout: z.enum(["list", "grid"]).default("list"),
   page: z.coerce.number().int().min(1).default(1),
 });
+export const documentView = z.enum(["pdf", "text", "summary", "details"]);
 export const scanSearch = z.object({
   q: z.string().default(""),
   status: z

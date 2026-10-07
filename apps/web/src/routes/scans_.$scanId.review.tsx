@@ -21,10 +21,11 @@ export const Route = createFileRoute("/scans_/$scanId/review")({
     if (scan.status === "complete") {
       proposal = {
         blank_pages: scan.proposal?.blank_pages ?? [],
+        page_rotations: scan.proposal?.page_rotations ?? [],
         documents: details.map(({ document }) => {
           return {
             pages: document.source_pages,
-            owner_id: document.owner_id,
+            owner_ids: document.owner_ids,
             title: document.title,
             document_date:
               document.date_source === "document"
@@ -53,9 +54,7 @@ function Review() {
             title="Back to scan"
           />
         }
-        title={
-          scan.status === "complete" ? "Edit page groups" : "Review documents"
-        }
+        title={scan.status === "complete" ? "Edit pages" : "Review documents"}
         description="Check each source page, document group, owner, title, and date."
       />
       {!["review", "complete"].includes(scan.status) || !proposal ? (
@@ -74,8 +73,8 @@ function Review() {
           }
         >
           <PdfPreview
-            title="Searchable scan preview"
-            url={`/api/scans/${scan.id}/pdf?variant=searchable`}
+            title="Original scan preview"
+            url={`/api/scans/${scan.id}/pdf?variant=original`}
           />
         </DetailLayout>
       )}

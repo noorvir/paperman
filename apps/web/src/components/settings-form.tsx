@@ -1,3 +1,5 @@
+import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
+import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { useState, type FormEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
@@ -13,7 +15,9 @@ export function SettingsForm({
 }: {
   settings: components["schemas"]["ModelSettings-Output"];
 }) {
-  const [provider, setProvider] = useState(settings.provider);
+  const [draft, setDraft] = useState(settings);
+  const provider = draft.provider;
+  const unsaved = useUnsavedChanges(JSON.stringify(draft));
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
@@ -23,21 +27,10 @@ export function SettingsForm({
     setPending(true);
     setError("");
     setSaved(false);
-    const form = new FormData(event.currentTarget);
     try {
-      const value = settingsInput.parse({
-        provider: form.get("provider"),
-        reasoning_effort: form.get("reasoning_effort"),
-        base_url: form.get("base_url") ?? settings.base_url,
-        model: form.get("model") ?? settings.model,
-        timeout_seconds: Number(
-          form.get("timeout_seconds") ?? settings.timeout_seconds,
-        ),
-        output_mode: form.get("output_mode") ?? settings.output_mode,
-        ocr_languages: form.get("ocr_languages"),
-        review_before_filing: form.has("review_before_filing"),
-      });
+      const value = settingsInput.parse(draft);
       await saveSettings({ data: value });
+      unsaved.markSaved();
       setSaved(true);
       await router.invalidate();
     } catch (error) {
@@ -53,6 +46,7 @@ export function SettingsForm({
       className="form-fields max-w-none"
       onSubmit={(event) => void submit(event)}
     >
+      <UnsavedChangesDialog blocker={unsaved.blocker} />
       <h2 className="workspace-title">Model connection</h2>
       <p className="workspace-description">
         Choose a local demo or connect a model server that accepts page images.
@@ -66,7 +60,10 @@ export function SettingsForm({
             name="provider"
             value={provider}
             onValueChange={(value) =>
-              setProvider(settingsInput.shape.provider.parse(value))
+              setDraft({
+                ...draft,
+                provider: settingsInput.shape.provider.parse(value),
+              })
             }
             items={[
               { value: "compatible", label: "Compatible API" },
@@ -80,7 +77,14 @@ export function SettingsForm({
           <SelectField
             label="Reasoning"
             name="reasoning_effort"
-            defaultValue={settings.reasoning_effort}
+            value={draft.reasoning_effort}
+            onValueChange={(value) =>
+              setDraft({
+                ...draft,
+                reasoning_effort:
+                  settingsInput.shape.reasoning_effort.parse(value),
+              })
+            }
             items={["default", "none", "low", "medium", "high"].map(
               (effort) => ({
                 value: effort,
@@ -106,7 +110,10 @@ export function SettingsForm({
           <Input
             type="url"
             name="base_url"
-            defaultValue={settings.base_url}
+            value={draft.base_url}
+            onChange={(event) =>
+              setDraft({ ...draft, base_url: event.target.value })
+            }
             placeholder="http://gpu-host:11434/v1"
           />
         </label>
@@ -114,7 +121,10 @@ export function SettingsForm({
           Model name
           <Input
             name="model"
-            defaultValue={settings.model}
+            value={draft.model}
+            onChange={(event) =>
+              setDraft({ ...draft, model: event.target.value })
+            }
             placeholder="Model installed on your server"
           />
         </label>
@@ -124,7 +134,13 @@ export function SettingsForm({
             <SelectField
               label="Output format"
               name="output_mode"
-              defaultValue={settings.output_mode}
+              value={draft.output_mode}
+              onValueChange={(value) =>
+                setDraft({
+                  ...draft,
+                  output_mode: settingsInput.shape.output_mode.parse(value),
+                })
+              }
               items={[
                 { value: "prompted", label: "JSON in response" },
                 { value: "native", label: "Native JSON schema" },
@@ -139,7 +155,13 @@ export function SettingsForm({
               min={5}
               max={1800}
               name="timeout_seconds"
-              defaultValue={settings.timeout_seconds}
+              value={draft.timeout_seconds}
+              onChange={(event) =>
+                setDraft({
+                  ...draft,
+                  timeout_seconds: Number(event.target.value),
+                })
+              }
             />
           </label>
         </div>
@@ -149,7 +171,10 @@ export function SettingsForm({
         <Input
           name="ocr_languages"
           required
-          defaultValue={settings.ocr_languages}
+          value={draft.ocr_languages}
+          onChange={(event) =>
+            setDraft({ ...draft, ocr_languages: event.target.value })
+          }
         />
         <span className="font-normal text-muted-foreground">
           Tesseract language codes, for example eng or deu+eng. Install the
@@ -159,7 +184,10 @@ export function SettingsForm({
       <label className="flex items-center gap-2 text-xs">
         <Checkbox
           name="review_before_filing"
-          defaultChecked={settings.review_before_filing}
+          checked={draft.review_before_filing}
+          onCheckedChange={(review_before_filing) =>
+            setDraft({ ...draft, review_before_filing })
+          }
         />
         Review all scans before filing
       </label>
