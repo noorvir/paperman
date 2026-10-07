@@ -85,13 +85,15 @@ def routes(storage: FileStorage) -> APIRouter:
                 ):
                     raise ValueError("Select a different, existing owner")
                 affected_documents = [
-                    document for document in documents if document.owner_id == entry_id
+                    document for document in documents if entry_id in document.owner_ids
                 ]
                 affected_scans = [
                     scan
                     for scan in scans
                     if scan.proposal
-                    and any(doc.owner_id == entry_id for doc in scan.proposal.documents)
+                    and any(
+                        entry_id in doc.owner_ids for doc in scan.proposal.documents
+                    )
                 ]
                 if (affected_documents or affected_scans) and reassign_to is None:
                     return EntryRemoval(
@@ -107,7 +109,11 @@ def routes(storage: FileStorage) -> APIRouter:
                     )
                 if reassign_to is not None:
                     for document in affected_documents:
-                        document.owner_id = reassign_to
+                        remaining = set(document.owner_ids) - {entry_id}
+                        remaining.add(reassign_to)
+                        if len(remaining) > 1:
+                            remaining.discard("unknown")
+                        document.owner_ids = sorted(remaining)
                         document.revision += 1
                         document.history.append(
                             Event(
@@ -120,8 +126,12 @@ def routes(storage: FileStorage) -> APIRouter:
                         if scan.proposal is None:
                             continue
                         for document in scan.proposal.documents:
-                            if document.owner_id == entry_id:
-                                document.owner_id = reassign_to
+                            if entry_id in document.owner_ids:
+                                remaining = set(document.owner_ids) - {entry_id}
+                                remaining.add(reassign_to)
+                                if len(remaining) > 1:
+                                    remaining.discard("unknown")
+                                document.owner_ids = sorted(remaining)
                         scan.history.append(
                             Event(
                                 stage="ownership",

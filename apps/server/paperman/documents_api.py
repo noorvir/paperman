@@ -4,16 +4,18 @@ from typing import Annotated, Literal
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse
-from paperman_parser.models import Identifier
+from paperman_parser.models import Identifier, PageRotation
+from paperman_parser.pdf import rotate_pages
 
 from paperman.api_models import (
     DocumentDetail,
     DocumentEdit,
     DocumentPage,
+    DocumentVerify,
     TagSelection,
 )
-from paperman.models import Document, Event, SearchIndex
-from paperman.storage import FileStorage, safe_path
+from paperman.models import Document, Event, SearchIndex, Verification, now
+from paperman.storage import FileStorage, atomic_target, safe_path
 
 
 def routes(storage: FileStorage) -> APIRouter:
@@ -46,7 +48,7 @@ def routes(storage: FileStorage) -> APIRouter:
         items = [
             doc
             for doc in documents
-            if (not owners or doc.owner_id in owners)
+            if (not owners or set(doc.owner_ids).intersection(owners))
             and (not tags or not tags.isdisjoint(effective_tags(doc)))
             and (not status or doc.enrichment_status == status)
             and (not after or doc.document_date >= after)
@@ -91,15 +93,21 @@ def routes(storage: FileStorage) -> APIRouter:
                     "This document changed. Cancel and reopen the editor to load the latest version",
                 )
             catalog = storage.catalog()
-            if value.owner_id not in {owner.id for owner in catalog.owners}:
-                raise ValueError("Select an owner from the catalog")
+            if not set(value.owner_ids) <= {owner.id for owner in catalog.owners}:
+                raise ValueError("Select owners from the catalog")
             allowed_tags = {tag.id for tag in catalog.tags}
             if not set(value.tag_ids) <= allowed_tags:
                 raise ValueError("Select tags from the catalog")
 
+            rotated_pdf = None
+            if value.rotations:
+                path = safe_path(storage.root, doc.final_path)
+                rotated_pdf = rotate_pages(path.read_bytes(), value.rotations)
+
             updates = {
+                "page rotation": bool(value.rotations),
                 "title": value.title != doc.title,
-                "owner": value.owner_id != doc.owner_id,
+                "owners": value.owner_ids != doc.owner_ids,
                 "date": (value.document_date or doc.scanned_at.date())
                 != doc.document_date
                 or (value.document_date is None)
@@ -112,7 +120,7 @@ def routes(storage: FileStorage) -> APIRouter:
             if not changed:
                 return DocumentDetail(document=doc, text=storage.document_text(doc))
             doc.title = value.title
-            doc.owner_id = value.owner_id
+            doc.owner_ids = value.owner_ids
             doc.document_date = value.document_date or doc.scanned_at.date()
             doc.date_source = "document" if value.document_date else "scan_fallback"
             if updates["summary"]:
@@ -123,12 +131,52 @@ def routes(storage: FileStorage) -> APIRouter:
                 doc.excluded_tags = sorted(allowed_tags - set(value.tag_ids))
             if updates["text"]:
                 doc.text_override = value.text
+            if rotated_pdf is not None:
+                corrections = {
+                    item.page: item.clockwise for item in doc.manual_rotations
+                }
+                for item in value.rotations:
+                    corrections[item.page] = (
+                        corrections.get(item.page, 0) + item.clockwise
+                    ) % 360
+                doc.manual_rotations = [
+                    PageRotation.model_validate({"page": page, "clockwise": clockwise})
+                    for page, clockwise in sorted(corrections.items())
+                    if clockwise
+                ]
+                with atomic_target(
+                    safe_path(storage.root, doc.final_path)
+                ) as temporary:
+                    temporary.write_bytes(rotated_pdf)
             doc.revision += 1
             doc.history.append(
                 Event(stage="edit", message="Corrected " + ", ".join(changed))
             )
             storage.save_document(doc)
             return DocumentDetail(document=doc, text=storage.document_text(doc))
+
+    @router.post("/api/documents/{document_id}/verify", operation_id="verify_document")
+    def verify_document(document_id: Identifier, value: DocumentVerify) -> Document:
+        with storage.transaction():
+            doc = storage.get_document(document_id)
+            ensure_filed(storage, doc)
+            if doc.verification is not None:
+                return doc
+            if doc.revision != value.revision:
+                raise HTTPException(
+                    409, "This document changed. Reload it before verifying"
+                )
+            doc.verification = Verification(at=now(), by=value.reviewer)
+            doc.revision += 1
+            doc.history.append(
+                Event(
+                    at=doc.verification.at,
+                    stage="verify",
+                    message=f"Verified by {value.reviewer}",
+                )
+            )
+            storage.save_document(doc)
+            return doc
 
     @router.get("/api/documents/{document_id}/pdf", operation_id="document_pdf")
     def document_pdf(document_id: Identifier) -> FileResponse:
@@ -160,10 +208,18 @@ def routes(storage: FileStorage) -> APIRouter:
         with storage.transaction():
             doc = storage.get_document(document_id)
             ensure_filed(storage, doc)
-            if doc.enrichment_status == "running":
-                raise HTTPException(409, "Tagging is already running")
+            if doc.enrichment_status in ("pending", "running"):
+                raise HTTPException(
+                    409, "Document processing is already queued or running"
+                )
             doc.enrichment_status = "pending"
             doc.enrichment_error = ""
+            doc.history.append(
+                Event(
+                    stage="tag",
+                    message="Document reprocessing requested: tags and summary",
+                )
+            )
             storage.save_document(doc)
             (storage.root / "state" / "wake").touch()
             return doc

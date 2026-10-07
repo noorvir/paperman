@@ -6,6 +6,11 @@ def split(pages: list[bytes]) -> Prompt:
         instructions=(
             "Find where each separate document starts in these rendered PDF pages. "
             "Read the images directly, using their layout and visible labels. "
+            "Check each page's orientation. In page_rotations, list only pages needing a clockwise correction of 90, 180, or 270 degrees "
+            "to make the main text upright. An upside-down page needs 180 degrees. Upright pages need no entry. "
+            "Judge the supplied image, not the orientation of another page or a printed page number. "
+            "Read sideways or upside-down pages before deciding boundaries or blank pages. If orientation is uncertain, "
+            "keep the page unchanged and describe the uncertainty in review_reason. "
             "Return the first nonblank source page number of each document and a list of confirmed blank pages. "
             "A blank page has no meaningful visible content. An empty back with only scanner dust or faint bleed-through can be blank. "
             "Text, handwriting, signatures, stamps, photographs, drawings, and forms are content, even if you cannot read them. "

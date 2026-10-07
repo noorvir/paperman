@@ -12,6 +12,7 @@ export function useUnsavedChanges(snapshot: string) {
   });
   return {
     blocker,
+    isDirty: snapshot !== saved.current,
     markSaved: () => {
       saved.current = snapshot;
     },

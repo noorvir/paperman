@@ -28,7 +28,7 @@ export function PageHeader({
 }) {
   return (
     <header className="workspace-heading">
-      <div className="flex min-w-0 flex-1 items-center gap-2">
+      <div className="flex min-w-0 flex-1 items-start gap-2">
         {back}
         <div className="min-w-0">
           <div className="flex items-center gap-2">
@@ -38,7 +38,9 @@ export function PageHeader({
             >
               {title}
             </h1>
-            {badge && <span className="shrink-0">{badge}</span>}
+            {badge && (
+              <span className="flex shrink-0 items-center">{badge}</span>
+            )}
             {count !== undefined && (
               <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground tabular-nums">
                 {count}
@@ -54,7 +56,9 @@ export function PageHeader({
         </div>
       </div>
       {children && (
-        <div className="flex shrink-0 items-center gap-2">{children}</div>
+        <div className="flex shrink-0 items-center gap-2 self-start">
+          {children}
+        </div>
       )}
     </header>
   );

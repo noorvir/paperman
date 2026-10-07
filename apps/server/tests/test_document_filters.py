@@ -17,7 +17,7 @@ def test_document_filters_combine_multiple_values_and_paginate(tmp_path: Path) -
             id=f"document-{number:02}",
             scan_id="scan",
             source_pages=[number + 1],
-            owner_id="alice" if number % 2 else "bob",
+            owner_ids=["alice" if number % 2 else "bob"],
             title=f"Bill {number:02}",
             document_date=date(2026, 9, number + 1),
             date_source="document",

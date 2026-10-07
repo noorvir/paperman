@@ -56,21 +56,14 @@ export function ScanView({
               full={false}
               items={documents}
               selectedId={undefined}
-              onNavigate={(documentId, preview) => {
-                if (preview) {
-                  return navigate({
-                    to: "/documents",
-                    search: { preview: documentId, layout },
-                    resetScroll: false,
-                  });
-                }
-                return navigate({
+              onNavigate={(documentId) =>
+                navigate({
                   to: "/documents/$documentId",
                   params: { documentId },
                   search: { layout },
                   resetScroll: false,
-                });
-              }}
+                })
+              }
             >
               <div className="flex items-center justify-between gap-3 pt-3">
                 <p className="text-xs text-muted-foreground">
@@ -81,6 +74,7 @@ export function ScanView({
               <div className="collection-content">
                 <div className="collection-body">
                   <DocumentCollection
+                    preview={false}
                     layout={layout}
                     documents={documents}
                     catalog={catalog}

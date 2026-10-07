@@ -75,9 +75,9 @@ async def main() -> None:
         assert [item.pages for item in proposal.documents] == [[1, 2, 3], [4], [5]], (
             "The model did not separate the sample letters correctly"
         )
-        assert [item.owner_id for item in proposal.documents] == [
-            "alice",
-            "bob",
+        assert [item.owner_ids for item in proposal.documents] == [
+            ["alice"],
+            ["bob"],
             "unknown",
         ], "The model did not identify the sample recipients correctly"
         assert [item.document_date for item in proposal.documents] == [

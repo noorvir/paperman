@@ -15,6 +15,8 @@ export function DocumentEditor({
   text,
   catalog,
   initialTab,
+  rotations,
+  onSaving,
   onDone,
 }: {
   document: components["schemas"]["Document"];
@@ -22,6 +24,8 @@ export function DocumentEditor({
   catalog: components["schemas"]["Catalog"];
   initialTab: "details" | "summary" | "text";
   onDone: () => void;
+  rotations: number[];
+  onSaving: (saving: boolean) => void;
 }) {
   const [draft, setDraft] = useState<components["schemas"]["DocumentEdit"]>(
     () => ({
@@ -49,6 +53,7 @@ export function DocumentEditor({
   const unsaved = useUnsavedChanges(
     JSON.stringify({
       ...draft,
+      rotations,
       owner_ids: [...draft.owner_ids].sort(),
       tag_ids: [...draft.tag_ids].sort(),
     }),
@@ -58,6 +63,9 @@ export function DocumentEditor({
     function cancel(event: KeyboardEvent) {
       if (event.key === "Escape" && !event.defaultPrevented && !pending) {
         event.preventDefault();
+        if (pending || !unsaved.isDirty) {
+          return;
+        }
         onDone();
       }
     }
@@ -73,9 +81,18 @@ export function DocumentEditor({
       return;
     }
     setPending(true);
+    onSaving(true);
     setError("");
     try {
-      await editDocument({ data: { id: document.id, value: draft } });
+      const corrections: components["schemas"]["PageRotation"][] = [];
+      rotations.forEach((clockwise, index) => {
+        if (clockwise === 90 || clockwise === 180 || clockwise === 270) {
+          corrections.push({ page: index + 1, clockwise });
+        }
+      });
+      await editDocument({
+        data: { id: document.id, value: { ...draft, rotations: corrections } },
+      });
       unsaved.markSaved();
       await router.invalidate();
       onDone();
@@ -85,6 +102,7 @@ export function DocumentEditor({
       );
     } finally {
       setPending(false);
+      onSaving(false);
     }
   }
 
@@ -96,6 +114,10 @@ export function DocumentEditor({
       noValidate
     >
       <UnsavedChangesDialog blocker={unsaved.blocker} />
+      <p className="mb-3 text-xs text-muted-foreground">
+        Use the rotate button above the PDF to turn the current page. Save
+        changes keeps the rotation.
+      </p>
       <Tabs.Root
         value={tab}
         onValueChange={(value) => {
@@ -162,7 +184,7 @@ export function DocumentEditor({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" disabled={pending || !unsaved.isDirty}>
             {pending ? "Saving" : "Save changes"}
           </Button>
         </div>

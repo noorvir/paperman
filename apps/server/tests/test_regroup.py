@@ -52,10 +52,10 @@ def test_regroup_preserves_active_files_and_recovers_from_interrupted_publicatio
     review = ScanReview(
         documents=[
             DocumentProposal(
-                pages=[1], owner_id="alice", title="Invoice", confidence=1
+                pages=[1], owner_ids=["alice"], title="Invoice", confidence=1
             ),
             DocumentProposal(
-                pages=[2], owner_id="alice", title="Charges", confidence=1
+                pages=[2], owner_ids=["alice"], title="Charges", confidence=1
             ),
             DocumentProposal(pages=[3], title=retained.title, confidence=1),
         ],
@@ -118,7 +118,7 @@ def test_regroup_preserves_active_files_and_recovers_from_interrupted_publicatio
     assert client.get(f"/api/documents/{retired.id}").status_code == 404
     restarted.archive(complete)
     restarted.archive(complete)
-    archived = list(store.scan_path(scan.id, "revisions/0/documents").glob("*.toml"))
+    archived = list(store.scan_path(scan.id, "revisions/0/documents").rglob("*.toml"))
     assert len(archived) == 1
     assert retired.text_override in archived[0].read_text()
     assert not (tmp_path / retired.final_path).exists()

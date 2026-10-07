@@ -83,7 +83,7 @@ def test_rename_resumes_and_preserves_files_metadata_and_links(tmp_path: Path) -
             id=f"document-{number}",
             scan_id="batch",
             source_pages=[number + 1],
-            owner_id="unknown",
+            owner_ids=["unknown"],
             title="Electricity bill – corrected",
             document_date=date(2026, 9, 29),
             date_source="document",

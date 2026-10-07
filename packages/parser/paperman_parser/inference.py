@@ -35,12 +35,14 @@ from paperman_parser.models import (
     DocumentProposal,
     Enrichment,
     InferenceSettings,
+    PageRotation,
     ProcessingStage,
     ProcessingUsage,
     Record,
     validate_analysis,
+    validate_rotations,
 )
-from paperman_parser.pdf import pages_with_text, render_pdf
+from paperman_parser.pdf import pages_with_text, render_pdf, rotate_pages
 from paperman_parser.prompt import Prompt
 from paperman_parser.prompt.details import details
 from paperman_parser.prompt.enrich import enrich
@@ -64,13 +66,14 @@ class EndpointInference:
 
     @property
     def version(self) -> str:
-        return f"organization-v6-selective-review:{self.settings.base_url}:{self.settings.model}"
+        return f"organization-v7-owners-orientation:{self.settings.base_url}:{self.settings.model}"
 
     async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         pages = await asyncio.to_thread(render_pdf, source)
         text_pages = await asyncio.to_thread(pages_with_text, source)
 
         def validate_split(result: ScanSplit) -> None:
+            validate_rotations(result.page_rotations, len(pages))
             blanks = result.blank_pages
             if blanks != sorted(set(blanks)) or any(
                 page > len(pages) for page in blanks
@@ -106,9 +109,14 @@ class EndpointInference:
             source_pages=list(range(1, len(pages) + 1)),
         )
         owners = {owner.id for owner in catalog.owners}
+        if boundaries.page_rotations:
+            upright = await asyncio.to_thread(
+                rotate_pages, source, boundaries.page_rotations
+            )
+            pages = await asyncio.to_thread(render_pdf, upright)
 
         def validate_owner(result: DocumentDetails) -> None:
-            if result.owner_id not in owners:
+            if not set(result.owner_ids) <= owners:
                 raise ValueError(f"Use only these owner IDs: {sorted(owners)}")
 
         starts = [*boundaries.document_starts, len(pages) + 1]
@@ -130,7 +138,7 @@ class EndpointInference:
             documents.append(
                 DocumentProposal(
                     pages=source_pages,
-                    owner_id=result.owner_id,
+                    owner_ids=result.owner_ids,
                     title=result.title,
                     document_date=result.document_date,
                     confidence=min(boundaries.confidence, result.confidence),
@@ -141,7 +149,11 @@ class EndpointInference:
                     ),
                 )
             )
-        analysis = Analysis(documents=documents, blank_pages=boundaries.blank_pages)
+        analysis = Analysis(
+            documents=documents,
+            blank_pages=boundaries.blank_pages,
+            page_rotations=boundaries.page_rotations,
+        )
         validate_analysis(analysis, len(pages), catalog)
         return analysis
 
@@ -305,6 +317,7 @@ class EndpointInference:
 
 
 class ScanSplit(Record):
+    page_rotations: list[PageRotation] = Field(default_factory=list)
     document_starts: list[Annotated[int, Field(ge=1)]] = Field(
         description="First nonblank source page of each document, in order. Empty only for an entirely blank scan.",
     )

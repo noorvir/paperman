@@ -38,10 +38,14 @@ export default function PdfViewer({
   url,
   title,
   onReady,
+  rotations,
+  onRotatePage,
 }: {
   url: string;
   title: string;
   onReady: () => void;
+  rotations?: number[];
+  onRotatePage?: (page: number) => void;
 }) {
   const { engine, error } = usePdfiumEngine({
     // Blob workers need an absolute URL for the bundled WebAssembly asset.
@@ -110,7 +114,12 @@ export default function PdfViewer({
                   }}
                 >
                   <CopyToClipboard />
-                  <PdfToolbar documentId={activeDocumentId} url={url} />
+                  <PdfToolbar
+                    documentId={activeDocumentId}
+                    url={url}
+                    editing={Boolean(rotations)}
+                    onRotatePage={onRotatePage}
+                  />
                   <Viewport
                     documentId={activeDocumentId}
                     className="min-h-0 flex-1"
@@ -125,33 +134,41 @@ export default function PdfViewer({
                           className="bg-white shadow-sm"
                           style={{ width, height }}
                         >
-                          <Rotate
-                            documentId={activeDocumentId}
-                            pageIndex={pageIndex}
+                          <div
+                            style={{
+                              width,
+                              height,
+                              transform: `rotate(${rotations?.[pageIndex] ?? 0}deg) scale(${(rotations?.[pageIndex] ?? 0) % 180 ? Math.min(width / height, height / width) : 1})`,
+                            }}
                           >
-                            <PagePointerProvider
+                            <Rotate
                               documentId={activeDocumentId}
                               pageIndex={pageIndex}
-                              className="select-none"
                             >
-                              <RenderLayer
+                              <PagePointerProvider
                                 documentId={activeDocumentId}
                                 pageIndex={pageIndex}
-                                aria-label={`Page ${pageIndex + 1}`}
-                                draggable={false}
-                                className="pointer-events-none"
-                              />
-                              <SearchLayer
-                                documentId={activeDocumentId}
-                                pageIndex={pageIndex}
-                              />
-                              <SelectionLayer
-                                documentId={activeDocumentId}
-                                pageIndex={pageIndex}
-                                background="Highlight"
-                              />
-                            </PagePointerProvider>
-                          </Rotate>
+                                className="select-none"
+                              >
+                                <RenderLayer
+                                  documentId={activeDocumentId}
+                                  pageIndex={pageIndex}
+                                  aria-label={`Page ${pageIndex + 1}`}
+                                  draggable={false}
+                                  className="pointer-events-none"
+                                />
+                                <SearchLayer
+                                  documentId={activeDocumentId}
+                                  pageIndex={pageIndex}
+                                />
+                                <SelectionLayer
+                                  documentId={activeDocumentId}
+                                  pageIndex={pageIndex}
+                                  background="Highlight"
+                                />
+                              </PagePointerProvider>
+                            </Rotate>
+                          </div>
                         </div>
                       )}
                     />

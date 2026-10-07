@@ -6,6 +6,23 @@ from tempfile import TemporaryDirectory
 from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PyPdfError
 
+from paperman_parser.models import PageRotation, validate_rotations
+
+
+def rotate_pages(source: bytes, rotations: list[PageRotation]) -> bytes:
+    """Apply clockwise corrections without changing source page order or content."""
+    reader = PdfReader(BytesIO(source))
+    validate_rotations(rotations, len(reader.pages))
+    corrections = {item.page: item.clockwise for item in rotations}
+    writer = PdfWriter()
+    for number, page in enumerate(reader.pages, 1):
+        if number in corrections:
+            page.rotate(corrections[number])
+        writer.add_page(page)
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue()
+
 
 def render_pdf(source: bytes) -> list[bytes]:
     """Render visible PDF pages as ordered PNGs with a 1600-pixel longest edge."""

@@ -49,6 +49,7 @@ def test_costs_survive_failure_filing_restart_and_repeated_tagging(
                     estimated_cost_usd=Decimal("0.03"),
                     usage_complete=True,
                 ),
+                processing_run=scan.processing_run,
             )
             if self.fail:
                 raise ValueError("Model failed after usage was reported")
@@ -59,7 +60,7 @@ def test_costs_survive_failure_filing_restart_and_repeated_tagging(
     asyncio.run(process_scan(storage, inference, FixtureOCR(), scan))
     failed = storage.get_scan(scan.id)
     assert failed.status == "failed"
-    assert [call.stage for call in failed.processing] == ["ocr", "split"]
+    assert [call.stage for call in failed.processing] == ["split"]
     inference.fail = False
     asyncio.run(process_scan(storage, inference, FixtureOCR(), failed))
     reviewed = storage.get_scan(scan.id)
@@ -83,11 +84,11 @@ def test_costs_survive_failure_filing_restart_and_repeated_tagging(
         estimated_cost_usd=Decimal("0.01"),
         usage_complete=True,
     )
-    record_scan_usage(storage, scan.id, tag_call, page_map=[3])
-    record_scan_usage(storage, scan.id, tag_call, page_map=[3])
+    record_scan_usage(storage, scan.id, tag_call, processing_run=1, page_map=[3])
+    record_scan_usage(storage, scan.id, tag_call, processing_run=1, page_map=[3])
     assert len(storage.get_scan(scan.id).processing) == 4
     second_call = tag_call.model_copy(update={"id": "new-tagging-call"})
-    record_scan_usage(storage, scan.id, second_call, page_map=[3])
+    record_scan_usage(storage, scan.id, second_call, processing_run=1, page_map=[3])
     client = TestClient(create_app(Settings(data_dir=tmp_path)))
     detail = DocumentDetail.model_validate_json(
         client.get(f"/api/documents/{documents[1].id}").text

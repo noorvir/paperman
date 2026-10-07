@@ -28,9 +28,10 @@ from paperman_parser.models import (
     CatalogEntry,
     DocumentProposal,
     InferenceSettings,
+    PageRotation,
     ProcessingUsage,
 )
-from paperman_parser.pdf import render_pdf, select_pages
+from paperman_parser.pdf import render_pdf, rotate_pages, select_pages
 
 
 @pytest.mark.parametrize("mode", ["native", "prompted", "tool"])
@@ -91,7 +92,7 @@ def test_validated_splitting_details_and_tags(
 
     assert [item.pages for item in result.documents] == [[1], [3]]
     assert result.blank_pages == [2]
-    assert [item.owner_id for item in result.documents] == ["alice", "unknown"]
+    assert [item.owner_ids for item in result.documents] == [["alice"], ["unknown"]]
     assert result.documents[0].document_date == date(2026, 9, 20)
     assert result.documents[0].confidence == 0.9
     assert result.documents[1].document_date is None
@@ -179,6 +180,88 @@ def test_invalid_model_output_stops_after_bounded_retries(
     with pytest.raises(ValueError, match="valid data after validation retries"):
         asyncio.run(inference.analyze(pdf_bytes(["Only one page"]), Catalog()))
     assert attempts == 3
+
+
+def test_first_split_call_corrects_orientation_before_shared_owner_details(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    upright = pdf_bytes(
+        ["ARD fee registration\nAlice Smith and Bob Smith", "Registration details"]
+    )
+    source = rotate_pages(
+        upright,
+        [PageRotation(page=1, clockwise=180), PageRotation(page=2, clockwise=90)],
+    )
+    original_images = render_pdf(source)
+    upright_images = render_pdf(upright)
+    calls = 0
+
+    def respond(messages: list[ModelMessage], _info: AgentInfo) -> ModelResponse:
+        nonlocal calls
+        images = [
+            content.data
+            for message in messages
+            for part in message.parts
+            if isinstance(part, UserPromptPart) and not isinstance(part.content, str)
+            for content in part.content
+            if isinstance(content, BinaryContent)
+        ]
+        calls += 1
+        if calls == 1:
+            assert images == original_images
+            return ModelResponse(
+                parts=[
+                    TextPart(
+                        json.dumps(
+                            {
+                                "document_starts": [1],
+                                "blank_pages": [],
+                                "confidence": 1,
+                                "review_reason": "",
+                                "page_rotations": [
+                                    {"page": 1, "clockwise": 180},
+                                    {"page": 2, "clockwise": 270},
+                                ],
+                            }
+                        )
+                    )
+                ]
+            )
+        assert calls == 2
+        assert images == upright_images
+        return ModelResponse(
+            parts=[
+                TextPart(
+                    json.dumps(
+                        {
+                            "owner_ids": ["alice", "bob"],
+                            "title": "ARD fee registration confirmation",
+                            "document_date": None,
+                            "confidence": 1,
+                            "review_reason": "",
+                        }
+                    )
+                )
+            ]
+        )
+
+    replace_model(monkeypatch, respond)
+    catalog = Catalog(
+        owners=[
+            CatalogEntry(id="alice", name="Alice Smith"),
+            CatalogEntry(id="bob", name="Bob Smith"),
+        ]
+    )
+    inference = EndpointInference(
+        InferenceSettings(
+            base_url="http://model.test/v1", model="test", output_mode="native"
+        ),
+        "local",
+    )
+    result = asyncio.run(inference.analyze(source, catalog))
+    assert calls == 2
+    assert result.documents[0].owner_ids == ["alice", "bob"]
+    assert [item.clockwise for item in result.page_rotations] == [180, 270]
 
 
 def test_feedback_uses_current_draft_and_validates_page_coverage(

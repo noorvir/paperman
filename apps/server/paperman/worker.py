@@ -124,7 +124,12 @@ async def run_cycle(
                     inference = EndpointInference(
                         model,
                         settings.model_api_key,
-                        record_usage=partial(record_scan_usage, storage, scan.id),
+                        record_usage=partial(
+                            record_scan_usage,
+                            storage,
+                            scan.id,
+                            processing_run=scan.processing_run,
+                        ),
                     )
                 state.message = f"Processing {scan.original_name}"
                 await process_scan(storage, inference, LocalOCR(), scan)
@@ -145,6 +150,7 @@ async def run_cycle(
                             record_scan_usage,
                             storage,
                             document.scan_id,
+                            processing_run=document.processing_run,
                             page_map=document.source_pages,
                         ),
                     )

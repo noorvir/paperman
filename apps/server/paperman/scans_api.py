@@ -9,7 +9,13 @@ from fastapi.responses import FileResponse
 from paperman_parser.inference import EndpointInference
 from paperman_parser.models import Analysis, Identifier, validate_analysis
 
-from paperman.api_models import ScanDetail, ScanFeedback, ScanPage, ScanReview
+from paperman.api_models import (
+    ScanDetail,
+    ScanFeedback,
+    ScanPage,
+    ScanReprocess,
+    ScanReview,
+)
 from paperman.config import Settings
 from paperman.models import Event, Scan, now
 from paperman.pdf import validate_scan
@@ -76,6 +82,57 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
             (storage.root / "state" / "wake").touch()
         return scan
 
+    @router.post("/api/scans/{scan_id}/reprocess", operation_id="reprocess_scan")
+    def reprocess_scan(scan_id: Identifier, value: ScanReprocess) -> Scan:
+        with storage.transaction():
+            scan = storage.get_scan(scan_id)
+            if scan.status != "complete":
+                raise HTTPException(
+                    409, "Wait for this scan to finish before starting a new run"
+                )
+            documents = [storage.get_document(id) for id in scan.document_ids]
+            if (
+                scan.filing_revision != value.filing_revision
+                or value.document_revisions
+                != {doc.id: doc.revision for doc in documents}
+            ):
+                raise HTTPException(
+                    409, "These results changed. Reload before confirming a new run"
+                )
+            if any(doc.enrichment_status == "running" for doc in documents):
+                raise HTTPException(
+                    409, "Wait for tagging to finish before starting a new run"
+                )
+            if not storage.scan_path(scan.id, "original.pdf").is_file():
+                raise HTTPException(
+                    409, "The original PDF is missing. Restore it before reprocessing"
+                )
+
+            storage.archive(scan)
+            write_record(
+                storage.scan_path(
+                    scan.id, f"revisions/{scan.filing_revision}/scan.json"
+                ),
+                scan,
+            )
+            scan.filing_revision += 1
+            scan.processing_run += 1
+            scan.filing_paths = {}
+            scan.proposal = None
+            scan.ocr_rotations = None
+            scan.attempts = 0
+            scan.phase = "analyze"
+            scan.status = "queued"
+            scan.history.append(
+                Event(
+                    stage="reprocess",
+                    message=f"Run {scan.processing_run} requested: replace all results from the original PDF",
+                )
+            )
+            storage.save_scan(scan)
+            (storage.root / "state" / "wake").touch()
+        return scan
+
     @router.put("/api/scans/{scan_id}/review", operation_id="approve_scan")
     def approve_scan(scan_id: Identifier, value: ScanReview) -> Scan:
         with storage.transaction():
@@ -106,7 +163,9 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
                 )
                 scan.filing_revision += 1
             scan.proposal = Analysis(
-                documents=value.documents, blank_pages=value.blank_pages
+                documents=value.documents,
+                blank_pages=value.blank_pages,
+                page_rotations=value.page_rotations,
             )
             scan.status = "queued"
             scan.phase = "file"
@@ -140,12 +199,14 @@ def routes(storage: FileStorage, config: Settings) -> APIRouter:
             raise HTTPException(422, "Describe the changes you want")
         validate_analysis(value.proposal, scan.page_count, catalog)
         source = await asyncio.to_thread(
-            storage.scan_path(scan.id, "searchable.pdf").read_bytes
+            storage.scan_path(scan.id, "original.pdf").read_bytes
         )
         inference = EndpointInference(
             settings,
             config.model_api_key,
-            record_usage=partial(record_scan_usage, storage, scan_id),
+            record_usage=partial(
+                record_scan_usage, storage, scan_id, processing_run=scan.processing_run
+            ),
         )
         result = await inference.revise(
             source, catalog, value.proposal, value.instructions

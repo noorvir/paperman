@@ -1,3 +1,4 @@
+import type { components } from "./schema";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { client, unwrap } from "./api.server";
@@ -143,6 +144,21 @@ export const enrichDocument = createServerFn({ method: "POST" })
     });
     return unwrap(result);
   });
+export const verifyDocument = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string(),
+      revision: z.number().int().min(0),
+      reviewer: z.string().trim().min(1).max(120),
+    }),
+  )
+  .handler(async ({ data: { id, ...value } }) => {
+    const result = await client.POST("/api/documents/{document_id}/verify", {
+      params: { path: { document_id: id } },
+      body: value,
+    });
+    return unwrap(result);
+  });
 export const rebuildIndex = createServerFn({ method: "POST" }).handler(
   async () => {
     const result = await client.POST("/api/search/rebuild");
@@ -155,6 +171,18 @@ export const editDocument = createServerFn({ method: "POST" })
     z.object({
       id: z.string(),
       value: z.object({
+        rotations: z
+          .array(
+            z.object({
+              page: z.number().int().min(1),
+              clockwise: z.union([
+                z.literal(90),
+                z.literal(180),
+                z.literal(270),
+              ]),
+            }),
+          )
+          .default([]),
         revision: z.number().int().min(0),
         title: z.string().trim().min(1).max(120),
         owner_ids: z.array(z.string()).min(1),
@@ -166,9 +194,14 @@ export const editDocument = createServerFn({ method: "POST" })
     }),
   )
   .handler(async ({ data: { id, value } }) => {
+    const { rotations, ...fields } = value;
+    const body: components["schemas"]["DocumentEdit"] = fields;
+    if (rotations.length) {
+      body.rotations = rotations;
+    }
     const result = await client.PUT("/api/documents/{document_id}", {
       params: { path: { document_id: id } },
-      body: value,
+      body,
     });
     return unwrap(result);
   });

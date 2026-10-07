@@ -9,12 +9,14 @@ import type { DocumentTable } from "./document-table";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import wasmUrl from "@embedpdf/pdfium/pdfium.wasm?url";
 import { DocumentOwners } from "./document-owners";
+import { DocumentVerificationBadge } from "./document-verification-badge";
 
 export default function DocumentGrid({
   documents,
   catalog,
   search,
   selectedId,
+  preview = true,
 }: ComponentProps<typeof DocumentTable>) {
   const activeId = useContext(CollectionSelectionContext);
   const { engine, error } = usePdfiumEngine({
@@ -36,10 +38,19 @@ export default function DocumentGrid({
             <CollectionLink
               itemId={doc.id}
               selected={selectedId === doc.id}
-              to="/documents"
-              search={{ ...search, preview: doc.id, view: "pdf" }}
+              preview={preview}
+              {...(preview
+                ? {
+                    to: "/documents",
+                    search: { ...search, preview: doc.id, view: "pdf" },
+                  }
+                : {
+                    to: "/documents/$documentId",
+                    params: { documentId: doc.id },
+                    search: { ...search, view: "pdf" },
+                  })}
               resetScroll={false}
-              aria-label={`Preview ${doc.title}`}
+              aria-label={`${preview ? "Preview" : "Open"} ${doc.title}`}
               title={doc.final_path}
               className="whitespace-normal! no-underline! after:absolute after:inset-0 after:rounded-xl"
             >
@@ -54,9 +65,12 @@ export default function DocumentGrid({
                 title={doc.title}
               />
             </CollectionLink>
-            <p className="mt-3 truncate text-xs font-medium" title={doc.title}>
-              {doc.title}
-            </p>
+            <div className="mt-3 flex items-center gap-2">
+              <p className="truncate text-xs font-medium" title={doc.title}>
+                {doc.title}
+              </p>
+              <DocumentVerificationBadge verified={Boolean(doc.verification)} />
+            </div>
             <div className="mt-3 flex items-center justify-between gap-2 text-xs">
               <DocumentOwners
                 ownerIds={doc.owner_ids}

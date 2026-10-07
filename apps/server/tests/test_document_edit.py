@@ -20,7 +20,7 @@ def create_document(storage: FileStorage) -> Document:
         id="document",
         scan_id="scan",
         source_pages=[1, 2, 3],
-        owner_id="unknown",
+        owner_ids=["unknown"],
         title="Original title",
         document_date=timestamp.date(),
         date_source="scan_fallback",
@@ -46,13 +46,13 @@ def test_document_edits_are_atomic_searchable_and_survive_enrichment(
     edit = DocumentEdit(
         revision=0,
         title="Corrected title",
-        owner_id="unknown",
+        owner_ids=["unknown"],
         document_date=None,
         summary="My factual summary",
         tag_ids=["health"],
         text="Corrected searchable text",
     )
-    invalid = edit.model_copy(update={"owner_id": "missing"})
+    invalid = edit.model_copy(update={"owner_ids": ["missing"]})
     assert (
         client.put(
             f"/api/documents/{doc.id}", json=invalid.model_dump(mode="json")
@@ -108,7 +108,7 @@ class EditingInference(FixtureInference):
         value = DocumentEdit(
             revision=doc.revision,
             title=doc.title,
-            owner_id=doc.owner_id,
+            owner_ids=doc.owner_ids,
             document_date=None,
             summary=doc.summary,
             tag_ids=["invoice"],

@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import asyncio
 from dataclasses import dataclass
+from io import BytesIO
 from typing import Protocol
+
+from pypdf import PdfReader
 
 from paperman_parser.models import Analysis, Catalog, Enrichment, validate_analysis
 from paperman_parser.ocr import OCR, SearchableDocument
@@ -21,8 +24,11 @@ async def parse(
     Page numbers refer to the input PDF. Missing issue dates remain absent.
     The caller owns review, date fallback, persistence, and later enrichment.
     """
-    content = await asyncio.to_thread(ocr.searchable, source, languages)
-    analysis = await inference.analyze(content.pdf, catalog)
+    analysis = await inference.analyze(source, catalog)
+    validate_analysis(analysis, len(PdfReader(BytesIO(source)).pages), catalog)
+    content = await asyncio.to_thread(
+        ocr.searchable, source, languages, rotations=analysis.page_rotations
+    )
     validate_analysis(analysis, len(content.pages), catalog)
     return ParsedDocument(content=content, analysis=analysis)
 

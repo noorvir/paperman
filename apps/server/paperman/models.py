@@ -1,15 +1,19 @@
-from datetime import UTC, date, datetime
-from typing import Literal
+from datetime import UTC, date, datetime, timedelta
+from pathlib import PurePosixPath
+from typing import Literal, Self
 
 from paperman_parser.models import (
     Analysis,
     Identifier,
     InferenceSettings,
+    Name,
+    Ownership,
+    PageRotation,
     ProcessingUsage,
     Record,
     UsageAllocation,
 )
-from pydantic import Field
+from pydantic import AliasChoices, Field, model_validator
 
 ScanStatus = Literal["queued", "running", "review", "failed", "complete"]
 
@@ -29,6 +33,10 @@ class Event(Record):
     message: str
 
 
+class ScanUsage(ProcessingUsage):
+    processing_run: int = Field(default=1, ge=1)
+
+
 class Scan(Record):
     id: Identifier
     content_hash: str
@@ -38,26 +46,40 @@ class Scan(Record):
     arrivals: list[str]
     page_count: int = 0
     status: ScanStatus = "queued"
-    phase: Literal["ocr", "analyze", "file", "done"] = "ocr"
+    phase: Literal["ocr", "analyze", "file", "done"] = "analyze"
+    ocr_rotations: list[PageRotation] | None = None
     attempts: int = 0
     proposal: Analysis | None = None
     document_ids: list[str] = Field(default_factory=list)
     filing_revision: int = 0
+    processing_run: int = Field(default=1, ge=1)
     filing_paths: dict[str, str] = Field(default_factory=dict)
     history: list[Event] = Field(default_factory=list)
-    processing: list[ProcessingUsage] = Field(default_factory=list)
+    processing: list[ScanUsage] = Field(default_factory=list)
 
 
-class Document(Record):
+class Verification(Record):
+    at: datetime
+    by: Name
+
+
+class Document(Ownership):
+    verification: Verification | None = None
+    manual_rotations: list[PageRotation] = Field(default_factory=list)
+    owner_ids: list[Identifier] = Field(
+        min_length=1, validation_alias=AliasChoices("owner_ids", "owner_id")
+    )
     id: Identifier
     scan_id: Identifier
     source_pages: list[int]
-    owner_id: Identifier
+    processing_run: int = Field(default=1, ge=1)
+    page_rotations: list[PageRotation] = Field(default_factory=list)
     title: str
     document_date: date
     date_source: Literal["document", "scan_fallback"]
     scanned_at: datetime
     final_path: str
+    processed_at: datetime | None = None
     user_tags: list[Identifier] = Field(default_factory=list)
     excluded_tags: list[Identifier] = Field(default_factory=list)
     generated_tags: list[Identifier] = Field(default_factory=list)
@@ -71,6 +93,37 @@ class Document(Record):
     enrichment_version: str = ""
     enrichment_error: str = ""
     processing: list[UsageAllocation] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def restore_processing_time(self) -> Self:
+        if self.processed_at is not None:
+            return self
+        for event in reversed(self.history):
+            if event.stage == "tag" and event.message == "Tags and summary updated":
+                self.processed_at = event.at
+                return self
+        if self.enrichment_status == "complete":
+            self.processed_at = max(
+                (
+                    item.call.started_at + timedelta(seconds=item.call.seconds)
+                    for item in self.processing
+                    if item.call.stage == "tagging" and item.call.status == "complete"
+                ),
+                default=None,
+            )
+        return self
+
+    @property
+    def file_paths(self) -> list[str]:
+        filename = PurePosixPath(self.final_path).name
+        return list(
+            dict.fromkeys(
+                [
+                    self.final_path,
+                    *[f"documents/{owner}/{filename}" for owner in self.owner_ids],
+                ]
+            )
+        )
 
 
 class WorkerState(Record):

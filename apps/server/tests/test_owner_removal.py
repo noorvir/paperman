@@ -41,7 +41,7 @@ def test_remove_owner_reassigns_and_resumes_partial_filing(tmp_path: Path) -> No
     assert EntryRemoval.model_validate_json(response.content) == EntryRemoval(
         status="in_use", documents=1, scans=1
     )
-    assert store.get_document(document.id).owner_id == "alice"
+    assert store.get_document(document.id).owner_ids == ["alice"]
     assert any(owner.id == "alice" for owner in store.catalog().owners)
 
     for replacement in ("alice", "missing"):
@@ -49,7 +49,7 @@ def test_remove_owner_reassigns_and_resumes_partial_filing(tmp_path: Path) -> No
             "/api/catalog/owners/alice", params={"reassign_to": replacement}
         )
         assert response.status_code == 422
-        assert store.get_document(document.id).owner_id == "alice"
+        assert store.get_document(document.id).owner_ids == ["alice"]
 
     response = client.delete(
         "/api/catalog/owners/alice", params={"reassign_to": "unknown"}
@@ -59,20 +59,21 @@ def test_remove_owner_reassigns_and_resumes_partial_filing(tmp_path: Path) -> No
     restarted = FileStorage(tmp_path)
     assert all(owner.id != "alice" for owner in restarted.catalog().owners)
     updated = restarted.get_document(document.id)
-    assert updated.owner_id == "unknown"
-    assert updated.final_path == document.final_path
+    assert updated.owner_ids == ["unknown"]
+    assert updated.final_path == document.final_path.replace("/alice/", "/unknown/")
+    assert not (tmp_path / document.final_path).exists()
     assert file_hash(tmp_path / updated.final_path) == original_hash
     proposal = restarted.get_scan(scan.id).proposal
     assert proposal is not None
-    assert all(item.owner_id == "unknown" for item in proposal.documents)
+    assert all(item.owner_ids == ["unknown"] for item in proposal.documents)
     assert restarted.get_scan(scan.id).history[-1].stage == "ownership"
 
     # The worker may have read the queued scan before reassignment acquired the lock.
     asyncio.run(process_scan(restarted, FixtureInference(), FixtureOCR(), stale_scan))
     assert restarted.get_scan(scan.id).status == "complete"
     assert len(restarted.list_documents()) == 2
-    assert restarted.get_document(document.id).final_path == document.final_path
-    assert file_hash(tmp_path / document.final_path) == original_hash
+    assert restarted.get_document(document.id).final_path == updated.final_path
+    assert file_hash(tmp_path / updated.final_path) == original_hash
     page = DocumentPage.model_validate_json(
         client.get("/api/documents", params={"owner": "unknown"}).content
     )
@@ -111,7 +112,7 @@ def test_remove_owner_checks_replacement_and_active_scans(tmp_path: Path) -> Non
     assert response.status_code == 200
     proposal = store.get_scan(scan.id).proposal
     assert proposal is not None
-    assert proposal.documents[0].owner_id == "bob"
+    assert proposal.documents[0].owner_ids == ["bob"]
 
     created = client.post("/api/catalog/owners", json={"name": "Unused"})
     unused = CatalogEntry.model_validate_json(created.content)

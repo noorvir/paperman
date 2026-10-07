@@ -19,6 +19,9 @@ export function DocumentView({
   search,
   sidebar,
   editor,
+  rotations,
+  pdfRevision,
+  onRotatePage,
 }: {
   document: components["schemas"]["Document"];
   scanName: string;
@@ -29,6 +32,9 @@ export function DocumentView({
   search: ComponentProps<typeof DocumentTags>["search"];
   sidebar: boolean;
   editor?: ReactNode;
+  rotations?: number[];
+  pdfRevision: number;
+  onRotatePage?: (page: number) => void;
 }) {
   return (
     <DetailViewLayout
@@ -68,7 +74,9 @@ export function DocumentView({
         >
           <PdfPreview
             title={document.title}
-            url={`/api/documents/${document.id}/pdf`}
+            rotations={rotations}
+            onRotatePage={onRotatePage}
+            url={`/api/documents/${document.id}/pdf?revision=${pdfRevision}`}
           />
         </div>
         <div
@@ -132,7 +140,7 @@ export function DocumentView({
               <FileLink
                 to="/scans/$scanId"
                 params={{ scanId: document.scan_id }}
-                search={{ preview: true }}
+                search={{ preview: false, view: "pdf" }}
                 filename={scanName}
               />
             </dd>

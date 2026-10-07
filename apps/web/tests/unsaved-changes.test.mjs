@@ -169,6 +169,35 @@ test(
       await page.goto(`/documents/${id}?edit=true`, {
         waitUntil: "networkidle",
       });
+      const save = page.getByRole("button", {
+        name: "Save changes",
+        exact: true,
+      });
+      assert.equal(await save.isDisabled(), true);
+      await page.locator('.pdf-preview[aria-busy="false"]').waitFor();
+      const rotate = page.getByRole("button", {
+        name: "Rotate current page clockwise",
+        exact: true,
+      });
+      await rotate.click();
+      assert.equal(await save.isEnabled(), true);
+      await rotate.click();
+      await rotate.click();
+      await rotate.click();
+      assert.equal(await save.isDisabled(), true);
+      await rotate.click();
+      await rotate.click();
+      const firstPage = page.locator('[aria-label="Page 1"]');
+      assert.ok(
+        await firstPage.evaluate((element) => {
+          let node = element.parentElement;
+          while (node) {
+            if (node.style.transform.includes("rotate(180deg)")) return true;
+            node = node.parentElement;
+          }
+          return false;
+        }),
+      );
       await page
         .getByRole("textbox", { name: "Title", exact: true })
         .fill("Save boundary title");
@@ -206,6 +235,7 @@ test(
       assert.equal(await page.getByRole("dialog").count(), 0);
       assert.equal(writes.length, 2);
       for (const body of writes) {
+        assert.ok(body.includes('"clockwise"') && body.includes('"s":180'));
         for (const value of [
           "Save boundary title",
           "Save boundary summary",

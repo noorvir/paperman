@@ -8,9 +8,15 @@ from pypdf import PdfReader
 
 from paperman_parser import parse
 from paperman_parser.demo_inference import DemoInference
-from paperman_parser.models import Analysis, Catalog, CatalogEntry, DocumentProposal
-from paperman_parser.ocr import LocalOCR
-from paperman_parser.pdf import select_pages
+from paperman_parser.models import (
+    Analysis,
+    Catalog,
+    CatalogEntry,
+    DocumentProposal,
+    PageRotation,
+)
+from paperman_parser.ocr import LocalOCR, SearchableDocument
+from paperman_parser.pdf import rotate_pages, select_pages
 
 
 def test_parse_pdf_bytes_and_enrich_without_server_state() -> None:
@@ -38,7 +44,10 @@ def test_parse_pdf_bytes_and_enrich_without_server_state() -> None:
     assert first.analysis == second.analysis
     assert catalog.model_dump_json() == before
     assert [item.pages for item in first.analysis.documents] == [[1, 2], [3]]
-    assert [item.owner_id for item in first.analysis.documents] == ["alice", "unknown"]
+    assert [item.owner_ids for item in first.analysis.documents] == [
+        ["alice"],
+        ["unknown"],
+    ]
     assert all(item.document_date is None for item in first.analysis.documents)
     assert len(PdfReader(BytesIO(first.content.pdf)).pages) == 3
     assert "Electricity invoice" in first.content.pages[0]
@@ -66,6 +75,65 @@ def test_image_scan_gets_searchable_text() -> None:
     assert len(result.pages) == 1
     assert "INVOICE" in result.pages[0]
     assert "150" in PdfReader(BytesIO(result.pdf)).pages[0].extract_text()
+
+
+def test_upside_down_scan_is_rotated_before_the_only_ocr_run() -> None:
+    image = Image.new("RGB", (1240, 1754), "white")
+    draw = ImageDraw.Draw(image)
+    draw.text(
+        (100, 150),
+        "LAB RESULTS PAYMENT REMINDER",
+        fill="black",
+        font=ImageFont.load_default(size=40),
+    )
+    draw.text(
+        (100, 250),
+        "Alice Smith - Total 150 EUR",
+        fill="black",
+        font=ImageFont.load_default(size=40),
+    )
+    buffer = BytesIO()
+    image.save(buffer, "PDF", resolution=150)
+    source = rotate_pages(buffer.getvalue(), [PageRotation(page=1, clockwise=180)])
+
+    input_pdf = source
+
+    class OrientationInference(DemoInference):
+        async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
+            assert source == input_pdf
+            assert not PdfReader(BytesIO(source)).pages[0].extract_text().strip()
+            return Analysis(
+                documents=[
+                    DocumentProposal(
+                        pages=[1], title="Lab results payment reminder", confidence=1
+                    )
+                ],
+                page_rotations=[PageRotation(page=1, clockwise=180)],
+            )
+
+    class CountingOCR(LocalOCR):
+        calls = 0
+
+        def searchable(
+            self,
+            source: bytes,
+            languages: str,
+            *,
+            rotations: list[PageRotation] | None = None,
+        ) -> SearchableDocument:
+            self.calls += 1
+            assert rotations == [PageRotation(page=1, clockwise=180)]
+            return super().searchable(source, languages, rotations=rotations)
+
+    ocr = CountingOCR()
+    result = asyncio.run(
+        parse(source, catalog=Catalog(), ocr=ocr, inference=OrientationInference())
+    )
+    assert ocr.calls == 1
+    assert "PAYMENT REMINDER" in result.content.pages[0]
+    assert "150" in result.content.pages[0]
+    assert PdfReader(BytesIO(source)).pages[0].rotation == 180
+    assert PdfReader(BytesIO(result.content.pdf)).pages[0].rotation % 360 == 0
 
 
 def test_blank_scan_reaches_analysis_after_local_ocr() -> None:

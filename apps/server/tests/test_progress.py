@@ -44,7 +44,7 @@ def test_progress_tracks_failure_retry_review_and_enrichment(tmp_path: Path) -> 
     asyncio.run(process_scan(storage, FailingInference(), FixtureOCR(), scan))
     detail = ScanDetail.model_validate_json(client.get(f"/api/scans/{scan.id}").content)
     steps = {step.id: step for step in detail.pipeline}
-    assert steps["ocr"].status == "complete"
+    assert steps["ocr"].status == "queued"
     assert steps["analyze"].status == "failed"
     assert steps["ready"].status == "queued"
     dashboard = Dashboard.model_validate_json(
@@ -122,7 +122,7 @@ def test_status_counts_cover_all_pages_and_exclude_unpublished_work(
             id=f"document-{index}",
             scan_id=scan.id,
             source_pages=[index + 1],
-            owner_id="unknown",
+            owner_ids=["unknown"],
             title=f"Document {index}",
             document_date=timestamp.date(),
             date_source="scan_fallback",

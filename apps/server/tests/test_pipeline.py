@@ -12,9 +12,11 @@ from paperman_parser.models import (
     CatalogEntry,
     DocumentProposal,
     Enrichment,
+    PageRotation,
     validate_analysis,
 )
 from paperman_parser.ocr import SearchableDocument
+from paperman_parser.pdf import rotate_pages
 from pypdf import PdfReader, PdfWriter
 
 from paperman.api import create_app
@@ -26,7 +28,15 @@ from paperman.storage import FileStorage, file_hash, write_record
 
 
 class FixtureOCR:
-    def searchable(self, source: bytes, languages: str) -> SearchableDocument:
+    def searchable(
+        self,
+        source: bytes,
+        languages: str,
+        *,
+        rotations: list[PageRotation] | None = None,
+    ) -> SearchableDocument:
+        if rotations:
+            source = rotate_pages(source, rotations)
         pages = [page.extract_text() for page in PdfReader(BytesIO(source)).pages]
         return SearchableDocument(pdf=source, pages=pages)
 
@@ -44,13 +54,13 @@ class FixtureInference:
             documents=[
                 DocumentProposal(
                     pages=[1, 2],
-                    owner_id="alice",
+                    owner_ids=["alice"],
                     title="Electricity bill",
                     confidence=0.98,
                 ),
                 DocumentProposal(
                     pages=[3],
-                    owner_id="unknown",
+                    owner_ids=["unknown"],
                     title="Appointment letter",
                     confidence=0.7,
                 ),
@@ -106,7 +116,7 @@ def test_scan_review_filing_and_repeatable_enrichment(tmp_path: Path) -> None:
     assert scan.status == "complete"
     documents = sorted(store.list_documents(), key=lambda doc: doc.source_pages)
     assert [doc.source_pages for doc in documents] == [[1, 2], [3]]
-    assert [doc.owner_id for doc in documents] == ["alice", "unknown"]
+    assert [doc.owner_ids for doc in documents] == [["alice"], ["unknown"]]
     assert all(doc.date_source == "scan_fallback" for doc in documents)
     assert [len(PdfReader(tmp_path / doc.final_path).pages) for doc in documents] == [
         2,
@@ -160,7 +170,7 @@ def test_gpu_failure_is_checkpointed_and_retryable(tmp_path: Path) -> None:
     failed = store.get_scan(scan.id)
     assert failed.status == "failed"
     assert failed.phase == "analyze"
-    assert store.scan_path(scan.id, "searchable.pdf").exists()
+    assert not store.scan_path(scan.id, "searchable.pdf").exists()
     assert source.exists()
     catalog = store.catalog()
     catalog.owners.append(CatalogEntry(id="alice", name="Alice"))
@@ -192,7 +202,7 @@ class InvalidInference(FixtureInference):
         return Analysis(
             documents=[
                 DocumentProposal(
-                    pages=[1, 1], owner_id="alice", title="Invoice", confidence=1
+                    pages=[1, 1], owner_ids=["alice"], title="Invoice", confidence=1
                 )
             ]
         )
@@ -203,7 +213,7 @@ class ConfidentInference(FixtureInference):
         return Analysis(
             documents=[
                 DocumentProposal(
-                    pages=[1, 2, 3], owner_id="alice", title="Invoice", confidence=1
+                    pages=[1, 2, 3], owner_ids=["alice"], title="Invoice", confidence=1
                 )
             ]
         )
@@ -233,7 +243,7 @@ def test_selective_review_distinguishes_absence_from_uncertainty(
                 documents=[
                     DocumentProposal(
                         pages=[1, 2, 3],
-                        owner_id="unknown",
+                        owner_ids=["unknown"],
                         title="Guide",
                         document_date=None,
                         confidence=confidence,
@@ -255,7 +265,7 @@ def test_selective_review_distinguishes_absence_from_uncertainty(
     assert result.status == expected_status
     if expected_status == "complete":
         document = store.list_documents()[0]
-        assert document.owner_id == "unknown"
+        assert document.owner_ids == ["unknown"]
         assert document.date_source == "scan_fallback"
         assert document.document_date == scan.scanned_at.date()
     else:
@@ -296,7 +306,7 @@ def test_blank_removal_filing_restart_and_manual_restoration(tmp_path: Path) -> 
             return Analysis(
                 documents=[
                     DocumentProposal(
-                        pages=[2, 4], owner_id="alice", title="Invoice", confidence=1
+                        pages=[2, 4], owner_ids=["alice"], title="Invoice", confidence=1
                     )
                 ],
                 blank_pages=[1, 3, 5],

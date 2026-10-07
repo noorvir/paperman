@@ -1,6 +1,7 @@
 import shutil
 from pathlib import Path
 
+from paperman_parser.models import PageRotation
 from paperman_parser.ocr import OCR
 from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PyPdfError
@@ -8,8 +9,10 @@ from pypdf.errors import PyPdfError
 from paperman.storage import atomic_target
 
 
-def prepare_pdf(source: Path, target: Path, ocr: OCR, languages: str) -> int:
-    content = ocr.searchable(source.read_bytes(), languages)
+def prepare_pdf(
+    source: Path, target: Path, ocr: OCR, languages: str, rotations: list[PageRotation]
+) -> int:
+    content = ocr.searchable(source.read_bytes(), languages, rotations=rotations)
     with atomic_target(target) as temporary:
         temporary.write_bytes(content.pdf)
     return len(content.pages)

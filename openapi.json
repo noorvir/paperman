@@ -400,6 +400,56 @@
         }
       }
     },
+    "/api/scans/{scan_id}/reprocess": {
+      "post": {
+        "summary": "Reprocess Scan",
+        "operationId": "reprocess_scan",
+        "parameters": [
+          {
+            "name": "scan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "title": "Scan Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ScanReprocess"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scan"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/scans/{scan_id}/review": {
       "put": {
         "summary": "Approve Scan",
@@ -772,6 +822,56 @@
         }
       }
     },
+    "/api/documents/{document_id}/verify": {
+      "post": {
+        "summary": "Verify Document",
+        "operationId": "verify_document",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "title": "Document Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DocumentVerify"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/documents/{document_id}/pdf": {
       "get": {
         "summary": "Document Pdf",
@@ -1056,6 +1156,13 @@
             "type": "array",
             "title": "Documents"
           },
+          "page_rotations": {
+            "items": {
+              "$ref": "#/components/schemas/PageRotation"
+            },
+            "type": "array",
+            "title": "Page Rotations"
+          },
           "blank_pages": {
             "items": {
               "type": "integer",
@@ -1082,6 +1189,13 @@
             "type": "array",
             "title": "Documents"
           },
+          "page_rotations": {
+            "items": {
+              "$ref": "#/components/schemas/PageRotation"
+            },
+            "type": "array",
+            "title": "Page Rotations"
+          },
           "blank_pages": {
             "items": {
               "type": "integer",
@@ -1096,6 +1210,7 @@
         "type": "object",
         "required": [
           "documents",
+          "page_rotations",
           "blank_pages"
         ],
         "title": "Analysis"
@@ -1279,6 +1394,32 @@
       },
       "Document": {
         "properties": {
+          "owner_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Owner Ids"
+          },
+          "verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Verification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "manual_rotations": {
+            "items": {
+              "$ref": "#/components/schemas/PageRotation"
+            },
+            "type": "array",
+            "title": "Manual Rotations"
+          },
           "id": {
             "type": "string",
             "pattern": "^[a-zA-Z0-9_-]{1,80}$",
@@ -1296,10 +1437,18 @@
             "type": "array",
             "title": "Source Pages"
           },
-          "owner_id": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
-            "title": "Owner Id"
+          "processing_run": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Processing Run",
+            "default": 1
+          },
+          "page_rotations": {
+            "items": {
+              "$ref": "#/components/schemas/PageRotation"
+            },
+            "type": "array",
+            "title": "Page Rotations"
           },
           "title": {
             "type": "string",
@@ -1326,6 +1475,18 @@
           "final_path": {
             "type": "string",
             "title": "Final Path"
+          },
+          "processed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Processed At"
           },
           "user_tags": {
             "items": {
@@ -1423,15 +1584,20 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "owner_ids",
+          "verification",
+          "manual_rotations",
           "id",
           "scan_id",
           "source_pages",
-          "owner_id",
+          "processing_run",
+          "page_rotations",
           "title",
           "document_date",
           "date_source",
           "scanned_at",
           "final_path",
+          "processed_at",
           "user_tags",
           "excluded_tags",
           "generated_tags",
@@ -1468,6 +1634,22 @@
       },
       "DocumentEdit": {
         "properties": {
+          "owner_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Owner Ids"
+          },
+          "rotations": {
+            "items": {
+              "$ref": "#/components/schemas/PageRotation"
+            },
+            "type": "array",
+            "title": "Rotations"
+          },
           "revision": {
             "type": "integer",
             "minimum": 0.0,
@@ -1478,11 +1660,6 @@
             "maxLength": 120,
             "minLength": 1,
             "title": "Title"
-          },
-          "owner_id": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
-            "title": "Owner Id"
           },
           "document_date": {
             "anyOf": [
@@ -1518,9 +1695,9 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "owner_ids",
           "revision",
           "title",
-          "owner_id",
           "document_date",
           "summary",
           "tag_ids",
@@ -1562,19 +1739,22 @@
       },
       "DocumentProposal-Input": {
         "properties": {
-          "owner_id": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
-            "title": "Owner Id",
-            "description": "Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.",
-            "default": "unknown"
+          "owner_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Owner Ids",
+            "description": "All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches."
           },
           "title": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
             "title": "Title",
-            "description": "Short document type and subject, such as Electricity bill. No recipient, reference number, or date."
+            "description": "Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date."
           },
           "document_date": {
             "anyOf": [
@@ -1624,19 +1804,22 @@
       },
       "DocumentProposal-Output": {
         "properties": {
-          "owner_id": {
-            "type": "string",
-            "pattern": "^[a-zA-Z0-9_-]{1,80}$",
-            "title": "Owner Id",
-            "description": "Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.",
-            "default": "unknown"
+          "owner_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+            },
+            "type": "array",
+            "minItems": 1,
+            "title": "Owner Ids",
+            "description": "All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches."
           },
           "title": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
             "title": "Title",
-            "description": "Short document type and subject, such as Electricity bill. No recipient, reference number, or date."
+            "description": "Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date."
           },
           "document_date": {
             "anyOf": [
@@ -1678,7 +1861,7 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
-          "owner_id",
+          "owner_ids",
           "title",
           "document_date",
           "confidence",
@@ -1686,6 +1869,28 @@
           "pages"
         ],
         "title": "DocumentProposal"
+      },
+      "DocumentVerify": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          },
+          "reviewer": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Reviewer"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "reviewer"
+        ],
+        "title": "DocumentVerify"
       },
       "EntryInput": {
         "properties": {
@@ -2088,6 +2293,33 @@
           "ocr_languages"
         ],
         "title": "ModelSettings"
+      },
+      "PageRotation": {
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Page",
+            "description": "One-based source page number."
+          },
+          "clockwise": {
+            "type": "integer",
+            "enum": [
+              90,
+              180,
+              270
+            ],
+            "title": "Clockwise",
+            "description": "Clockwise correction needed to make the supplied page image upright."
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "page",
+          "clockwise"
+        ],
+        "title": "PageRotation"
       },
       "PipelineDocumentItem": {
         "properties": {
@@ -2518,7 +2750,21 @@
               "done"
             ],
             "title": "Phase",
-            "default": "ocr"
+            "default": "analyze"
+          },
+          "ocr_rotations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PageRotation"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Rotations"
           },
           "attempts": {
             "type": "integer",
@@ -2547,6 +2793,12 @@
             "title": "Filing Revision",
             "default": 0
           },
+          "processing_run": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Processing Run",
+            "default": 1
+          },
           "filing_paths": {
             "additionalProperties": {
               "type": "string"
@@ -2563,7 +2815,7 @@
           },
           "processing": {
             "items": {
-              "$ref": "#/components/schemas/ProcessingUsage"
+              "$ref": "#/components/schemas/ScanUsage"
             },
             "type": "array",
             "title": "Processing"
@@ -2581,10 +2833,12 @@
           "page_count",
           "status",
           "phase",
+          "ocr_rotations",
           "attempts",
           "proposal",
           "document_ids",
           "filing_revision",
+          "processing_run",
           "filing_paths",
           "history",
           "processing"
@@ -2653,7 +2907,21 @@
               "done"
             ],
             "title": "Phase",
-            "default": "ocr"
+            "default": "analyze"
+          },
+          "ocr_rotations": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/PageRotation"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ocr Rotations"
           },
           "attempts": {
             "type": "integer",
@@ -2682,6 +2950,12 @@
             "title": "Filing Revision",
             "default": 0
           },
+          "processing_run": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Processing Run",
+            "default": 1
+          },
           "filing_paths": {
             "additionalProperties": {
               "type": "string"
@@ -2698,7 +2972,7 @@
           },
           "processing": {
             "items": {
-              "$ref": "#/components/schemas/ProcessingUsage"
+              "$ref": "#/components/schemas/ScanUsage"
             },
             "type": "array",
             "title": "Processing"
@@ -2723,10 +2997,12 @@
           "page_count",
           "status",
           "phase",
+          "ocr_rotations",
           "attempts",
           "proposal",
           "document_ids",
           "filing_revision",
+          "processing_run",
           "filing_paths",
           "history",
           "processing",
@@ -2786,6 +3062,31 @@
         ],
         "title": "ScanPage"
       },
+      "ScanReprocess": {
+        "properties": {
+          "filing_revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Filing Revision"
+          },
+          "document_revisions": {
+            "patternProperties": {
+              "^[a-zA-Z0-9_-]{1,80}$": {
+                "type": "integer"
+              }
+            },
+            "type": "object",
+            "title": "Document Revisions"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "filing_revision",
+          "document_revisions"
+        ],
+        "title": "ScanReprocess"
+      },
       "ScanReview": {
         "properties": {
           "documents": {
@@ -2794,6 +3095,13 @@
             },
             "type": "array",
             "title": "Documents"
+          },
+          "page_rotations": {
+            "items": {
+              "$ref": "#/components/schemas/PageRotation"
+            },
+            "type": "array",
+            "title": "Page Rotations"
           },
           "blank_pages": {
             "items": {
@@ -2820,6 +3128,163 @@
           "documents"
         ],
         "title": "ScanReview"
+      },
+      "ScanUsage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "started_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Started At"
+          },
+          "stage": {
+            "type": "string",
+            "enum": [
+              "ocr",
+              "split",
+              "details",
+              "tagging",
+              "review",
+              "transcription"
+            ],
+            "title": "Stage"
+          },
+          "source_pages": {
+            "items": {
+              "type": "integer"
+            },
+            "type": "array",
+            "title": "Source Pages"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "base_url": {
+            "type": "string",
+            "title": "Base Url"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "complete",
+              "failed"
+            ],
+            "title": "Status"
+          },
+          "seconds": {
+            "type": "number",
+            "minimum": 0.0,
+            "title": "Seconds"
+          },
+          "requests": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Requests",
+            "default": 0
+          },
+          "input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Input Tokens"
+          },
+          "cached_input_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cached Input Tokens"
+          },
+          "output_tokens": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Tokens"
+          },
+          "token_details": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "type": "object",
+            "title": "Token Details"
+          },
+          "usage_complete": {
+            "type": "boolean",
+            "title": "Usage Complete",
+            "default": false
+          },
+          "pricing": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ModelPricing-Output"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "estimated_cost_usd": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Cost Usd"
+          },
+          "processing_run": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Processing Run",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "started_at",
+          "stage",
+          "source_pages",
+          "model",
+          "base_url",
+          "status",
+          "seconds",
+          "requests",
+          "input_tokens",
+          "cached_input_tokens",
+          "output_tokens",
+          "token_details",
+          "usage_complete",
+          "pricing",
+          "estimated_cost_usd",
+          "processing_run"
+        ],
+        "title": "ScanUsage"
       },
       "TagSelection": {
         "properties": {
@@ -2910,6 +3375,28 @@
           "type"
         ],
         "title": "ValidationError"
+      },
+      "Verification": {
+        "properties": {
+          "at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "At"
+          },
+          "by": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "By"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "at",
+          "by"
+        ],
+        "title": "Verification"
       },
       "WorkerState": {
         "properties": {

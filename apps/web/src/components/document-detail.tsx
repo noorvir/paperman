@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { z } from "zod";
 import type { components } from "@/lib/schema";
@@ -9,6 +10,8 @@ import { BackLink } from "@/components/back-link";
 import { formatDate } from "@/components/page";
 import { DocumentView } from "@/components/document-view";
 import { DocumentTabs } from "@/components/document-tabs";
+import { DocumentVerificationBadge } from "@/components/document-verification-badge";
+import { VerifyDocument } from "@/components/verify-document";
 import { ReprocessDocument } from "@/components/reprocess-document";
 import { DocumentFilterLink } from "@/components/document-filter-link";
 import {
@@ -36,6 +39,21 @@ export function DocumentDetail({
   edit: boolean;
 }) {
   const navigate = useNavigate();
+  const [rotationDraft, setRotationDraft] = useState({
+    edit,
+    documentId: document.id,
+    revision: document.revision,
+    rotations: new Array<number>(document.source_pages.length).fill(0),
+  });
+  if (rotationDraft.edit !== edit || rotationDraft.documentId !== document.id) {
+    setRotationDraft({
+      edit,
+      documentId: document.id,
+      revision: document.revision,
+      rotations: new Array<number>(document.source_pages.length).fill(0),
+    });
+  }
+  const [saving, setSaving] = useState(false);
   const date = formatDate(document.document_date);
   function setEditing(edit: boolean) {
     void navigate({
@@ -49,6 +67,9 @@ export function DocumentDetail({
     <CollectionPreview
       id={document.id}
       title={document.title}
+      badge={
+        <DocumentVerificationBadge verified={Boolean(document.verification)} />
+      }
       description={
         <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
           {document.owner_ids.map((id) => {
@@ -132,6 +153,7 @@ export function DocumentDetail({
           </PreviewAction>
         ) : (
           <>
+            {!document.verification && <VerifyDocument document={document} />}
             <PreviewAction icon={Pen01Icon} onClick={() => setEditing(true)}>
               Edit
             </PreviewAction>
@@ -142,6 +164,20 @@ export function DocumentDetail({
     >
       <DocumentView
         document={document}
+        pdfRevision={edit ? rotationDraft.revision : document.revision}
+        rotations={edit ? rotationDraft.rotations : undefined}
+        onRotatePage={
+          edit && !saving
+            ? (page) => {
+                setRotationDraft((current) => ({
+                  ...current,
+                  rotations: current.rotations.map((angle, index) =>
+                    index === page - 1 ? (angle + 90) % 360 : angle,
+                  ),
+                }));
+              }
+            : undefined
+        }
         scanName={scanName}
         text={text}
         catalog={catalog}
@@ -155,6 +191,8 @@ export function DocumentDetail({
               key={document.id}
               document={document}
               text={text}
+              rotations={rotationDraft.rotations}
+              onSaving={setSaving}
               catalog={catalog}
               initialTab={view === "pdf" ? "details" : view}
               onDone={() => setEditing(false)}

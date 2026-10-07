@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { FileIcon } from "./file-icon";
 import { DocumentTagPopover } from "./document-tag-popover";
 import { DocumentOwners } from "./document-owners";
+import { DocumentVerificationBadge } from "./document-verification-badge";
 import { LocalTime } from "./local-time";
 import {
   Table,
@@ -20,19 +21,22 @@ export function DocumentTable({
   catalog,
   search,
   selectedId,
+  preview = true,
 }: {
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
   search: z.output<typeof documentSearch>;
   selectedId: string | undefined;
+  preview?: boolean;
 }) {
   return (
-    <Table className="min-w-[800px] table-fixed [&_td]:py-2.5">
+    <Table className="min-w-[900px] table-fixed [&_td]:py-2.5">
       <TableHeader>
         <TableRow>
           <TableHead>Document</TableHead>
           <TableHead className="w-40">Owners</TableHead>
           <TableHead className="w-36">Tags</TableHead>
+          <TableHead className="w-28 text-center">Verification</TableHead>
           <TableHead className="w-48">Processed at</TableHead>
         </TableRow>
       </TableHeader>
@@ -45,13 +49,22 @@ export function DocumentTable({
                 <CollectionLink
                   itemId={doc.id}
                   selected={selectedId === doc.id}
-                  to="/documents"
-                  search={{ ...search, preview: doc.id, view: "pdf" }}
+                  preview={preview}
+                  {...(preview
+                    ? {
+                        to: "/documents",
+                        search: { ...search, preview: doc.id, view: "pdf" },
+                      }
+                    : {
+                        to: "/documents/$documentId",
+                        params: { documentId: doc.id },
+                        search: { ...search, view: "pdf" },
+                      })}
                   resetScroll={false}
                   title={doc.final_path.slice(
                     doc.final_path.lastIndexOf("/") + 1,
                   )}
-                  aria-label={`Preview ${doc.title}`}
+                  aria-label={`${preview ? "Preview" : "Open"} ${doc.title}`}
                   className="min-w-0 flex-1"
                 >
                   <span className="block truncate">{doc.title}</span>
@@ -74,6 +87,13 @@ export function DocumentTable({
                 catalog={catalog}
                 search={search}
               />
+            </TableCell>
+            <TableCell>
+              <div className="flex items-center justify-center">
+                <DocumentVerificationBadge
+                  verified={Boolean(doc.verification)}
+                />
+              </div>
             </TableCell>
             <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
               <LocalTime value={doc.processed_at} />

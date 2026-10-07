@@ -34,7 +34,7 @@ class DemoInference:
                 documents.append(
                     DocumentProposal(
                         pages=[number],
-                        owner_id=owner,
+                        owner_ids=[owner],
                         title=title,
                         confidence=0.95,
                         review_reason="Demo proposal. Check the filing details.",

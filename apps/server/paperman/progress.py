@@ -126,7 +126,7 @@ def scan_progress(scan: Scan, documents: list[Document]) -> list[PipelineStep]:
 def scan_stage(scan: Scan) -> PipelineStage:
     if scan.status == "review":
         return "review"
-    if scan.phase == "ocr" and scan.status == "queued" and scan.attempts == 0:
+    if scan.status == "queued" and scan.attempts == 0:
         return "inbox"
     if scan.phase == "done":
         return "ready"
@@ -135,8 +135,8 @@ def scan_stage(scan: Scan) -> PipelineStage:
 
 STAGES: dict[PipelineStage, str] = {
     "inbox": "Inbox",
-    "ocr": "OCR",
     "analyze": "Analysis",
+    "ocr": "OCR",
     "review": "Review",
     "file": "File",
     "tag": "Tag",

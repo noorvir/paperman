@@ -3,7 +3,14 @@ from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import uuid4
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, field_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    field_validator,
+)
 
 
 class Record(BaseModel):
@@ -125,13 +132,34 @@ class InferenceSettings(Record):
         return value.rstrip("/")
 
 
-class DocumentDetails(Record):
-    owner_id: Identifier = Field(
-        default="unknown",
-        description="Catalog ID matching the recipient, not the sender. Use unknown only if no owner matches.",
+class Ownership(Record):
+    owner_ids: list[Identifier] = Field(
+        default_factory=lambda: ["unknown"],
+        min_length=1,
+        validation_alias=AliasChoices("owner_ids", "owner_id"),
+        description="All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches.",
     )
+
+    @field_validator("owner_ids", mode="before")
+    @classmethod
+    def read_single_owner(cls, value: object) -> object:
+        if isinstance(value, str):
+            return [value]
+        return value
+
+    @field_validator("owner_ids")
+    @classmethod
+    def validate_owners(cls, value: list[str]) -> list[str]:
+        if len(value) != len(set(value)):
+            raise ValueError("Select each owner only once")
+        if "unknown" in value and len(value) > 1:
+            raise ValueError("Unknown cannot be combined with named owners")
+        return sorted(value)
+
+
+class DocumentDetails(Ownership):
     title: Name = Field(
-        description="Short document type and subject, such as Electricity bill. No recipient, reference number, or date."
+        description="Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date."
     )
     document_date: date | None = Field(
         default=None,
@@ -150,8 +178,16 @@ class DocumentProposal(DocumentDetails):
     )
 
 
+class PageRotation(Record):
+    page: int = Field(ge=1, description="One-based source page number.")
+    clockwise: Literal[90, 180, 270] = Field(
+        description="Clockwise correction needed to make the supplied page image upright."
+    )
+
+
 class Analysis(Record):
     documents: list[DocumentProposal]
+    page_rotations: list[PageRotation] = Field(default_factory=list)
     blank_pages: list[Annotated[int, Field(ge=1)]] = Field(
         default_factory=list,
         description="Confirmed blank source pages omitted from filed documents. Originals retain every page.",
@@ -182,8 +218,15 @@ def validate_analysis(proposal: Analysis, page_count: int, catalog: Catalog) -> 
             "Every page must occur exactly once, in order, in a document or in blank_pages"
         )
     owners = {owner.id for owner in catalog.owners}
+    validate_rotations(proposal.page_rotations, page_count)
     for document in proposal.documents:
-        if document.owner_id not in owners:
+        if not set(document.owner_ids) <= owners:
             raise ValueError(f"Use only these owner IDs: {sorted(owners)}")
         if not document.title.strip():
             raise ValueError("Each document needs a title")
+
+
+def validate_rotations(rotations: list[PageRotation], page_count: int) -> None:
+    pages = [item.page for item in rotations]
+    if len(pages) != len(set(pages)) or any(page > page_count for page in pages):
+        raise ValueError("Return at most one rotation for each existing source page")

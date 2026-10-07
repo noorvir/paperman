@@ -1,8 +1,16 @@
 from datetime import date
 from typing import Annotated, Literal
 
-from paperman_parser.models import Analysis, CatalogIcon, Identifier, Name, Record
-from pydantic import Field
+from paperman_parser.models import (
+    Analysis,
+    CatalogIcon,
+    Identifier,
+    Name,
+    Ownership,
+    PageRotation,
+    Record,
+)
+from pydantic import AliasChoices, Field
 
 from paperman.models import Document, Scan, ScanStatus, WorkerState
 
@@ -102,18 +110,31 @@ class DocumentDetail(Record):
     text: str
 
 
-class DocumentEdit(Record):
+class DocumentEdit(Ownership):
+    rotations: list[PageRotation] = Field(default_factory=list)
+    owner_ids: list[Identifier] = Field(
+        min_length=1, validation_alias=AliasChoices("owner_ids", "owner_id")
+    )
     revision: int = Field(ge=0)
     title: Name
-    owner_id: Identifier
     document_date: date | None
     summary: str = Field(max_length=10000)
     tag_ids: list[Identifier]
     text: str = Field(max_length=1_000_000)
 
 
+class DocumentVerify(Record):
+    revision: int = Field(ge=0)
+    reviewer: Name
+
+
 class ScanReview(Analysis):
     document_revisions: dict[Identifier, int] = Field(default_factory=dict)
+
+
+class ScanReprocess(Record):
+    filing_revision: int = Field(ge=0)
+    document_revisions: dict[Identifier, int]
 
 
 class ScanFeedback(Record):

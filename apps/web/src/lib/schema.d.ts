@@ -211,6 +211,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/{document_id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify Document */
+        post: operations["verify_document"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/documents/{document_id}/pdf": {
         parameters: {
             query?: never;
@@ -405,6 +422,9 @@ export interface components {
         Document: {
             /** Owner Ids */
             owner_ids: string[];
+            verification: components["schemas"]["Verification"] | null;
+            /** Manual Rotations */
+            manual_rotations: components["schemas"]["PageRotation"][];
             /** Id */
             id: string;
             /** Scan Id */
@@ -495,6 +515,8 @@ export interface components {
         DocumentEdit: {
             /** Owner Ids */
             owner_ids: string[];
+            /** Rotations */
+            rotations?: components["schemas"]["PageRotation"][];
             /** Revision */
             revision: number;
             /** Title */
@@ -586,6 +608,13 @@ export interface components {
              * @description One-based source page numbers in original order.
              */
             pages: number[];
+        };
+        /** DocumentVerify */
+        DocumentVerify: {
+            /** Revision */
+            revision: number;
+            /** Reviewer */
+            reviewer: string;
         };
         /** EntryInput */
         EntryInput: {
@@ -1166,6 +1195,16 @@ export interface components {
             /** Context */
             ctx?: Record<string, never>;
         };
+        /** Verification */
+        Verification: {
+            /**
+             * At
+             * Format: date-time
+             */
+            at: string;
+            /** By */
+            by: string;
+        };
         /** WorkerState */
         WorkerState: {
             /**
@@ -1675,6 +1714,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    verify_document: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentVerify"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
                 };
             };
             /** @description Validation Error */

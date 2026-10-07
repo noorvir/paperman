@@ -386,6 +386,21 @@ test(
           .count(),
         count,
       );
+      const scanDocumentsURL = page.url();
+      for (const layout of ["List view", "Grid view"]) {
+        await page.getByRole("button", { name: layout, exact: true }).click();
+        const documentLink = page
+          .locator('.document-panel[data-active="true"] [data-collection-link]')
+          .first();
+        const id = await documentLink.getAttribute("data-item-id");
+        const href = await documentLink.getAttribute("href");
+        assert.equal(new URL(href, baseURL).pathname, `/documents/${id}`);
+        assert.equal(new URL(href, baseURL).searchParams.has("preview"), false);
+        await documentLink.click();
+        await page.waitForURL((url) => url.pathname === `/documents/${id}`);
+        assert.equal(new URL(page.url()).searchParams.has("preview"), false);
+        await page.goto(scanDocumentsURL, { waitUntil: "networkidle" });
+      }
       const destination = await links.first().getAttribute("href");
       await links.first().click();
       await page.waitForURL(
@@ -395,11 +410,26 @@ test(
         .getByRole("complementary")
         .locator('a[href^="/scans/"]')
         .click();
-      await page.getByRole("dialog", { name: /^Preview:/ }).waitFor();
-      assert.equal(new URL(page.url()).pathname, `/scans/${scanId}`);
-      assert.equal(new URL(page.url()).searchParams.get("preview"), "true");
+      await page.waitForURL((url) => url.pathname === `/scans/${scanId}`);
+      assert.equal(new URL(page.url()).searchParams.has("preview"), false);
+      assert.equal(
+        await page.getByRole("dialog", { name: /^Preview:/ }).count(),
+        0,
+      );
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByTitle("Open full view").click();
+      const documentURL = new URL(destination, baseURL);
+      documentURL.searchParams.set("view", "details");
+      await page.goto(documentURL.href, { waitUntil: "networkidle" });
+      const sourceLinks = page.locator(
+        '.document-panel[data-active="true"] a[href^="/scans/"]',
+      );
+      for (const link of await sourceLinks.all()) {
+        const href = await link.getAttribute("href");
+        assert.equal(new URL(href, baseURL).searchParams.has("preview"), false);
+      }
+      await sourceLinks.first().click();
+      await page.waitForURL((url) => url.pathname === `/scans/${scanId}`);
+      assert.equal(new URL(page.url()).searchParams.has("preview"), false);
       await page
         .getByRole("navigation", { name: "Scan view" })
         .getByRole("link", { name: "Details", exact: true })

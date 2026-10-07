@@ -27,21 +27,60 @@ async def process_scan(
             scan.status = "running"
             scan.attempts += 1
             storage.save_scan(scan)
+        original = storage.scan_path(scan.id, "original.pdf")
         searchable = storage.scan_path(scan.id, "searchable.pdf")
-        if scan.phase == "ocr":
-            original = storage.scan_path(scan.id, "original.pdf")
+        catalog = storage.catalog()
+        if scan.phase == "analyze" or (scan.phase == "ocr" and scan.proposal is None):
+            scan.phase = "analyze"
             scan.page_count = len(PdfReader(original).pages)
+            source = await asyncio.to_thread(original.read_bytes)
+            scan.proposal = await inference.analyze(source, catalog)
+            scan.processing = storage.get_scan(scan.id).processing
+            try:
+                validate_analysis(scan.proposal, scan.page_count, catalog)
+            except ValueError as error:
+                scan.status = "review"
+                scan.phase = "file"
+                scan.history.append(Event(stage="analyze", message=str(error)))
+                with storage.transaction():
+                    storage.save_scan(scan)
+                return
+            scan.phase = "ocr"
+            scan.history.append(
+                Event(
+                    stage="analyze",
+                    message="Page groups, orientation, and filing details identified",
+                )
+            )
+            with storage.transaction():
+                storage.save_scan(scan)
+
+        proposal = scan.proposal
+        if proposal is None:
+            raise ValueError("A filing proposal is required before OCR")
+        validate_analysis(proposal, scan.page_count, catalog)
+        prepare = scan.phase == "ocr" or (
+            scan.phase == "file"
+            and (
+                not searchable.exists() or scan.ocr_rotations != proposal.page_rotations
+            )
+        )
+        if prepare:
+            check_review = scan.phase == "ocr"
             started_at = datetime.now(UTC)
             started = perf_counter()
             succeeded = False
             try:
-                scan.page_count = await asyncio.to_thread(
+                page_count = await asyncio.to_thread(
                     prepare_pdf,
                     original,
                     searchable,
                     ocr,
                     storage.settings().ocr_languages,
+                    proposal.page_rotations,
                 )
+                if page_count != scan.page_count:
+                    raise ValueError("OCR changed the page count")
                 succeeded = True
             finally:
                 call = ProcessingUsage(
@@ -56,70 +95,53 @@ async def process_scan(
                     estimated_cost_usd=Decimal(0),
                 )
                 try:
-                    record_scan_usage(storage, scan.id, call)
+                    record_scan_usage(
+                        storage, scan.id, call, processing_run=scan.processing_run
+                    )
                 except Exception:
                     logger.exception("Could not record OCR usage for %s", scan.id)
                 scan.processing = storage.get_scan(scan.id).processing
-            scan.phase = "analyze"
+            scan.ocr_rotations = proposal.page_rotations
+            scan.phase = "file"
             scan.history.append(
                 Event(
                     stage="ocr",
                     message=f"Searchable PDF created: {scan.page_count} pages",
                 )
             )
-            with storage.transaction():
-                storage.save_scan(scan)
-
-        if scan.phase == "analyze":
-            pages = await asyncio.to_thread(extract_pages, searchable)
-            catalog = storage.catalog()
-            source = await asyncio.to_thread(searchable.read_bytes)
-            proposal = await inference.analyze(source, catalog)
-            scan.processing = storage.get_scan(scan.id).processing
-            empty_pages = {
-                number for number, text in enumerate(pages, 1) if not text.strip()
-            }
-            for document in proposal.documents:
-                unchecked = sorted(empty_pages.intersection(document.pages))
-                if unchecked:
-                    warning = (
-                        "No readable text on pages "
-                        + ", ".join(map(str, unchecked))
-                        + ". Content was retained. Check for unreadable text or missed OCR."
+            if check_review:
+                pages = await asyncio.to_thread(extract_pages, searchable)
+                empty_pages = {
+                    number for number, text in enumerate(pages, 1) if not text.strip()
+                }
+                for document in proposal.documents:
+                    unchecked = sorted(empty_pages.intersection(document.pages))
+                    if unchecked:
+                        warning = (
+                            "No readable text on pages "
+                            + ", ".join(map(str, unchecked))
+                            + ". Content was retained. Check for unreadable text or missed OCR."
+                        )
+                        document.review_reason = " ".join(
+                            filter(None, [document.review_reason, warning])
+                        )
+                if (
+                    storage.settings().review_before_filing
+                    or not proposal.documents
+                    or any(
+                        doc.confidence < 0.9 or doc.review_reason.strip()
+                        for doc in proposal.documents
                     )
-                    document.review_reason = " ".join(
-                        filter(None, [document.review_reason, warning])
-                    )
-            scan.proposal = proposal
-            validation_error = ""
-            try:
-                validate_analysis(proposal, scan.page_count, catalog)
-            except ValueError as error:
-                validation_error = str(error)
-            scan.phase = "file"
-            requires_review = (
-                storage.settings().review_before_filing
-                or bool(validation_error)
-                or not proposal.documents
-                or any(
-                    doc.confidence < 0.9 or doc.review_reason.strip()
-                    for doc in proposal.documents
-                )
-            )
-            if requires_review:
-                scan.status = "review"
-                if validation_error:
-                    message = validation_error
-                elif not proposal.documents:
-                    message = "All pages were marked blank. Check the original before completing this scan"
-                else:
+                ):
+                    scan.status = "review"
                     message = "Confirm document groups, blank pages, and filing details"
-                scan.history.append(Event(stage="analyze", message=message))
-                with storage.transaction():
-                    storage.save_scan(scan)
-                return
+                    if not proposal.documents:
+                        message = "All pages were marked blank. Check the original before completing this scan"
+                    scan.history.append(Event(stage="analyze", message=message))
             with storage.transaction():
                 storage.save_scan(scan)
+            if scan.status == "review":
+                return
 
         if scan.phase == "file":
             await asyncio.to_thread(file_documents, storage, scan)
@@ -181,6 +203,9 @@ async def enrich_document(
             document.summary = summary
             document.enrichment_version = inference.version
             document.enrichment_status = "complete"
+            completed = Event(stage="tag", message="Tags and summary updated")
+            document.processed_at = completed.at
+            document.history.append(completed)
             storage.save_document(document)
     except Exception as error:
         logger.exception("Enrichment failed for %s", document.id)
@@ -191,5 +216,8 @@ async def enrich_document(
                 str(error)
                 if isinstance(error, ValueError)
                 else "Tagging failed. Check the model endpoint and retry"
+            )
+            document.history.append(
+                Event(stage="tag", message=document.enrichment_error)
             )
             storage.save_document(document)

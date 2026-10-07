@@ -32,7 +32,7 @@ def test_feedback_returns_a_draft_without_filing_or_replacing_saved_proposal(
         documents=[
             DocumentProposal(
                 pages=[1, 2, 3],
-                owner_id="alice",
+                owner_ids=["alice"],
                 title="Manual title",
                 confidence=1,
             )

@@ -11,6 +11,8 @@ def enrich(pages: list[bytes], tags: list[CatalogEntry]) -> Prompt:
             "Classify this document from its page images using only tag_ids from the catalog. "
             "Read the images directly, including their layout and visible labels. "
             "Suggest up to three useful new tag names separately. "
+            "Use short English names in sentence case with spaces, such as 'Payment request'. "
+            "Keep proper names and acronyms such as VAT capitalized. Do not use snake_case or duplicate catalog tags. "
             "Tag the document's actual purpose, not every thing it mentions. "
             "An estimate is not an invoice or a letter; an invoice is not a contract merely because it has payment terms. "
             "Use correspondence for an actual letter or message, not all written documents. "

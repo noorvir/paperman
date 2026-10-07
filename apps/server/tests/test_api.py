@@ -113,7 +113,7 @@ def test_enrichment_preserves_state_when_catalog_changes(tmp_path: Path) -> None
         id="document",
         scan_id="scan",
         source_pages=[1],
-        owner_id="unknown",
+        owner_ids=["unknown"],
         title="Invoice",
         document_date=timestamp.date(),
         date_source="scan_fallback",

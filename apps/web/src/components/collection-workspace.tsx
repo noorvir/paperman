@@ -143,9 +143,14 @@ export function CollectionRow({
 export const CollectionLink = createLink(function CollectionAnchor({
   itemId,
   selected,
+  preview = true,
   className,
   ...props
-}: ComponentProps<"a"> & { itemId: string; selected: boolean }) {
+}: ComponentProps<"a"> & {
+  itemId: string;
+  selected: boolean;
+  preview?: boolean;
+}) {
   const activeId = useContext(CollectionSelectionContext);
   return (
     <a
@@ -153,8 +158,8 @@ export const CollectionLink = createLink(function CollectionAnchor({
       id={`collection-item-${itemId}`}
       data-item-id={itemId}
       data-collection-link
-      aria-haspopup="dialog"
-      aria-expanded={selected}
+      aria-haspopup={preview ? "dialog" : undefined}
+      aria-expanded={preview ? selected : undefined}
       aria-current={activeId === itemId ? "true" : undefined}
       className={cn("document-link outline-none hover:no-underline", className)}
     />

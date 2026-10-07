@@ -10,9 +10,18 @@ from typing import Protocol
 
 from pypdf import PdfReader
 
+from paperman_parser.models import PageRotation
+from paperman_parser.pdf import rotate_pages
+
 
 class OCR(Protocol):
-    def searchable(self, source: bytes, languages: str) -> SearchableDocument: ...
+    def searchable(
+        self,
+        source: bytes,
+        languages: str,
+        *,
+        rotations: list[PageRotation] | None = None,
+    ) -> SearchableDocument: ...
 
 
 @dataclass(frozen=True)
@@ -22,7 +31,15 @@ class SearchableDocument:
 
 
 class LocalOCR:
-    def searchable(self, source: bytes, languages: str) -> SearchableDocument:
+    def searchable(
+        self,
+        source: bytes,
+        languages: str,
+        *,
+        rotations: list[PageRotation] | None = None,
+    ) -> SearchableDocument:
+        if rotations:
+            source = rotate_pages(source, rotations)
         original = PdfReader(BytesIO(source))
         if original.is_encrypted:
             raise ValueError("This PDF is encrypted. Upload an unlocked copy")
@@ -39,7 +56,7 @@ class LocalOCR:
                     "-m",
                     "ocrmypdf",
                     "--skip-text",
-                    "--rotate-pages",
+                    *(["--rotate-pages"] if rotations is None else []),
                     "--output-type",
                     "pdf",
                     "--optimize",

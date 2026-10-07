@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { cn } from "cn";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -25,14 +25,23 @@ const zoomLevels = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 export function PdfToolbar({
   documentId,
   url,
+  editing,
+  onRotatePage,
 }: {
   documentId: string;
   url: string;
+  editing: boolean;
+  onRotatePage?: (page: number) => void;
 }) {
   const { state: scroll, provides: navigation } = useScroll(documentId);
   const { state: zoom, provides: magnification } = useZoom(documentId);
   const { provides: rotation } = useRotate(documentId);
   const { state: search, provides: searchActions } = useSearch(documentId);
+  useEffect(() => {
+    if (editing && rotation && rotation.getRotation() !== 0) {
+      rotation.setRotation(0);
+    }
+  }, [editing, rotation]);
   const pageInput = useRef<HTMLInputElement>(null);
   const searchButton = useRef<HTMLButtonElement>(null);
   const zoomItems = [
@@ -181,9 +190,24 @@ export function PdfToolbar({
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Rotate PDF clockwise"
-              title="Rotate clockwise"
-              onClick={() => rotation?.rotateForward()}
+              aria-label={
+                editing
+                  ? "Rotate current page clockwise"
+                  : "Rotate PDF clockwise"
+              }
+              title={
+                editing
+                  ? "Rotate current page clockwise"
+                  : "Rotate clockwise (view only)"
+              }
+              disabled={editing && !onRotatePage}
+              onClick={() => {
+                if (editing) {
+                  onRotatePage?.(scroll.currentPage);
+                } else {
+                  rotation?.rotateForward();
+                }
+              }}
             >
               <HugeiconsIcon icon={RotateClockwiseIcon} />
             </Button>

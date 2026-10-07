@@ -46,8 +46,16 @@ def rename_documents(storage: FileStorage) -> int:
                     )
                     target = source.with_name(filename)
                     relative = target.relative_to(storage.root).as_posix()
-                    if relative not in reserved and not any(
-                        target.with_suffix(suffix).exists()
+                    copies = [
+                        safe_path(storage.root, path).with_name(filename)
+                        for path in document.file_paths
+                    ]
+                    if not any(
+                        path.relative_to(storage.root).as_posix() in reserved
+                        for path in copies
+                    ) and not any(
+                        copy.with_suffix(suffix).exists()
+                        for copy in copies
                         for suffix in (".pdf", ".txt", ".toml")
                     ):
                         break
@@ -71,6 +79,10 @@ def rename_documents(storage: FileStorage) -> int:
             if not metadata.exists():
                 metadata = target.with_suffix(".toml")
             document = Document.model_validate(tomllib.loads(metadata.read_text()))
+            old_copies = [
+                safe_path(storage.root, f"documents/{owner}/{source.name}")
+                for owner in document.owner_ids
+            ]
             if document.id != move.id or document.final_path not in (
                 move.source,
                 move.target,
@@ -92,6 +104,10 @@ def rename_documents(storage: FileStorage) -> int:
                     Event(stage="rename", message="Updated filename")
                 )
                 storage.save_document(document)
+            for copy in old_copies:
+                if copy != source:
+                    for suffix in (".pdf", ".txt", ".toml"):
+                        copy.with_suffix(suffix).unlink(missing_ok=True)
             try:
                 scan = storage.get_scan(document.scan_id)
             except FileNotFoundError:

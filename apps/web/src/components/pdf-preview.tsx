@@ -1,10 +1,21 @@
-import { lazy, Suspense, useCallback, useState } from "react";
+import {
+  lazy,
+  Suspense,
+  useCallback,
+  useState,
+  type ComponentProps,
+} from "react";
 import { CatchBoundary, ClientOnly } from "@tanstack/react-router";
 import { PdfLoading, PdfError } from "./pdf-preview-state";
 
 const PdfViewer = lazy(() => import("./pdf-viewer"));
 
-export function PdfPreview({ url, title }: { url: string; title: string }) {
+export function PdfPreview({
+  url,
+  title,
+  rotations,
+  onRotatePage,
+}: Omit<ComponentProps<typeof PdfViewer>, "onReady">) {
   const [display, setDisplay] = useState({ url, ready: false });
   if (display.url !== url) {
     setDisplay({ url, ready: false });
@@ -36,7 +47,13 @@ export function PdfPreview({ url, title }: { url: string; title: string }) {
         >
           <ClientOnly>
             <Suspense fallback={null}>
-              <PdfViewer url={url} title={title} onReady={markReady} />
+              <PdfViewer
+                url={url}
+                title={title}
+                onReady={markReady}
+                rotations={rotations}
+                onRotatePage={onRotatePage}
+              />
             </Suspense>
           </ClientOnly>
         </CatchBoundary>

@@ -194,7 +194,7 @@ function Scans() {
                         >
                           {scan.status === "failed"
                             ? scan.history.at(-1)?.message
-                            : `${scan.page_count || "—"} pages · ${scan.status === "review" ? "Confirm the proposed documents" : "Original PDF preserved"}`}
+                            : `${scan.page_count || "—"} pages${scan.status === "review" ? " · Confirm the proposed documents" : ""}`}
                         </p>
                       </div>
                     </div>

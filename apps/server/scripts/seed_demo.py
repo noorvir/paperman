@@ -177,7 +177,7 @@ async def seed(root: Path) -> None:
             documents=[
                 DocumentProposal(
                     pages=[index],
-                    owner_id=owner,
+                    owner_ids=[owner],
                     title=title,
                     document_date=timestamp.date() - timedelta(days=index),
                     confidence=0.96,
