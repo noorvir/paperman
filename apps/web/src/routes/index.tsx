@@ -64,7 +64,7 @@ function Overview() {
     !state.ocr_available ||
     state.enrichment_failed > 0;
   return (
-    <div className="workspace-page max-w-6xl lg:min-h-0 lg:flex-1 lg:shrink">
+    <div className="workspace-page max-w-6xl">
       <div className="flex shrink-0 flex-col gap-5 border-b pb-3">
         <PageHeader
           title="Overview"
@@ -89,7 +89,7 @@ function Overview() {
           }
         />
       </div>
-      <div className="grid items-start gap-8 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_18rem] lg:grid-rows-[minmax(0,1fr)]">
+      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <OverviewWork
           work={state.pipeline_items}
           recent={documents.items.slice(0, 8)}
@@ -107,7 +107,7 @@ function Overview() {
         />
         <aside
           aria-labelledby="attention-heading"
-          className="flex h-[32rem] min-w-0 flex-col lg:h-full"
+          className="flex min-w-0 flex-col"
         >
           <h2
             id="attention-heading"
@@ -222,9 +222,13 @@ function Overview() {
                 <Link
                   to="/"
                   search={{ status: "unverified" }}
-                  className={buttonVariants({ variant: "ghost", size: "sm" })}
+                  className={buttonVariants({
+                    variant: "ghost",
+                    size: "sm",
+                    className: "w-full",
+                  })}
                 >
-                  View all unverified documents
+                  View all
                 </Link>
               </section>
             )}

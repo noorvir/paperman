@@ -15,7 +15,7 @@ export function PipelineProgress<Id extends string>({
 }: {
   label: string;
   spacing?: "even" | "wide";
-  steps: (Omit<PipelineStep, "id"> & { id: Id })[];
+  steps: (Omit<PipelineStep, "id"> & { id: Id; badge?: ReactNode })[];
   selection?: {
     value: Id | undefined;
     onChange: (id: Id) => void;
@@ -76,32 +76,35 @@ export function PipelineProgress<Id extends string>({
                     index === 0 && "invisible",
                   )}
                 />
-                {selection ? (
-                  <Button
-                    variant={color === "neutral" ? "secondary" : color}
-                    size="icon-lg"
-                    className={cn(
-                      "mx-1.5 rounded-full border font-semibold tabular-nums aria-pressed:ring-2 aria-pressed:ring-current/25 aria-pressed:ring-offset-2",
-                      statusTone({ tone: tones[tone] }),
-                    )}
-                    aria-label={`${label}: ${count ?? ""} ${detail}`}
-                    aria-pressed={selection.value === id}
-                    aria-controls={selection.controls}
-                    onClick={() => selection.onChange(id)}
-                  >
-                    {marker}
-                  </Button>
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className={cn(
-                      "mx-1.5 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums",
-                      statusTone({ tone: tones[tone] }),
-                    )}
-                  >
-                    {marker}
-                  </span>
-                )}
+                <div className="relative">
+                  {selection ? (
+                    <Button
+                      variant={color === "neutral" ? "secondary" : color}
+                      size="icon-lg"
+                      className={cn(
+                        "mx-1.5 rounded-full border font-semibold tabular-nums aria-pressed:ring-2 aria-pressed:ring-current/25 aria-pressed:ring-offset-2",
+                        statusTone({ tone: tones[tone] }),
+                      )}
+                      aria-label={`${label}: ${count ?? ""} ${detail}`}
+                      aria-pressed={selection.value === id}
+                      aria-controls={selection.controls}
+                      onClick={() => selection.onChange(id)}
+                    >
+                      {marker}
+                    </Button>
+                  ) : (
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "mx-1.5 flex size-8 shrink-0 items-center justify-center rounded-full border text-xs font-semibold tabular-nums",
+                        statusTone({ tone: tones[tone] }),
+                      )}
+                    >
+                      {marker}
+                    </span>
+                  )}
+                  {step.badge}
+                </div>
                 <span
                   aria-hidden="true"
                   className={cn(

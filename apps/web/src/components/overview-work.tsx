@@ -2,9 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
-import { documentSearch } from "@/lib/queries";
 import { FileIcon } from "./file-icon";
-import { DocumentTable } from "./document-table";
+import { OverviewDocumentTable } from "./overview-document-table";
 import { Button, buttonVariants } from "./ui/button";
 import { CollectionFooter, ScanStatus } from "./collection";
 import { statuses } from "./overview-summary";
@@ -46,7 +45,7 @@ export function OverviewWork({
     <section
       id="overview-work"
       aria-labelledby="overview-work-heading"
-      className="flex h-[32rem] min-w-0 flex-col lg:h-full"
+      className="flex min-w-0 flex-col"
     >
       <header className="mb-3 flex h-7 shrink-0 items-center justify-between gap-3">
         <h2
@@ -72,8 +71,7 @@ export function OverviewWork({
       </header>
       <div
         key={filtered ? `${work.status}-${work.page}` : "recent"}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain [scrollbar-gutter:stable]"
-        tabIndex={0}
+        className="min-w-0"
         role="region"
         aria-label={`${title} list`}
       >
@@ -99,12 +97,7 @@ export function OverviewWork({
           </ul>
         )}
         {documents.length > 0 && (
-          <DocumentTable
-            documents={documents}
-            catalog={catalog}
-            search={documentSearch.parse({})}
-            selectedId={undefined}
-          />
+          <OverviewDocumentTable documents={documents} catalog={catalog} />
         )}
         {(filtered ? work.total === 0 : recent.length === 0) && (
           <p className="flex h-full items-center justify-center px-6 text-center text-xs text-muted-foreground">

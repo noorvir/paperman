@@ -116,20 +116,26 @@ export function CollectionFooter({
 }
 
 export function OwnerLabel({ name }: { name: string }) {
+  return (
+    <span className="inline-flex items-center gap-2">
+      <OwnerAvatar name={name} />
+      <span>{name}</span>
+    </span>
+  );
+}
+
+export function OwnerAvatar({ name }: { name: string }) {
   const initials = name
     .split(" ")
     .map((part) => part[0])
     .slice(0, 2)
     .join("");
   return (
-    <span className="inline-flex items-center gap-2">
-      <span
-        aria-hidden="true"
-        className="flex size-4 shrink-0 items-center justify-center rounded-full bg-secondary text-[8px] font-medium text-secondary-foreground ring-1 ring-inset ring-border"
-      >
-        {initials}
-      </span>
-      <span>{name}</span>
+    <span
+      aria-hidden="true"
+      className="flex size-4 shrink-0 items-center justify-center rounded-full bg-secondary text-[8px] font-medium text-secondary-foreground ring-1 ring-inset ring-border"
+    >
+      {initials}
     </span>
   );
 }
