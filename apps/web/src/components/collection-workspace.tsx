@@ -123,7 +123,7 @@ export function CollectionRow({
       {...props}
       data-collection-row
       data-state={activeId === itemId ? "selected" : undefined}
-      className="cursor-pointer has-[[data-collection-link]:focus-visible]:bg-muted"
+      className="cursor-pointer has-[[data-collection-link]:focus-visible]:bg-accent/50"
       onClick={(event) => {
         if (
           event.target instanceof Element &&
