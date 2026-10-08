@@ -5,7 +5,7 @@ import {
 } from "@tanstack/react-router";
 import { z } from "zod";
 import { Pen01Icon } from "@hugeicons/core-free-icons";
-import { getScan, getCatalog, getDocument, scanSearch } from "@/lib/queries";
+import { getScanWithDocuments, getCatalog, scanSearch } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
 import { LocalTime } from "@/components/local-time";
 import { ScanStatus } from "@/components/collection";
@@ -25,18 +25,11 @@ export const Route = createFileRoute("/scans/$scanId")({
   }),
   search: { middlewares: [stripSearchParams({ view: "pdf", preview: false })] },
   loader: async ({ params }) => {
-    const [scan, catalog] = await Promise.all([
-      getScan({ data: params.scanId }),
+    const [source, catalog] = await Promise.all([
+      getScanWithDocuments({ data: params.scanId }),
       getCatalog(),
     ]);
-    const details = await Promise.all(
-      scan.document_ids.map((id) => getDocument({ data: id })),
-    );
-    return {
-      scan,
-      catalog,
-      documents: details.map((detail) => detail.document),
-    };
+    return { ...source, catalog };
   },
   component: ScanDetail,
 });
@@ -48,6 +41,16 @@ function ScanDetail() {
     <CollectionPreview
       id={scan.id}
       title={scan.original_name}
+      titleLink={
+        <Link
+          to="/scans/$scanId"
+          params={{ scanId: scan.id }}
+          search={{ ...search, preview: false }}
+          className="hover:underline underline-offset-4"
+        >
+          {scan.original_name}
+        </Link>
+      }
       badge={<ScanStatus status={scan.status} />}
       description={
         <>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { z } from "zod";
 import type { components } from "@/lib/schema";
@@ -7,11 +7,11 @@ import { PreviewAction } from "@/components/preview-action";
 import { DocumentEditor } from "@/components/document-editor";
 import { documentSearch, documentView } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
-import { formatDate } from "@/components/page";
+import { ErrorNotice, formatDate } from "@/components/page";
 import { DocumentView } from "@/components/document-view";
 import { DocumentTabs } from "@/components/document-tabs";
-import { DocumentVerificationBadge } from "./document-verification-badge";
 import { VerifyDocument } from "@/components/verify-document";
+import { DocumentVerificationBadge } from "./document-verification-badge";
 import { ReprocessDocument } from "@/components/reprocess-document";
 import { DocumentFilterLink } from "@/components/document-filter-link";
 import {
@@ -22,7 +22,7 @@ import {
 export function DocumentDetail({
   document,
   text,
-  scanName,
+  source,
   catalog,
   search,
   view,
@@ -31,7 +31,7 @@ export function DocumentDetail({
 }: {
   document: components["schemas"]["Document"];
   text: string;
-  scanName: string;
+  source: ComponentProps<typeof DocumentView>["source"];
   catalog: components["schemas"]["Catalog"];
   search: z.output<typeof documentSearch>;
   view: z.output<typeof documentView>;
@@ -39,21 +39,17 @@ export function DocumentDetail({
   edit: boolean;
 }) {
   const navigate = useNavigate();
-  const [rotationDraft, setRotationDraft] = useState({
-    edit,
-    documentId: document.id,
-    revision: document.revision,
-    rotations: new Array<number>(document.source_pages.length).fill(0),
-  });
-  if (rotationDraft.edit !== edit || rotationDraft.documentId !== document.id) {
-    setRotationDraft({
-      edit,
-      documentId: document.id,
-      revision: document.revision,
-      rotations: new Array<number>(document.source_pages.length).fill(0),
-    });
+  const [pageDraft, setPageDraft] = useState(() =>
+    getPageDraft(document, source.scan.page_count, edit),
+  );
+  if (pageDraft.edit !== edit || pageDraft.documentId !== document.id) {
+    setPageDraft(getPageDraft(document, source.scan.page_count, edit));
   }
   const [saving, setSaving] = useState(false);
+  const [verificationError, setVerificationError] = useState({
+    documentId: document.id,
+    message: "",
+  });
   const date = formatDate(document.document_date);
   function setEditing(edit: boolean) {
     void navigate({
@@ -67,37 +63,66 @@ export function DocumentDetail({
     <CollectionPreview
       id={document.id}
       title={document.title}
-      badge={document.verification && <DocumentVerificationBadge verified />}
-      description={
-        <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
-          {document.owner_ids.map((id) => {
-            const name =
-              catalog.owners.find((owner) => owner.id === id)?.name ?? id;
-            return (
-              <DocumentFilterLink
-                key={id}
-                search={search}
-                filter={{ owner: [id] }}
-                aria-label={`Filter by owner: ${name}`}
-                className="h-5"
-              >
-                {name}
-              </DocumentFilterLink>
-            );
-          })}
-          <span aria-hidden="true"> · </span>
-          <DocumentFilterLink
-            search={search}
-            filter={{
-              after: document.document_date,
-              before: document.document_date,
-            }}
-            aria-label={`Filter by document date: ${date}`}
-            className="h-5"
-          >
-            {date}
-          </DocumentFilterLink>
+      titleLink={
+        <Link
+          to="/documents/$documentId"
+          params={{ documentId: document.id }}
+          search={{ ...search, view }}
+          className="hover:underline underline-offset-4"
+        >
+          {document.title}
+        </Link>
+      }
+      badge={
+        <span className="inline-flex size-6 shrink-0">
+          {(preview || document.verification) && (
+            <DocumentVerificationBadge
+              verification={document.verification}
+              render={
+                preview ? (
+                  <Link
+                    to="/documents/$documentId"
+                    params={{ documentId: document.id }}
+                    search={{ ...search, view }}
+                  />
+                ) : undefined
+              }
+            />
+          )}
         </span>
+      }
+      description={
+        <>
+          <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
+            {document.owner_ids.map((id) => {
+              const name =
+                catalog.owners.find((owner) => owner.id === id)?.name ?? id;
+              return (
+                <DocumentFilterLink
+                  key={id}
+                  search={search}
+                  filter={{ owner: [id] }}
+                  aria-label={`Filter by owner: ${name}`}
+                  className="h-5"
+                >
+                  {name}
+                </DocumentFilterLink>
+              );
+            })}
+            <span aria-hidden="true"> · </span>
+            <DocumentFilterLink
+              search={search}
+              filter={{
+                after: document.document_date,
+                before: document.document_date,
+              }}
+              aria-label={`Filter by document date: ${date}`}
+              className="h-5"
+            >
+              {date}
+            </DocumentFilterLink>
+          </span>
+        </>
       }
       preview={preview}
       navigation={
@@ -136,25 +161,19 @@ export function DocumentDetail({
         />
       }
       primaryAction={
+        !preview &&
         !edit && (
-          <VerifyDocument document={document} search={search} view={view} />
+          <VerifyDocument
+            key={document.id}
+            document={document}
+            onError={(message) =>
+              setVerificationError({ documentId: document.id, message })
+            }
+          />
         )
       }
       actions={
-        edit ? (
-          <PreviewAction
-            icon={Pen01Icon}
-            nativeButton={false}
-            render={
-              <Link
-                to="/scans/$scanId/review"
-                params={{ scanId: document.scan_id }}
-              />
-            }
-          >
-            Edit pages
-          </PreviewAction>
-        ) : (
+        !edit && (
           <>
             <PreviewAction icon={Pen01Icon} onClick={() => setEditing(true)}>
               Edit
@@ -164,14 +183,22 @@ export function DocumentDetail({
         )
       }
     >
+      <ErrorNotice
+        message={
+          verificationError.documentId === document.id
+            ? verificationError.message
+            : ""
+        }
+      />
       <DocumentView
+        key={document.id}
         document={document}
-        pdfRevision={edit ? rotationDraft.revision : document.revision}
-        rotations={edit ? rotationDraft.rotations : undefined}
+        pdfRevision={edit ? pageDraft.revision : document.revision}
+        rotations={edit ? pageDraft.rotations : undefined}
         onRotatePage={
           edit && !saving
             ? (page) => {
-                setRotationDraft((current) => ({
+                setPageDraft((current) => ({
                   ...current,
                   rotations: current.rotations.map((angle, index) =>
                     index === page - 1 ? (angle + 90) % 360 : angle,
@@ -180,12 +207,35 @@ export function DocumentDetail({
               }
             : undefined
         }
-        scanName={scanName}
+        pageSelection={
+          edit
+            ? {
+                pages: pageDraft.pages,
+                disabled: saving,
+                onMove: (page, position) =>
+                  setPageDraft((current) => {
+                    const pages = current.pages.filter(
+                      (number) => number !== page,
+                    );
+                    pages.splice(position - 1, 0, page);
+                    return { ...current, pages };
+                  }),
+                onToggle: (page) =>
+                  setPageDraft((current) => ({
+                    ...current,
+                    pages: current.pages.includes(page)
+                      ? current.pages.filter((number) => number !== page)
+                      : [...current.pages, page],
+                  })),
+              }
+            : undefined
+        }
+        source={source}
         text={text}
         catalog={catalog}
         view={view}
         allowActions={!preview && !edit}
-        sidebar={!preview}
+        preview={preview}
         search={documentSearch.parse(search)}
         editor={
           edit ? (
@@ -193,10 +243,17 @@ export function DocumentDetail({
               key={document.id}
               document={document}
               text={text}
-              rotations={rotationDraft.rotations}
+              pages={pageDraft.pages}
+              rotations={pageDraft.rotations.map(
+                (angle, index) =>
+                  (angle - (pageDraft.initialRotations[index] ?? 0) + 360) %
+                  360,
+              )}
               onSaving={setSaving}
               catalog={catalog}
-              initialTab={view === "pdf" ? "details" : view}
+              initialTab={
+                view === "pdf" || view === "source" ? "details" : view
+              }
               onDone={() => setEditing(false)}
             />
           ) : undefined
@@ -204,4 +261,26 @@ export function DocumentDetail({
       />
     </CollectionPreview>
   );
+}
+
+function getPageDraft(
+  document: components["schemas"]["Document"],
+  pageCount: number,
+  edit: boolean,
+) {
+  const rotations = new Array<number>(pageCount).fill(0);
+  for (const rotation of document.manual_rotations) {
+    const sourcePage = document.source_pages[rotation.page - 1];
+    if (sourcePage !== undefined) {
+      rotations[sourcePage - 1] = rotation.clockwise;
+    }
+  }
+  return {
+    edit,
+    documentId: document.id,
+    revision: document.revision,
+    pages: [...document.source_pages],
+    rotations,
+    initialRotations: [...rotations],
+  };
 }

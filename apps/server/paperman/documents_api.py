@@ -15,6 +15,7 @@ from paperman.api_models import (
     TagSelection,
 )
 from paperman.models import Document, Event, SearchIndex, Verification, now
+from paperman.pdf import edit_pages
 from paperman.storage import FileStorage, atomic_target, safe_path
 
 
@@ -29,7 +30,20 @@ def routes(storage: FileStorage) -> APIRouter:
         status: str = "",
         after: date | None = None,
         before: date | None = None,
-        sort: Literal["date_desc", "date_asc", "title"] = "date_desc",
+        sort: Literal[
+            "date_desc",
+            "date_asc",
+            "title",
+            "title_desc",
+            "owners_asc",
+            "owners_desc",
+            "tags_asc",
+            "tags_desc",
+            "verification_asc",
+            "verification_desc",
+            "processed_asc",
+            "processed_desc",
+        ] = "date_desc",
         page: Annotated[int, Query(ge=1)] = 1,
     ) -> DocumentPage:
         if after and before and after > before:
@@ -64,12 +78,41 @@ def routes(storage: FileStorage) -> APIRouter:
                 for term in terms
             )
         ]
-        if sort == "title":
-            items.sort(key=lambda doc: (doc.title.casefold(), doc.id))
-        else:
+        descending = sort.endswith("_desc")
+        items.sort(key=lambda doc: doc.id)
+        if sort in ("title", "title_desc"):
+            items.sort(key=lambda doc: doc.title.casefold(), reverse=descending)
+        elif sort.startswith("owners_"):
+            names = {
+                entry.id: entry.name.casefold() for entry in storage.catalog().owners
+            }
             items.sort(
-                key=lambda doc: (doc.document_date, doc.id), reverse=sort == "date_desc"
+                key=lambda doc: tuple(
+                    sorted(names.get(id, id) for id in doc.owner_ids)
+                ),
+                reverse=descending,
             )
+        elif sort.startswith("tags_"):
+            names = {
+                entry.id: entry.name.casefold() for entry in storage.catalog().tags
+            }
+            items.sort(
+                key=lambda doc: tuple(
+                    sorted(names.get(id, id) for id in effective_tags(doc))
+                ),
+                reverse=descending,
+            )
+        elif sort.startswith("verification_"):
+            items.sort(key=lambda doc: doc.verification is not None, reverse=descending)
+        elif sort.startswith("processed_"):
+            items.sort(
+                key=lambda doc: (
+                    doc.processed_at.timestamp() if doc.processed_at else float("-inf")
+                ),
+                reverse=descending,
+            )
+        else:
+            items.sort(key=lambda doc: (doc.document_date, doc.id), reverse=descending)
         return DocumentPage(
             items=items[(page - 1) * 25 : page * 25],
             total=len(items),
@@ -99,12 +142,42 @@ def routes(storage: FileStorage) -> APIRouter:
             if not set(value.tag_ids) <= allowed_tags:
                 raise ValueError("Select tags from the catalog")
 
-            rotated_pdf = None
+            pages = (
+                value.source_pages
+                if value.source_pages is not None
+                else doc.source_pages
+            )
+            if len(pages) != len(set(pages)):
+                raise ValueError("Select each source page once")
+            pages_changed = pages != doc.source_pages
+            if pages_changed and doc.enrichment_status == "running":
+                raise HTTPException(
+                    409, "Wait for document processing to finish before changing pages"
+                )
+            path = safe_path(storage.root, doc.final_path)
+            changed_pdf = None
+            selected_text = None
+            if pages_changed:
+                scan = storage.get_scan(doc.scan_id)
+                doc.page_rotations = [
+                    rotation
+                    for rotation in (scan.ocr_rotations or [])
+                    if rotation.page in pages
+                ]
+                changed_pdf, selected_text = edit_pages(
+                    storage.scan_path(doc.scan_id, "searchable.pdf"),
+                    path,
+                    doc.source_pages,
+                    pages,
+                )
             if value.rotations:
-                path = safe_path(storage.root, doc.final_path)
-                rotated_pdf = rotate_pages(path.read_bytes(), value.rotations)
+                changed_pdf = rotate_pages(
+                    changed_pdf if changed_pdf is not None else path.read_bytes(),
+                    value.rotations,
+                )
 
             updates = {
+                "source pages": pages_changed,
                 "page rotation": bool(value.rotations),
                 "title": value.title != doc.title,
                 "owners": value.owner_ids != doc.owner_ids,
@@ -131,9 +204,17 @@ def routes(storage: FileStorage) -> APIRouter:
                 doc.excluded_tags = sorted(allowed_tags - set(value.tag_ids))
             if updates["text"]:
                 doc.text_override = value.text
-            if rotated_pdf is not None:
+            elif pages_changed:
+                doc.text_override = None
+            if changed_pdf is not None:
+                saved_rotations = {
+                    doc.source_pages[item.page - 1]: item.clockwise
+                    for item in doc.manual_rotations
+                }
                 corrections = {
-                    item.page: item.clockwise for item in doc.manual_rotations
+                    index: saved_rotations[page]
+                    for index, page in enumerate(pages, 1)
+                    if page in saved_rotations
                 }
                 for item in value.rotations:
                     corrections[item.page] = (
@@ -144,15 +225,20 @@ def routes(storage: FileStorage) -> APIRouter:
                     for page, clockwise in sorted(corrections.items())
                     if clockwise
                 ]
-                with atomic_target(
-                    safe_path(storage.root, doc.final_path)
-                ) as temporary:
-                    temporary.write_bytes(rotated_pdf)
+                with atomic_target(path) as temporary:
+                    temporary.write_bytes(changed_pdf)
+            if pages_changed:
+                doc.source_pages = pages
+            if selected_text is not None:
+                with atomic_target(path.with_suffix(".txt")) as temporary:
+                    temporary.write_text(selected_text)
             doc.revision += 1
             doc.history.append(
                 Event(stage="edit", message="Corrected " + ", ".join(changed))
             )
             storage.save_document(doc)
+            if pages_changed:
+                storage.rebuild_index()
             return DocumentDetail(document=doc, text=storage.document_text(doc))
 
     @router.post("/api/documents/{document_id}/verify", operation_id="verify_document")

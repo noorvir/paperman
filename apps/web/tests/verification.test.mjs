@@ -18,7 +18,7 @@ if (
 }
 
 test(
-  "verification review compares source pages and saves only on confirmation",
+  "document source review and direct verification preserve the current view",
   {
     timeout: 120000,
     skip:
@@ -29,38 +29,33 @@ test(
     const response = await fetch(new URL("/api/documents", baseURL));
     assert.equal(response.status, 200);
     const { items } = await response.json();
-    const doc = items.find(
-      (item) => !item.verification && item.source_pages[0] > 1,
-    );
-    const verified = items.find((item) => item.verification);
+    const docs = items.filter((item) => !item.verification);
+    const doc = docs.find((item) => item.source_pages[0] > 1);
+    const previewDoc = docs.find((item) => item.id !== doc?.id);
     assert.ok(
-      doc && verified,
-      "Use a verified document and an unverified document from later source pages",
+      doc && previewDoc,
+      "Use two unverified local documents, including one from later source pages",
     );
     const root = resolve(dataDirectory);
-    const metadataPaths = [
-      ...new Set([
-        doc.final_path,
-        ...doc.owner_ids.map(
-          (owner) => `documents/${owner}/${basename(doc.final_path)}`,
+    const backups = [];
+    for (const document of [doc, previewDoc]) {
+      const paths = new Set([
+        document.final_path,
+        ...document.owner_ids.map(
+          (owner) => `documents/${owner}/${basename(document.final_path)}`,
         ),
-      ]),
-    ].map((path) => resolve(root, path.replace(/\.pdf$/, ".toml")));
-    assert.ok(metadataPaths.every((path) => path.startsWith(root + sep)));
-    const backups = await Promise.all(
-      metadataPaths.map(async (path) => ({
-        path,
-        content: await readFile(path, "utf8"),
-      })),
-    );
-    assert.ok(
-      backups.every(
-        ({ content }) =>
-          content.includes(`id = "${doc.id}"`) &&
-          !content.includes("[verification]"),
-      ),
-      "The local data must match the app's unverified document",
-    );
+      ]);
+      for (const file of paths) {
+        const path = resolve(root, file.replace(/\.pdf$/, ".toml"));
+        assert.ok(path.startsWith(root + sep));
+        const content = await readFile(path, "utf8");
+        assert.ok(
+          content.includes(`id = "${document.id}"`) &&
+            !content.includes("[verification]"),
+        );
+        backups.push({ path, content });
+      }
+    }
     const browser = await chromium.connectOverCDP(browserURL);
     const context = await browser.newContext({
       baseURL,
@@ -70,145 +65,172 @@ test(
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     const fullPath = `/documents/${doc.id}`;
-    const unchanged = async () => {
-      const response = await context.request.get(`/api/documents/${doc.id}`);
+    const source = page.locator('.document-panel[aria-label="Source scan"]');
+    const tabs = page.getByRole("navigation", { name: "Document view" });
+    const getDocument = async (id) => {
+      const response = await context.request.get(`/api/documents/${id}`);
       const detail = await response.json();
-      assert.equal(detail.document.verification, null);
+      return detail.document;
     };
     try {
-      await page.goto(`/documents?preview=${doc.id}`, {
-        waitUntil: "networkidle",
-      });
-      const preview = page.getByRole("dialog", { name: /^Preview:/ });
-      await preview.getByText("Verify", { exact: true }).click();
-      await page.waitForURL(
-        (url) =>
-          url.pathname === fullPath &&
-          url.searchParams.get("verify") === "true",
-      );
-      await unchanged();
-      const source = page.locator("#review-source");
-      const document = page.locator("#review-document");
+      await page.goto(`${fullPath}?verify=true`, { waitUntil: "networkidle" });
+      assert.equal(new URL(page.url()).pathname, fullPath);
+      assert.equal(new URL(page.url()).searchParams.has("verify"), false);
+      await page
+        .getByRole("button", { name: "View in context", exact: true })
+        .click();
+      await tabs.getByRole("link", { name: "PDF", exact: true }).click();
+      const initial = await getDocument(doc.id);
+      assert.equal(initial.verification, null);
+      assert.equal(await tabs.getByRole("link").count(), 5);
+      await page
+        .locator(".detail-sidebar")
+        .getByRole("link", { name: /\.pdf$/ })
+        .click();
       await source.locator('.pdf-preview[aria-busy="false"]').waitFor();
-      await document.locator('.pdf-preview[aria-busy="false"]').waitFor();
-      assert.equal(
-        await source
-          .getByRole("textbox", { name: "PDF page number" })
-          .inputValue(),
-        String(doc.source_pages[0]),
+      const pageInput = source.getByRole("textbox", {
+        name: "PDF page number",
+      });
+      await page.waitForFunction(
+        (first) =>
+          document.querySelector(
+            '.document-panel[aria-label="Source scan"] input[aria-label="PDF page number"]',
+          )?.value === String(first),
+        doc.source_pages[0],
       );
-      const left = await document.boundingBox();
-      const right = await source.boundingBox();
-      assert.ok(
-        Math.abs(left.width - right.width) < 1 && right.x > left.x + left.width,
-      );
+      assert.equal(new URL(page.url()).pathname, fullPath);
+      assert.equal(new URL(page.url()).searchParams.get("view"), "source");
       const included = source.locator(
         `[data-page-number="${doc.source_pages[0]}"]`,
       );
       assert.equal(await included.getAttribute("data-included"), "true");
-      assert.equal(
-        await included.evaluate((el) => getComputedStyle(el).opacity),
-        "1",
-      );
-      const pageInput = source.getByRole("textbox", {
-        name: "PDF page number",
-      });
       await pageInput.fill("1");
       await pageInput.press("Enter");
       const dimmed = source.locator('[data-page-number="1"]');
       await dimmed.waitFor();
-      assert.equal(await dimmed.getAttribute("data-included"), "false");
       assert.equal(
         await dimmed.evaluate((el) => getComputedStyle(el).opacity),
         "0.25",
       );
-      for (const tab of ["Text", "Summary", "Details", "PDF"]) {
-        await document.getByRole("link", { name: tab, exact: true }).click();
-        assert.equal(new URL(page.url()).searchParams.get("verify"), "true");
+      for (const name of ["Text", "Summary", "Details", "PDF", "Source"]) {
+        await tabs.getByRole("link", { name, exact: true }).click();
       }
-      await page.getByRole("button", { name: "Cancel", exact: true }).click();
-      await page.waitForURL(
-        (url) => url.pathname === fullPath && !url.searchParams.has("verify"),
-      );
-      await unchanged();
-      await page.getByRole("link", { name: "Verify", exact: true }).click();
-      await page
-        .getByRole("heading", { name: "Review document", exact: true })
-        .waitFor();
-      await page
-        .getByRole("heading", { name: "Review document", exact: true })
-        .click();
-      await page.keyboard.press("Escape");
-      await page.waitForURL(
-        (url) => url.pathname === fullPath && !url.searchParams.has("verify"),
-      );
-      await unchanged();
-
-      await page.getByRole("link", { name: "Verify", exact: true }).click();
-      await source.locator('.pdf-preview[aria-busy="false"]').waitFor();
+      assert.equal(await pageInput.inputValue(), "1");
       await page.setViewportSize({ width: 390, height: 844 });
-      await page.getByRole("tab", { name: "Source scan", exact: true }).click();
-      await source.getByRole("button", { name: "Next PDF page" }).click();
-      const sourcePage = await pageInput.inputValue();
-      await page.getByRole("tab", { name: "Document", exact: true }).click();
-      await document.getByRole("button", { name: "Next PDF page" }).click();
-      const documentPage = await document
-        .getByRole("textbox", { name: "PDF page number" })
-        .inputValue();
-      await page.getByRole("tab", { name: "Source scan", exact: true }).click();
-      assert.equal(await pageInput.inputValue(), sourcePage);
-      await page.getByRole("tab", { name: "Document", exact: true }).click();
-      assert.equal(
-        await document
-          .getByRole("textbox", { name: "PDF page number" })
-          .inputValue(),
-        documentPage,
+      await source.getByText("Source scan details", { exact: true }).click();
+      await source
+        .getByRole("link", { name: doc.title, exact: true })
+        .waitFor();
+      const overflow = await page.evaluate(
+        () => document.documentElement.scrollWidth > innerWidth,
       );
-      assert.ok(
-        await page
-          .getByRole("button", { name: "Mark as verified" })
-          .isEnabled(),
-      );
-      assert.equal(
-        await page.getByRole("textbox", { name: "Your name" }).count(),
-        0,
-      );
-      const failWrite = (route) =>
-        route.request().method() === "POST" ? route.abort() : route.continue();
+      assert.equal(overflow, false);
+      await source.getByText("Source scan details", { exact: true }).click();
+      const writeGate = Promise.withResolvers();
+      const failWrite = async (route) => {
+        if (route.request().method() !== "POST") {
+          return route.continue();
+        }
+        await writeGate.promise;
+        return route.abort();
+      };
       await context.route("**/*", failWrite);
-      await page.getByRole("button", { name: "Mark as verified" }).click();
-      await page.getByText("Action failed", { exact: true }).waitFor();
-
-      await unchanged();
-      await context.unroute("**/*", failWrite);
-      await page.getByRole("button", { name: "Mark as verified" }).click();
-      await page.waitForURL(
-        (url) => url.pathname === fullPath && !url.searchParams.has("verify"),
+      const verify = page.getByRole("button", {
+        name: "Mark as verified",
+        exact: true,
+      });
+      const width = await verify.evaluate(
+        (button) => button.getBoundingClientRect().width,
       );
-      await page.reload({ waitUntil: "networkidle" });
+      await verify.click();
+      try {
+        await page.locator('button[aria-busy="true"]').waitFor();
+        const loading = await verify.evaluate((button) => ({
+          text: button.innerText.trim(),
+          width: button.getBoundingClientRect().width,
+          animation: getComputedStyle(
+            button.querySelector('[data-slot="spinner"]'),
+          ).animationName,
+        }));
+        assert.equal(loading.text, "Mark as verified");
+        assert.equal(loading.width, width);
+        assert.equal(loading.animation, "spin");
+      } finally {
+        writeGate.resolve();
+      }
+      await page.getByText("Action failed", { exact: true }).waitFor();
+      const failed = await getDocument(doc.id);
+      assert.equal(failed.verification, null);
+      await context.unroute("**/*", failWrite);
+      const sourceURL = page.url();
+      const headerBounds = () =>
+        page.locator('[data-slot="collection-header"]').evaluate((header) =>
+          Array.from(header.querySelectorAll("h1, button, nav")).map(
+            (element) => {
+              const { x, y, width, height } = element.getBoundingClientRect();
+              return { x, y, width, height };
+            },
+          ),
+        );
+      const beforeSuccess = await headerBounds();
+      await page
+        .getByRole("button", { name: "Mark as verified", exact: true })
+        .click();
       await page.getByRole("img", { name: "Verified", exact: true }).waitFor();
+      assert.equal(page.url(), sourceURL);
+      const afterSuccess = await headerBounds();
+      assert.deepEqual(afterSuccess, beforeSuccess);
+      const saved = await getDocument(doc.id);
+      assert.equal(saved.verification.by, "unknown");
+      assert.ok(Date.parse(saved.verification.at));
+      await page.reload({ waitUntil: "networkidle" });
+      await source.locator('.pdf-preview[aria-busy="false"]').waitFor();
+      await page.getByRole("img", { name: "Verified", exact: true }).waitFor();
+      await page.setViewportSize({ width: 1532, height: 1000 });
+      await page.goto(`/documents?preview=${previewDoc.id}&view=details`, {
+        waitUntil: "networkidle",
+      });
+      const preview = page.getByRole("dialog", { name: /^Preview:/ });
+      await preview
+        .getByRole("link", { name: /\.pdf$/ })
+        .first()
+        .click();
+      await source.locator('.pdf-preview[aria-busy="false"]').waitFor();
+      await preview
+        .getByRole("navigation", { name: "Document view" })
+        .getByRole("link", { name: "PDF", exact: true })
+        .click();
       assert.equal(
-        await page
-          .locator(".workspace-heading")
-          .getByText("Verify", { exact: true })
+        await preview
+          .getByRole("button", { name: "View in context", exact: true })
           .count(),
         0,
       );
-      const detailResponse = await context.request.get(
-        `/api/documents/${doc.id}`,
+      assert.equal(
+        await preview
+          .getByRole("button", { name: "Mark as verified", exact: true })
+          .count(),
+        0,
       );
-      const saved = (await detailResponse.json()).document;
-      assert.equal(saved.verification.by, "unknown");
-      assert.ok(Date.parse(saved.verification.at));
-      assert.ok(
-        (await readFile(metadataPaths[0], "utf8")).includes("[verification]"),
+      await preview
+        .getByRole("link", { name: "Not verified", exact: true })
+        .waitFor();
+      await preview
+        .getByRole("heading", { name: previewDoc.title, exact: true })
+        .getByRole("link")
+        .click();
+      await page.waitForURL(
+        (url) => url.pathname === `/documents/${previewDoc.id}`,
       );
-      await page.setViewportSize({ width: 1532, height: 1000 });
+      await page
+        .getByRole("button", { name: "Mark as verified", exact: true })
+        .waitFor();
+      assert.equal((await getDocument(previewDoc.id)).verification, null);
       await page.goto("/documents", { waitUntil: "networkidle" });
       const row = page
         .getByRole("row")
         .filter({ has: page.getByText(doc.title, { exact: true }) });
-      await row.getByText("Verified", { exact: true }).waitFor();
+      await row.getByRole("img", { name: "Verified", exact: true }).waitFor();
       assert.deepEqual(errors, []);
     } finally {
       await context.close();

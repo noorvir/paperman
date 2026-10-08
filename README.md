@@ -28,6 +28,8 @@ Upload a PDF from **Scans**, or put it in `data/inbox/`. Processing runs in the 
 
 The model checks page orientation and document groups from the original images. PaperMan then turns pages upright and runs OCR once. A document can have several owners. It appears once in the library, with PDF, text, and metadata copies in each owner's folder. Owner changes update these copies; original scans stay unchanged.
 
+In a document's **Edit** view, click source pages to include or exclude them, then select **Save changes**. New pages go at the end. Edit a page’s blue number to move it within the document; the other page numbers update automatically. A page can belong to several documents; editing one document does not change the others. Retained pages keep their saved rotations, and verification stays unchanged. Changing the selection refreshes extracted text unless you also save a text correction.
+
 To apply new processing settings to a completed scan, open it in **Scans** and select **Reprocess**. Confirm to replace all its results, including manual edits. PaperMan starts from the original PDF and keeps existing documents available until the new PDFs are filed. If processing fails or needs review, the old documents remain available. After filing, previous PDFs, text, and metadata are archived under that scan's `revisions/` directory, and tags and summaries are generated again. **Retry failed stage** resumes a failed run without starting over.
 
 Each document records its source scan, source pages, and processing run. The scan's **Details** tab shows model cost estimates by run, including recorded retries. Document cost estimates include only their own run. These estimates exclude hardware, storage, tax, and test calls made outside the worker.
@@ -36,7 +38,9 @@ For a filed document, select **Reprocess** and confirm to generate tags, tag sug
 
 **Processed at** shows the last successful document processing time in the user's local time zone. Successful reprocessing updates it; manual edits and failed runs do not. Older records use their saved completion event or successful model call timing when available. Missing times show `-`.
 
-Documents start as unverified. Select **Verify** to compare a document with its source scan. The scan opens at the first source page; other pages are dimmed. On small screens, switch between Document and Source scan without losing your page position. Check the PDF, text, summary, and details, then select **Mark as verified**. Cancel or Escape leaves review without saving. Its metadata stores the reviewer name and verification time. Verified document headers show a green badge; unverified headers show the amber Verify button. Cards and the table show green or amber verification badges. Edits and document reprocessing retain verification. Scan reprocessing retains it when the document has the same source pages. The reviewer is saved as `unknown` until reviewer identification is added.
+Documents start as unverified. Use the normal PDF, Text, Summary, and Details tabs to check the document. The Source tab, also available through the source file link, shows the original scan and its details in the same document view. The document side panel has **View in context** controls that show the full scan with unrelated pages dimmed while keeping the PDF tab and document details. Turn context off to return to the document PDF. The context toggle is available only in the full document sidebar. List previews show a verification badge beside the linked title; open the full document to verify it. Click outside a preview to close it. Collection rows keep their normal selection and opening behavior. It starts at the first source page and dims unrelated pages. The scan sidebar links to the other extracted documents; narrow views have expandable source details. Source remains available after verification.
+
+Select **Verify** to save verification immediately, without leaving the current view. After saving, the Verify button disappears and a green verified icon appears beside the title; its tooltip shows Verified. Reserved header space prevents layout shifts. The table uses the same icon-only badge, centered in its column. During saving, a circular spinner replaces its icon; the text and width stay unchanged. Metadata records the time and reviewer `unknown` until reviewer identification is added. Cards and the table show verification status. Edits and document reprocessing retain verification; scan reprocessing retains it when source pages match.
 
 Select a document or scan to preview it. Select the same row again to open the full page. Full scan pages show scan details and links to the extracted documents in a sidebar.
 
@@ -63,14 +67,15 @@ bun run check         # Formatting, types, tests, and build
 bun run generate:api  # Refresh OpenAPI and web client types
 ```
 
-For the document navigation browser check, start the web app with at least one document and Chrome with remote debugging enabled. Set both URLs for that test environment:
+For browser checks, start an isolated app with a copy of test data and Chrome with remote debugging enabled. Set both URLs and the isolated data path:
 
 ```sh
+PAPERMAN_TEST_DATA_DIR=/absolute/path/to/test-data \
 PAPERMAN_WEB_URL=http://127.0.0.1:3001 \
 PAPERMAN_BROWSER_URL=http://127.0.0.1:9224 \
 bun --filter @paperman/web test:browser
 ```
 
-This checks preview links, second-click navigation, Escape, editor tabs, the shared scan/document sidebar, and unsaved-change warnings across forms. Save success and failure use intercepted responses. The tests do not change stored documents or settings.
+These tests cover navigation, previews, verification, page order, tags, sorting, time settings, and failed saves. Some tests write to the isolated documents and settings, then restore them. Do not point this suite at your working library.
 
 Model checks use [public PDF samples](packages/parser/test-data/public-pdfs/README.md) and [scanned documents](packages/parser/test-data/real-scans/README.md). Results describe those test sets, not expected accuracy on every document.

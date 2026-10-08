@@ -1,4 +1,5 @@
 import shutil
+from io import BytesIO
 from pathlib import Path
 
 from paperman_parser.models import PageRotation
@@ -36,6 +37,33 @@ def split_pdf(source: Path, target: Path, pages: list[int]) -> str:
         if len(PdfReader(temporary).pages) != len(pages):
             raise ValueError("Filed PDF has an incorrect page count")
     return "\n\f\n".join(text)
+
+
+def edit_pages(
+    source: Path, current: Path, current_pages: list[int], pages: list[int]
+) -> tuple[bytes, str]:
+    """Retain saved pages and take newly included pages from the searchable scan."""
+    scan = PdfReader(source)
+    document = PdfReader(current)
+    if not pages or len(pages) != len(set(pages)):
+        raise ValueError("Select at least one page, once each")
+    if min(pages) < 1 or max(pages) > len(scan.pages):
+        raise ValueError("Select pages within the source scan")
+    if len(document.pages) != len(current_pages):
+        raise ValueError("The saved PDF does not match its source pages")
+    positions = {number: index for index, number in enumerate(current_pages)}
+    writer = PdfWriter()
+    text: list[str] = []
+    for number in pages:
+        if number in positions:
+            page = document.pages[positions[number]]
+        else:
+            page = scan.pages[number - 1]
+        writer.add_page(page)
+        text.append(page.extract_text())
+    output = BytesIO()
+    writer.write(output)
+    return output.getvalue(), "\n\f\n".join(text)
 
 
 def ocr_available() -> bool:

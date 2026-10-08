@@ -8,16 +8,20 @@ export function DocumentTabs({
   view,
   preview,
   edit,
-  verify = false,
 }: {
   documentId: string;
   search: z.output<typeof documentSearch>;
   view: z.output<typeof documentView>;
   preview: boolean;
   edit: boolean;
-  verify?: boolean;
 }) {
-  const views: (typeof view)[] = ["pdf", "text", "summary", "details"];
+  const views: (typeof view)[] = [
+    "pdf",
+    "text",
+    "summary",
+    "details",
+    "source",
+  ];
   return (
     <nav aria-label="Document view" className="view-tabs">
       {views.map((tab) => {
@@ -29,7 +33,7 @@ export function DocumentTabs({
           : linkOptions({
               to: "/documents/$documentId",
               params: { documentId },
-              search: { ...search, view: tab, edit, verify },
+              search: { ...search, view: tab, edit },
             });
         return (
           <Link
@@ -46,6 +50,7 @@ export function DocumentTabs({
                 text: "Text",
                 summary: "Summary",
                 details: "Details",
+                source: "Source",
               }[tab]
             }
           </Link>

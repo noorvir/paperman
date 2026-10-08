@@ -7,13 +7,17 @@ export function DocumentOwners({
   ownerIds,
   owners,
   search,
+  inline = false,
 }: {
   ownerIds: string[];
   owners: components["schemas"]["CatalogEntry"][];
   search: ComponentProps<typeof DocumentFilterLink>["search"];
+  inline?: boolean;
 }) {
   return (
-    <div className="flex min-w-0 flex-col items-start gap-1">
+    <div
+      className={`flex min-w-0 items-start gap-1 ${inline ? "flex-wrap" : "flex-col"}`}
+    >
       {ownerIds.map((id) => {
         const name = owners.find((owner) => owner.id === id)?.name ?? id;
         return (

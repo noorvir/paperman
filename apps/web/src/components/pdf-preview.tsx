@@ -17,6 +17,7 @@ export function PdfPreview({
   onRotatePage,
   initialPage,
   highlightedPages,
+  pageSelection,
 }: Omit<ComponentProps<typeof PdfViewer>, "onReady">) {
   const [display, setDisplay] = useState({ url, ready: false });
   if (display.url !== url) {
@@ -57,6 +58,7 @@ export function PdfPreview({
                 onRotatePage={onRotatePage}
                 initialPage={initialPage}
                 highlightedPages={highlightedPages}
+                pageSelection={pageSelection}
               />
             </Suspense>
           </ClientOnly>

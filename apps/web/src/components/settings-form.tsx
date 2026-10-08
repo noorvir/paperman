@@ -9,6 +9,7 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { SelectField } from "./select-field";
+import { Spinner } from "./ui/spinner";
 
 export function SettingsForm({
   settings,
@@ -47,6 +48,24 @@ export function SettingsForm({
       onSubmit={(event) => void submit(event)}
     >
       <UnsavedChangesDialog blocker={unsaved.blocker} />
+      <h2 className="workspace-title">Display</h2>
+      <label className="field-label max-w-xs">
+        Time format
+        <SelectField
+          label="Time format"
+          value={draft.time_format}
+          items={[
+            { value: "24h", label: "24-hour (21:30)" },
+            { value: "12h", label: "12-hour (9:30 PM)" },
+          ]}
+          onValueChange={(value) =>
+            setDraft({
+              ...draft,
+              time_format: settingsInput.shape.time_format.parse(value),
+            })
+          }
+        />
+      </label>
       <h2 className="workspace-title">Model connection</h2>
       <p className="workspace-description">
         Choose a local demo or connect a model server that accepts page images.
@@ -198,8 +217,21 @@ export function SettingsForm({
       </p>
       <ErrorNotice message={error} />
       <div className="flex items-center gap-3">
-        <Button type="submit" disabled={pending}>
-          {pending ? "Saving" : "Save settings"}
+        <Button
+          type="submit"
+          disabled={pending}
+          aria-busy={pending}
+          aria-label="Save settings"
+          className="grid"
+        >
+          <span
+            className={`col-start-1 row-start-1 ${pending ? "invisible" : ""}`}
+          >
+            Save settings
+          </span>
+          {pending && (
+            <Spinner className="col-start-1 row-start-1 justify-self-center" />
+          )}
         </Button>
         {saved && (
           <span role="status" className="text-sm text-muted-foreground">

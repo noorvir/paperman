@@ -28,12 +28,14 @@ export function PdfToolbar({
   editing,
   onRotatePage,
   initialPage = 1,
+  rotatablePages,
 }: {
   documentId: string;
   url: string;
   editing: boolean;
   onRotatePage?: (page: number) => void;
   initialPage?: number;
+  rotatablePages?: number[];
 }) {
   const { state: scroll, provides: navigation } = useScroll(documentId);
   const { provides: scrollCapability } = useScrollCapability();
@@ -215,7 +217,12 @@ export function PdfToolbar({
                   ? "Rotate current page clockwise"
                   : "Rotate clockwise (view only)"
               }
-              disabled={editing && !onRotatePage}
+              disabled={
+                editing &&
+                (!onRotatePage ||
+                  (rotatablePages !== undefined &&
+                    !rotatablePages.includes(scroll.currentPage)))
+              }
               onClick={() => {
                 if (editing) {
                   onRotatePage?.(scroll.currentPage);

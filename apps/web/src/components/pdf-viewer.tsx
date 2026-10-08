@@ -33,6 +33,7 @@ import {
 } from "@embedpdf/plugin-interaction-manager/react";
 import { PdfToolbar } from "./pdf-toolbar";
 import { PdfError } from "./pdf-preview-state";
+import { PdfPageSelection } from "./pdf-page-selection";
 
 export default function PdfViewer({
   url,
@@ -42,6 +43,7 @@ export default function PdfViewer({
   onRotatePage,
   initialPage,
   highlightedPages,
+  pageSelection,
 }: {
   url: string;
   title: string;
@@ -50,12 +52,19 @@ export default function PdfViewer({
   onRotatePage?: (page: number) => void;
   initialPage?: number;
   highlightedPages?: number[];
+  pageSelection?: {
+    pages: number[];
+    onToggle: (page: number) => void;
+    onMove: (page: number, position: number) => void;
+    disabled: boolean;
+  };
 }) {
   const { engine, error } = usePdfiumEngine({
     // Blob workers need an absolute URL for the bundled WebAssembly asset.
     wasmUrl: new URL(wasmUrl, window.location.href).href,
     fontFallback: null,
   });
+  const includedPages = pageSelection?.pages ?? highlightedPages;
   const plugins = useMemo(
     () => [
       createPluginRegistration(DocumentManagerPluginPackage, {
@@ -124,6 +133,7 @@ export default function PdfViewer({
                     editing={Boolean(rotations)}
                     onRotatePage={onRotatePage}
                     initialPage={initialPage}
+                    rotatablePages={pageSelection?.pages}
                   />
                   <Viewport
                     documentId={activeDocumentId}
@@ -136,16 +146,16 @@ export default function PdfViewer({
                       documentId={activeDocumentId}
                       renderPage={({ width, height, pageIndex }) => (
                         <div
-                          className="bg-white shadow-sm data-[included=false]:opacity-25"
+                          className="relative bg-white shadow-sm"
                           data-page-number={pageIndex + 1}
-                          data-included={
-                            highlightedPages
-                              ? highlightedPages.includes(pageIndex + 1)
-                              : undefined
-                          }
+                          data-included={includedPages?.includes(pageIndex + 1)}
                           style={{ width, height }}
                         >
                           <div
+                            className="data-[included=false]:opacity-25"
+                            data-included={includedPages?.includes(
+                              pageIndex + 1,
+                            )}
                             style={{
                               width,
                               height,
@@ -180,6 +190,18 @@ export default function PdfViewer({
                               </PagePointerProvider>
                             </Rotate>
                           </div>
+                          {pageSelection && (
+                            <PdfPageSelection
+                              page={pageIndex + 1}
+                              position={
+                                pageSelection.pages.indexOf(pageIndex + 1) + 1
+                              }
+                              count={pageSelection.pages.length}
+                              disabled={pageSelection.disabled}
+                              onToggle={pageSelection.onToggle}
+                              onMove={pageSelection.onMove}
+                            />
+                          )}
                         </div>
                       )}
                     />

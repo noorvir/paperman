@@ -4,6 +4,7 @@ import { cn } from "cn";
 import type { ReactNode } from "react";
 import type { components } from "@/lib/schema";
 import { Button } from "./button";
+import { Spinner } from "./spinner";
 
 export function PipelineProgress<Id extends string>({
   label,
@@ -45,9 +46,7 @@ export function PipelineProgress<Id extends string>({
           } else if (status === "failed") {
             marker = <HugeiconsIcon icon={Cancel01Icon} size={16} />;
           } else if (status === "running") {
-            marker = (
-              <span className="size-3.5 rounded-full border-[1.5px] border-current border-t-transparent motion-safe:animate-spin" />
-            );
+            marker = <Spinner />;
           } else if (status === "review") {
             marker = "!";
           }

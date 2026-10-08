@@ -8,7 +8,7 @@ export function SettingsNav({
   return (
     <nav aria-label="Settings sections" className="view-tabs">
       <Link to="/settings" data-active={active === "processing"}>
-        Processing
+        General
       </Link>
       <Link
         to="/settings/$catalog"

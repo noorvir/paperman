@@ -13,6 +13,7 @@ import {
 
 export function PageHeader({
   title,
+  titleLink,
   description,
   children,
   count,
@@ -20,6 +21,7 @@ export function PageHeader({
   badge,
 }: {
   title: string;
+  titleLink?: ReactNode;
   description: ReactNode;
   count?: number;
   children?: ReactNode;
@@ -36,7 +38,7 @@ export function PageHeader({
               className="truncate text-base font-semibold tracking-tight"
               title={title}
             >
-              {title}
+              {titleLink ?? title}
             </h1>
             {badge && (
               <span className="flex shrink-0 items-center">{badge}</span>

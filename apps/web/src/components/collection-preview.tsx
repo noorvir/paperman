@@ -10,6 +10,7 @@ import { PreviewAction } from "./preview-action";
 export function CollectionPreview({
   id,
   title,
+  titleLink,
   description,
   badge,
   preview,
@@ -23,6 +24,7 @@ export function CollectionPreview({
 }: {
   id: string;
   title: string;
+  titleLink?: ReactNode;
   description: ReactNode;
   badge?: ReactNode;
   preview: boolean;
@@ -43,6 +45,7 @@ export function CollectionPreview({
     >
       <PageHeader
         title={title}
+        titleLink={preview ? titleLink : undefined}
         description={description}
         badge={badge}
         back={!preview && back}
@@ -80,8 +83,17 @@ export function CollectionPreview({
       <Dialog.Root
         open
         modal={false}
-        disablePointerDismissal
-        onOpenChange={(open) => {
+        onOpenChange={(open, details) => {
+          const target = details.event.target;
+          if (
+            details.reason === "focus-out" ||
+            (details.reason === "outside-press" &&
+              target instanceof Element &&
+              target.closest("[data-collection-row], [data-collection-link]"))
+          ) {
+            details.cancel();
+            return;
+          }
           if (!open) {
             onClose();
           }
@@ -93,7 +105,11 @@ export function CollectionPreview({
             data-preview={preview}
             aria-label={preview ? `Preview: ${title}` : title}
             initialFocus={false}
-            finalFocus={() => document.getElementById(`collection-item-${id}`)}
+            finalFocus={(type) =>
+              type === "keyboard"
+                ? document.getElementById(`collection-item-${id}`)
+                : false
+            }
           >
             {heading}
             {children}

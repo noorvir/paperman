@@ -111,6 +111,9 @@ class DocumentDetail(Record):
 
 
 class DocumentEdit(Ownership):
+    source_pages: list[Annotated[int, Field(ge=1)]] | None = Field(
+        default=None, min_length=1
+    )
     rotations: list[PageRotation] = Field(default_factory=list)
     owner_ids: list[Identifier] = Field(
         min_length=1, validation_alias=AliasChoices("owner_ids", "owner_id")

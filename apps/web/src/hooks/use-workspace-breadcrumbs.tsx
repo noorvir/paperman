@@ -47,10 +47,10 @@ export function useWorkspaceBreadcrumbs() {
           />
         ),
       });
-      if (document.search.edit || document.search.verify) {
+      if (document.search.edit) {
         breadcrumbs.push({
-          id: document.search.edit ? "edit" : "verify",
-          label: document.search.edit ? "Edit" : "Verify",
+          id: "edit",
+          label: "Edit",
           link: (
             <Link
               to="/documents/$documentId"

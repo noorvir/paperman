@@ -6,8 +6,11 @@ import {
 } from "@tanstack/react-router";
 import { z } from "zod";
 import { DocumentDetail } from "@/components/document-detail";
-import { DocumentReview } from "@/components/document-review";
-import { documentSearch, getDocument, getScan } from "@/lib/queries";
+import {
+  documentSearch,
+  getDocument,
+  getScanWithDocuments,
+} from "@/lib/queries";
 
 export const Route = createFileRoute("/documents/$documentId")({
   validateSearch: z.object({
@@ -16,7 +19,19 @@ export const Route = createFileRoute("/documents/$documentId")({
   }),
   search: { middlewares: [stripSearchParams({ edit: false, verify: false })] },
   beforeLoad: ({ params, search }) => {
-    if (search.preview === true && !search.edit && !search.verify) {
+    if (search.verify) {
+      throw redirect({
+        to: "/documents/$documentId",
+        params,
+        search: {
+          ...documentSearch.parse(search),
+          view: search.view,
+          edit: search.edit,
+        },
+        replace: true,
+      });
+    }
+    if (search.preview === true && !search.edit) {
       throw redirect({
         to: "/documents",
         search: {
@@ -30,8 +45,10 @@ export const Route = createFileRoute("/documents/$documentId")({
   },
   loader: async ({ params }) => {
     const detail = await getDocument({ data: params.documentId });
-    const scan = await getScan({ data: detail.document.scan_id });
-    return { ...detail, scanName: scan.original_name };
+    const source = await getScanWithDocuments({
+      data: detail.document.scan_id,
+    });
+    return { ...detail, source };
   },
   component: DocumentPage,
 });
@@ -40,18 +57,9 @@ function DocumentPage() {
   const detail = Route.useLoaderData();
   const { catalog } = getRouteApi("/documents").useLoaderData();
   const search = Route.useSearch();
-  if (search.verify && !search.edit) {
-    return (
-      <DocumentReview
-        {...detail}
-        catalog={catalog}
-        search={documentSearch.parse(search)}
-        view={search.view}
-      />
-    );
-  }
   return (
     <DocumentDetail
+      key={detail.document.id}
       {...detail}
       catalog={catalog}
       search={documentSearch.parse(search)}

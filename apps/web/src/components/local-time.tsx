@@ -1,4 +1,4 @@
-import { useHydrated } from "@tanstack/react-router";
+import { useHydrated, useLoaderData } from "@tanstack/react-router";
 
 export function LocalTime({
   value,
@@ -8,6 +8,10 @@ export function LocalTime({
   dateOnly?: boolean;
 }) {
   const hydrated = useHydrated();
+  const timeFormat = useLoaderData({
+    from: "__root__",
+    select: (settings) => settings.time_format,
+  });
   if (!value) {
     return <span>-</span>;
   }
@@ -19,6 +23,7 @@ export function LocalTime({
   if (!dateOnly) {
     options.hour = "2-digit";
     options.minute = "2-digit";
+    options.hourCycle = timeFormat === "12h" ? "h12" : "h23";
   }
   return (
     <time dateTime={value} aria-busy={!hydrated}>

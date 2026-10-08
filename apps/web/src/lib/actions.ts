@@ -52,6 +52,7 @@ export const settingsInput = z.object({
   output_mode: z.enum(["prompted", "native", "tool"]),
   review_before_filing: z.boolean(),
   ocr_languages: z.string().min(1),
+  time_format: z.enum(["24h", "12h"]),
 });
 export const saveSettings = createServerFn({ method: "POST" })
   .validator(settingsInput)
@@ -159,6 +160,15 @@ export const verifyDocument = createServerFn({ method: "POST" })
     });
     return unwrap(result);
   });
+export const saveDocumentTags = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string(), tag_ids: z.array(z.string()) }))
+  .handler(async ({ data: { id, tag_ids } }) => {
+    const result = await client.PUT("/api/documents/{document_id}/tags", {
+      params: { path: { document_id: id } },
+      body: { tag_ids },
+    });
+    return unwrap(result);
+  });
 export const rebuildIndex = createServerFn({ method: "POST" }).handler(
   async () => {
     const result = await client.POST("/api/search/rebuild");
@@ -171,6 +181,7 @@ export const editDocument = createServerFn({ method: "POST" })
     z.object({
       id: z.string(),
       value: z.object({
+        source_pages: z.array(z.number().int().min(1)).min(1).optional(),
         rotations: z
           .array(
             z.object({

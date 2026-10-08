@@ -20,7 +20,7 @@ import {
   getCatalog,
   getDocuments,
   getDocument,
-  getScan,
+  getScanWithDocuments,
 } from "@/lib/queries";
 import { DocumentDetail } from "@/components/document-detail";
 import { EmptyState, PageHeader } from "@/components/page";
@@ -29,7 +29,7 @@ import {
   CollectionFooter,
   SearchField,
 } from "@/components/collection";
-import { DocumentFilters, DocumentSort } from "@/components/document-filters";
+import { DocumentFilters } from "@/components/document-filters";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { CollectionWorkspace } from "@/components/collection-workspace";
 import { DocumentCollection } from "@/components/document-collection";
@@ -68,18 +68,17 @@ export const Route = createFileRoute("/documents")({
         search: { ...deps, page: documents.pages },
       });
     }
-    let scanName = "";
+    let source = null;
     if (preview) {
-      const scan = await getScan({ data: preview.document.scan_id });
-      scanName = scan.original_name;
+      source = await getScanWithDocuments({ data: preview.document.scan_id });
     }
-    return { documents, catalog, preview, scanName };
+    return { documents, catalog, preview, source };
   },
   component: Documents,
 });
 function Documents() {
   useLiveData();
-  const { documents, catalog, preview, scanName } = Route.useLoaderData();
+  const { documents, catalog, preview, source } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const detail = useMatch({
@@ -127,10 +126,11 @@ function Documents() {
           full ? (
             <Outlet />
           ) : (
-            preview && (
+            preview &&
+            source && (
               <DocumentDetail
                 {...preview}
-                scanName={scanName}
+                source={source}
                 catalog={catalog}
                 search={documentSearch.parse(search)}
                 view={search.view}
@@ -153,10 +153,6 @@ function Documents() {
               onChange={change}
             />
             <div className="ml-auto flex items-center gap-3">
-              <DocumentSort
-                value={search.sort}
-                onChange={(sort) => change({ ...search, sort, page: 1 })}
-              />
               <DocumentLayoutToggle
                 value={search.layout}
                 onChange={(layout) =>
@@ -208,6 +204,7 @@ function Documents() {
             catalog={catalog}
             search={search}
             selectedId={preview?.document.id}
+            onSort={(sort) => change({ ...search, sort, page: 1 })}
           />
         )}
       </Collection>

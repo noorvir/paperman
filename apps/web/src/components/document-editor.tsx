@@ -9,6 +9,7 @@ import { Button } from "./ui/button";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { DocumentEditorDetails } from "./document-editor-details";
+import { Spinner } from "./ui/spinner";
 
 export function DocumentEditor({
   document,
@@ -16,6 +17,7 @@ export function DocumentEditor({
   catalog,
   initialTab,
   rotations,
+  pages,
   onSaving,
   onDone,
 }: {
@@ -25,6 +27,7 @@ export function DocumentEditor({
   initialTab: "details" | "summary" | "text";
   onDone: () => void;
   rotations: number[];
+  pages: number[];
   onSaving: (saving: boolean) => void;
 }) {
   const [draft, setDraft] = useState<components["schemas"]["DocumentEdit"]>(
@@ -53,7 +56,8 @@ export function DocumentEditor({
   const unsaved = useUnsavedChanges(
     JSON.stringify({
       ...draft,
-      rotations,
+      pages,
+      rotations: pages.map((page) => rotations[page - 1]),
       owner_ids: [...draft.owner_ids].sort(),
       tag_ids: [...draft.tag_ids].sort(),
     }),
@@ -63,9 +67,6 @@ export function DocumentEditor({
     function cancel(event: KeyboardEvent) {
       if (event.key === "Escape" && !event.defaultPrevented && !pending) {
         event.preventDefault();
-        if (pending || !unsaved.isDirty) {
-          return;
-        }
         onDone();
       }
     }
@@ -80,18 +81,26 @@ export function DocumentEditor({
       setError("Enter a document title.");
       return;
     }
+    if (pages.length === 0) {
+      setError("Select at least one page.");
+      return;
+    }
     setPending(true);
     onSaving(true);
     setError("");
     try {
       const corrections: components["schemas"]["PageRotation"][] = [];
-      rotations.forEach((clockwise, index) => {
+      pages.forEach((page, index) => {
+        const clockwise = rotations[page - 1];
         if (clockwise === 90 || clockwise === 180 || clockwise === 270) {
           corrections.push({ page: index + 1, clockwise });
         }
       });
       await editDocument({
-        data: { id: document.id, value: { ...draft, rotations: corrections } },
+        data: {
+          id: document.id,
+          value: { ...draft, source_pages: pages, rotations: corrections },
+        },
       });
       unsaved.markSaved();
       await router.invalidate();
@@ -114,9 +123,10 @@ export function DocumentEditor({
       noValidate
     >
       <UnsavedChangesDialog blocker={unsaved.blocker} />
-      <p className="mb-3 text-xs text-muted-foreground">
-        Use the rotate button above the PDF to turn the current page. Save
-        changes keeps the rotation.
+      <p className="mb-3 text-xs text-muted-foreground" role="status">
+        {pages.length
+          ? `Selected pages: ${pages.join(", ")}`
+          : "Select at least one page."}
       </p>
       <Tabs.Root
         value={tab}
@@ -169,7 +179,8 @@ export function DocumentEditor({
           </label>
           <p className="text-xs text-muted-foreground">
             Corrections update search and future tagging. The PDF stays
-            unchanged.
+            unchanged. Changing pages refreshes extracted text unless you edit
+            it here.
           </p>
         </Tabs.Panel>
       </Tabs.Root>
@@ -184,8 +195,21 @@ export function DocumentEditor({
           >
             Cancel
           </Button>
-          <Button type="submit" disabled={pending || !unsaved.isDirty}>
-            {pending ? "Saving" : "Save changes"}
+          <Button
+            type="submit"
+            disabled={pending || !unsaved.isDirty || pages.length === 0}
+            aria-busy={pending}
+            aria-label="Save changes"
+            className="grid"
+          >
+            <span
+              className={`col-start-1 row-start-1 ${pending ? "invisible" : ""}`}
+            >
+              Save changes
+            </span>
+            {pending && (
+              <Spinner className="col-start-1 row-start-1 justify-self-center" />
+            )}
           </Button>
         </div>
       </div>

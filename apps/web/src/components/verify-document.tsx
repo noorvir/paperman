@@ -1,36 +1,67 @@
-import { Link, linkOptions } from "@tanstack/react-router";
-import { BadgeAlertIcon } from "@hugeicons/core-free-icons";
+import { useState } from "react";
+import { useRouter } from "@tanstack/react-router";
+import { HugeiconsIcon } from "@hugeicons/react";
+import { CircleCheckBigIcon } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
-import type { z } from "zod";
-import type { documentSearch, documentView } from "@/lib/queries";
-import { PreviewAction } from "./preview-action";
+import { verifyDocument } from "@/lib/actions";
+import { Button } from "./ui/button";
+import { Spinner } from "./ui/spinner";
 
 export function VerifyDocument({
   document,
-  search,
-  view,
+  onError,
 }: {
   document: components["schemas"]["Document"];
-  search: z.output<typeof documentSearch>;
-  view: z.output<typeof documentView>;
+  onError: (message: string) => void;
 }) {
-  if (document.verification) {
-    return null;
+  const router = useRouter();
+  const [pending, setPending] = useState(false);
+
+  async function confirm() {
+    if (pending || document.verification) {
+      return;
+    }
+    setPending(true);
+    onError("");
+    try {
+      await verifyDocument({
+        data: {
+          id: document.id,
+          revision: document.revision,
+          reviewer: "unknown",
+        },
+      });
+      await router.invalidate({ sync: true });
+    } catch (error) {
+      onError(
+        error instanceof Error
+          ? error.message
+          : "Could not verify this document",
+      );
+    } finally {
+      setPending(false);
+    }
   }
-  const link = linkOptions({
-    to: "/documents/$documentId",
-    params: { documentId: document.id },
-    search: { ...search, view, verify: true },
-    resetScroll: false,
-  });
+
   return (
-    <PreviewAction
-      icon={BadgeAlertIcon}
-      variant="attention"
-      nativeButton={false}
-      render={<Link {...link} />}
+    <Button
+      variant="outline"
+      disabled={pending || Boolean(document.verification)}
+      className={`active:not-aria-[haspopup]:translate-y-0 disabled:opacity-100 ${document.verification && !pending ? "invisible" : ""}`}
+      aria-hidden={Boolean(document.verification) && !pending}
+      aria-busy={pending}
+      onClick={() => void confirm()}
     >
-      Verify
-    </PreviewAction>
+      {pending ? (
+        <Spinner className="text-muted-foreground" />
+      ) : (
+        <HugeiconsIcon
+          icon={CircleCheckBigIcon}
+          className="size-3.5 text-muted-foreground"
+          aria-hidden="true"
+        />
+      )}
+      Mark as verified
+    </Button>
   );
 }

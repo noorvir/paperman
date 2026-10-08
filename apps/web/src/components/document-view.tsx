@@ -1,5 +1,8 @@
-import type { ComponentProps, ReactNode } from "react";
+import { useState, type ComponentProps, type ReactNode } from "react";
+import { linkOptions } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
+import { DocumentContextControls } from "./document-context-controls";
+import { DocumentPdf } from "./document-pdf";
 import { PdfPreview } from "./pdf-preview";
 import { DocumentTags } from "./document-tags";
 import { ProcessingCost } from "./processing-cost";
@@ -8,47 +11,84 @@ import { LocalTime } from "./local-time";
 import { DocumentInformation } from "./document-information";
 import { DetailViewLayout } from "./detail-view-layout";
 import { FileLink } from "./file-link";
+import { ScanInformation } from "./scan-information";
+import { DocumentSource } from "./document-source";
+import type { documentView } from "@/lib/queries";
+import type { z } from "zod";
 
 export function DocumentView({
   document,
-  scanName,
+  source,
   text,
   catalog,
   view,
   allowActions,
   search,
-  sidebar,
+  preview,
   editor,
   rotations,
   pdfRevision,
   onRotatePage,
+  pageSelection,
 }: {
   document: components["schemas"]["Document"];
-  scanName: string;
+  source: ComponentProps<typeof ScanInformation>;
   text: string;
   catalog: components["schemas"]["Catalog"];
-  view: "pdf" | "text" | "summary" | "details";
+  view: z.output<typeof documentView>;
   allowActions: boolean;
   search: ComponentProps<typeof DocumentTags>["search"];
-  sidebar: boolean;
+  preview: boolean;
   editor?: ReactNode;
   rotations?: number[];
   pdfRevision: number;
   onRotatePage?: (page: number) => void;
+  pageSelection?: ComponentProps<typeof PdfPreview>["pageSelection"];
 }) {
+  const sidebar = !preview;
+  const [showContext, setShowContext] = useState(false);
+  const contextControls = (
+    <DocumentContextControls checked={showContext} onChange={setShowContext} />
+  );
+  const [openedSource, setOpenedSource] = useState(view === "source");
+  if (view === "source" && !openedSource) {
+    setOpenedSource(true);
+  }
+  const sourceDestination = preview
+    ? linkOptions({
+        to: "/documents",
+        search: { ...search, preview: document.id, view: "source" },
+      })
+    : linkOptions({
+        to: "/documents/$documentId",
+        params: { documentId: document.id },
+        search: { ...search, view: "source" },
+      });
+  const sourceLink = (
+    <FileLink
+      {...sourceDestination}
+      replace
+      resetScroll={false}
+      filename={source.scan.original_name}
+    />
+  );
   return (
     <DetailViewLayout
       editor={editor}
       sidebar={
-        sidebar && (
+        sidebar &&
+        (view === "source" ? (
+          <ScanInformation {...source} />
+        ) : (
           <DocumentInformation
+            viewControls={view === "pdf" && contextControls}
             document={document}
-            scanName={scanName}
+            sourceLink={sourceLink}
             catalog={catalog}
             search={search}
             allowActions={allowActions}
           />
-        )
+        ))
       }
     >
       {document.enrichment_status !== "complete" && (
@@ -72,12 +112,29 @@ export function DocumentView({
           aria-hidden={!editor && view !== "pdf"}
           inert={!editor && view !== "pdf"}
         >
-          <PdfPreview
-            title={document.title}
-            rotations={rotations}
-            onRotatePage={onRotatePage}
-            url={`/api/documents/${document.id}/pdf?revision=${pdfRevision}`}
-          />
+          {editor ? (
+            <PdfPreview
+              url={`/api/scans/${source.scan.id}/pdf?variant=searchable`}
+              title={`Select pages from ${source.scan.original_name}`}
+              initialPage={document.source_pages[0]}
+              rotations={rotations}
+              onRotatePage={onRotatePage}
+              pageSelection={pageSelection}
+            />
+          ) : (
+            <DocumentPdf
+              title={document.title}
+              rotations={rotations}
+              onRotatePage={onRotatePage}
+              showContext={!editor && showContext}
+              source={{
+                url: `/api/scans/${source.scan.id}/pdf`,
+                title: `Source scan: ${source.scan.original_name}`,
+                pages: document.source_pages,
+              }}
+              url={`/api/documents/${document.id}/pdf?revision=${pdfRevision}`}
+            />
+          )}
         </div>
         <div
           className="document-panel"
@@ -132,7 +189,7 @@ export function DocumentView({
           >
             <DocumentInformation
               document={document}
-              scanName={scanName}
+              sourceLink={sourceLink}
               catalog={catalog}
               search={search}
               allowActions={allowActions}
@@ -140,14 +197,7 @@ export function DocumentView({
           </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 break-all p-3 text-xs leading-relaxed">
             <dt>Source scan</dt>
-            <dd>
-              <FileLink
-                to="/scans/$scanId"
-                params={{ scanId: document.scan_id }}
-                search={{ preview: false, view: "pdf" }}
-                filename={scanName}
-              />
-            </dd>
+            <dd>{sourceLink}</dd>
             <dt>Source pages</dt>
             <dd>{document.source_pages.join(", ")}</dd>
             <dt>Processing run</dt>
@@ -176,6 +226,21 @@ export function DocumentView({
             <dd>{document.enrichment_version || "Not processed"}</dd>
           </dl>
           <ProcessingCost processing={document.processing} />
+        </div>
+        <div
+          className="document-panel"
+          data-active={!editor && view === "source"}
+          aria-hidden={Boolean(editor) || view !== "source"}
+          inert={Boolean(editor) || view !== "source"}
+          aria-label="Source scan"
+        >
+          {openedSource && (
+            <DocumentSource
+              source={source}
+              pages={document.source_pages}
+              sidebar={sidebar}
+            />
+          )}
         </div>
       </div>
     </DetailViewLayout>

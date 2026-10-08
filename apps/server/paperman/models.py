@@ -25,6 +25,7 @@ def now() -> datetime:
 class ModelSettings(InferenceSettings):
     review_before_filing: bool = False
     ocr_languages: str = "eng"
+    time_format: Literal["24h", "12h"] = "24h"
 
 
 class Event(Record):

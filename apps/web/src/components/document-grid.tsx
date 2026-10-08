@@ -32,6 +32,7 @@ export default function DocumentGrid({
         return (
           <div
             key={doc.id}
+            data-collection-row
             data-state={activeId === doc.id ? "selected" : undefined}
             className="group relative min-w-0 rounded-xl bg-muted/60 p-3 hover:bg-muted data-[state=selected]:bg-muted has-[[data-collection-link]:focus-visible]:bg-muted"
           >
@@ -69,7 +70,7 @@ export default function DocumentGrid({
               <p className="truncate text-xs font-medium" title={doc.title}>
                 {doc.title}
               </p>
-              <DocumentVerificationBadge verified={Boolean(doc.verification)} />
+              <DocumentVerificationBadge verification={doc.verification} />
             </div>
             <div className="mt-3 flex items-center justify-between gap-2 text-xs">
               <DocumentOwners

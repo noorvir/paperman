@@ -13,6 +13,9 @@ export function OwnerSelection({
   return (
     <fieldset className="space-y-2">
       <legend className="mb-2 text-xs font-medium">Owners</legend>
+      <p className="text-xs text-muted-foreground">
+        Select all recipients. A copy is kept in each owner's folder.
+      </p>
       {owners.map((owner) => (
         <label key={owner.id} className="flex items-center gap-2 text-xs">
           <Checkbox
@@ -34,9 +37,6 @@ export function OwnerSelection({
           {owner.name}
         </label>
       ))}
-      <p className="text-xs text-muted-foreground">
-        Select all recipients. A copy is kept in each owner's folder.
-      </p>
     </fieldset>
   );
 }

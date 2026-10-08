@@ -58,7 +58,6 @@ test(
       await row.click();
       await page.waitForURL((url) => url.pathname === fullPath);
       await page.locator('.pdf-preview[aria-busy="false"]').waitFor();
-      const pdf = await page.locator(".pdf-preview").elementHandle();
       const pdfBefore = await page.locator(".pdf-preview").boundingBox();
       const sidebarBefore = await page.getByRole("complementary").boundingBox();
       const header = await page
@@ -147,9 +146,12 @@ test(
         editTabs.x >= editorBox.x,
         "Edit tabs belong to the right pane",
       );
-      assert.ok(
-        await pdf.evaluate((element) => element.isConnected),
-        "Edit must keep the PDF mounted",
+      await page.locator('.pdf-preview[aria-busy="false"]').waitFor();
+      assert.match(
+        await page
+          .getByRole("link", { name: "Download PDF" })
+          .getAttribute("href"),
+        /variant=searchable/,
       );
       await page
         .getByRole("button", { name: "Search PDF", exact: true })
@@ -228,7 +230,7 @@ test(
         "Unsaved navigation test",
       );
       await page
-        .getByRole("button", { name: "Edit pages", exact: true })
+        .getByRole("link", { name: "All documents", exact: true })
         .click();
       await page
         .getByRole("dialog", { name: "Discard unsaved changes?" })
@@ -285,12 +287,17 @@ test(
         await page.keyboard.press("Escape");
         await page.waitForURL((url) => !url.searchParams.has("edit"));
         assert.equal(new URL(page.url()).pathname, fullPath);
-        const mountedPdf = await page.locator(".pdf-preview").elementHandle();
         await page.getByRole("button", { name: "Edit", exact: true }).click();
         await page
           .getByRole("form", { name: "Edit document", exact: true })
           .waitFor();
-        assert.ok(await mountedPdf.evaluate((element) => element.isConnected));
+        await page.locator('.pdf-preview[aria-busy="false"]').waitFor();
+        assert.match(
+          await page
+            .getByRole("link", { name: "Download PDF" })
+            .getAttribute("href"),
+          /variant=searchable/,
+        );
         await page.getByRole("tab", { name: "Text", exact: true }).click();
         assert.equal(
           await page
@@ -408,9 +415,13 @@ test(
       );
       await page
         .getByRole("complementary")
-        .locator('a[href^="/scans/"]')
+        .locator('a[href*="view=source"]')
         .click();
-      await page.waitForURL((url) => url.pathname === `/scans/${scanId}`);
+      await page.waitForURL((url) => url.searchParams.get("view") === "source");
+      assert.equal(
+        new URL(page.url()).pathname,
+        new URL(destination, baseURL).pathname,
+      );
       assert.equal(new URL(page.url()).searchParams.has("preview"), false);
       assert.equal(
         await page.getByRole("dialog", { name: /^Preview:/ }).count(),
@@ -421,22 +432,17 @@ test(
       documentURL.searchParams.set("view", "details");
       await page.goto(documentURL.href, { waitUntil: "networkidle" });
       const sourceLinks = page.locator(
-        '.document-panel[data-active="true"] a[href^="/scans/"]',
+        '.document-panel[data-active="true"] a[href*="view=source"]',
       );
       for (const link of await sourceLinks.all()) {
         const href = await link.getAttribute("href");
         assert.equal(new URL(href, baseURL).searchParams.has("preview"), false);
       }
       await sourceLinks.first().click();
-      await page.waitForURL((url) => url.pathname === `/scans/${scanId}`);
+      await page.waitForURL((url) => url.searchParams.get("view") === "source");
+      assert.equal(new URL(page.url()).pathname, documentURL.pathname);
       assert.equal(new URL(page.url()).searchParams.has("preview"), false);
-      await page
-        .getByRole("navigation", { name: "Scan view" })
-        .getByRole("link", { name: "Details", exact: true })
-        .click();
-      await page.waitForURL(
-        (url) => url.searchParams.get("view") === "details",
-      );
+      await page.getByText("Source scan details", { exact: true }).click();
       await page
         .locator('.document-panel[data-active="true"]')
         .getByText("Scanned at", { exact: true })

@@ -121,6 +121,7 @@ export function CollectionRow({
   return (
     <TableRow
       {...props}
+      data-collection-row
       data-state={activeId === itemId ? "selected" : undefined}
       className="cursor-pointer has-[[data-collection-link]:focus-visible]:bg-muted"
       onClick={(event) => {

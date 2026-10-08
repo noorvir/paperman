@@ -515,6 +515,8 @@ export interface components {
         DocumentEdit: {
             /** Owner Ids */
             owner_ids: string[];
+            /** Source Pages */
+            source_pages?: number[] | null;
             /** Rotations */
             rotations?: components["schemas"]["PageRotation"][];
             /** Revision */
@@ -744,6 +746,12 @@ export interface components {
              * @default eng
              */
             ocr_languages: string;
+            /**
+             * Time Format
+             * @default 24h
+             * @enum {string}
+             */
+            time_format: "24h" | "12h";
         };
         /** ModelSettings */
         "ModelSettings-Output": {
@@ -791,6 +799,12 @@ export interface components {
              * @default eng
              */
             ocr_languages: string;
+            /**
+             * Time Format
+             * @default 24h
+             * @enum {string}
+             */
+            time_format: "24h" | "12h";
         };
         /** PageRotation */
         PageRotation: {
@@ -1632,7 +1646,7 @@ export interface operations {
                 status?: string;
                 after?: string | null;
                 before?: string | null;
-                sort?: "date_desc" | "date_asc" | "title";
+                sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "processed_asc" | "processed_desc";
                 page?: number;
             };
             header?: never;

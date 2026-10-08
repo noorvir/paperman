@@ -16,11 +16,32 @@ export const documentSearch = z.object({
   status: z.enum(["", "pending", "running", "complete", "failed"]).default(""),
   after: z.union([z.literal(""), z.iso.date()]).default(""),
   before: z.union([z.literal(""), z.iso.date()]).default(""),
-  sort: z.enum(["date_desc", "date_asc", "title"]).default("date_desc"),
+  sort: z
+    .enum([
+      "date_desc",
+      "date_asc",
+      "title",
+      "title_desc",
+      "owners_asc",
+      "owners_desc",
+      "tags_asc",
+      "tags_desc",
+      "verification_asc",
+      "verification_desc",
+      "processed_asc",
+      "processed_desc",
+    ])
+    .default("date_desc"),
   layout: z.enum(["list", "grid"]).default("list"),
   page: z.coerce.number().int().min(1).default(1),
 });
-export const documentView = z.enum(["pdf", "text", "summary", "details"]);
+export const documentView = z.enum([
+  "pdf",
+  "text",
+  "summary",
+  "details",
+  "source",
+]);
 export const scanSearch = z.object({
   q: z.string().default(""),
   status: z
@@ -90,4 +111,23 @@ export const getScan = createServerFn({ method: "GET" })
       params: { path: { scan_id: data } },
     });
     return unwrap(result);
+  });
+
+export const getScanWithDocuments = createServerFn({ method: "GET" })
+  .validator(z.string())
+  .handler(async ({ data }) => {
+    const result = await client.GET("/api/scans/{scan_id}", {
+      params: { path: { scan_id: data } },
+    });
+    const scan = unwrap(result);
+    const documents = await Promise.all(
+      scan.document_ids.map(async (id) => {
+        const result = await client.GET("/api/documents/{document_id}", {
+          params: { path: { document_id: id } },
+        });
+        const detail = unwrap(result);
+        return detail.document;
+      }),
+    );
+    return { scan, documents };
   });

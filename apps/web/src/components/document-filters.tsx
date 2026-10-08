@@ -1,14 +1,7 @@
 import { useState } from "react";
 import type { z } from "zod";
 import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  FilterHorizontalIcon,
-  ArrowDown01Icon,
-  Cancel01Icon,
-  CalendarArrowDownIcon,
-  CalendarArrowUpIcon,
-  SortingAZ01Icon,
-} from "@hugeicons/core-free-icons";
+import { FilterHorizontalIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
 import { documentSearch } from "@/lib/queries";
 import { getTagIcon } from "@/lib/catalog-icons";
@@ -22,13 +15,6 @@ import {
   PopoverContent,
   PopoverTitle,
 } from "./ui/popover";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuRadioGroup,
-  DropdownMenuRadioItem,
-} from "./ui/dropdown-menu";
 
 type Search = z.output<typeof documentSearch>;
 export function DocumentFilters({
@@ -135,49 +121,5 @@ export function DocumentFilters({
         </Popover>
       </div>
     </>
-  );
-}
-
-export function DocumentSort({
-  value,
-  onChange,
-}: {
-  value: Search["sort"];
-  onChange: (sort: Search["sort"]) => void;
-}) {
-  const options = {
-    date_desc: { label: "Newest first", icon: CalendarArrowDownIcon },
-    date_asc: { label: "Oldest first", icon: CalendarArrowUpIcon },
-    title: { label: "Title A–Z", icon: SortingAZ01Icon },
-  };
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger
-        render={<Button variant="ghost" />}
-        aria-label="Sort documents"
-      >
-        <HugeiconsIcon icon={options[value].icon} />
-        {options[value].label}
-        <HugeiconsIcon icon={ArrowDown01Icon} />
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-max min-w-(--anchor-width) max-w-(--available-width)"
-      >
-        <DropdownMenuRadioGroup
-          value={value}
-          onValueChange={(sort) =>
-            onChange(documentSearch.shape.sort.parse(sort))
-          }
-        >
-          {documentSearch.shape.sort.unwrap().options.map((sort) => (
-            <DropdownMenuRadioItem key={sort} value={sort}>
-              <HugeiconsIcon icon={options[sort].icon} />
-              {options[sort].label}
-            </DropdownMenuRadioItem>
-          ))}
-        </DropdownMenuRadioGroup>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
