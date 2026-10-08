@@ -1,6 +1,9 @@
 import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "cn";
+import type { ReactNode } from "react";
+import { Spinner } from "./spinner";
+import { statusTone } from "./status-tone";
 
 const buttonVariants = cva(
   "group/button inline-flex shrink-0 items-center justify-center rounded-md border border-transparent bg-clip-padding text-xs/relaxed font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,opacity,transform,translate] outline-none select-none focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-2 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
@@ -8,18 +11,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default: "bg-primary text-primary-foreground hover:bg-primary/80",
-        success:
-          "border-emerald-700 bg-emerald-700 text-white hover:bg-emerald-800 focus-visible:border-emerald-600 focus-visible:ring-emerald-500/30 dark:border-emerald-500 dark:bg-emerald-500 dark:text-emerald-950 dark:hover:bg-emerald-400",
-        attention:
-          "border-amber-500 bg-amber-50 text-amber-800 hover:bg-amber-100 focus-visible:border-amber-600 focus-visible:ring-amber-500/30 dark:border-amber-600 dark:bg-amber-950/40 dark:text-amber-300 dark:hover:bg-amber-900/50",
+        success: statusTone({ tone: "success", interactive: true }),
+        attention: statusTone({ tone: "attention", interactive: true }),
         outline:
           "border-border hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground dark:bg-input/30",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground",
         ghost:
           "hover:bg-accent hover:text-accent-foreground aria-expanded:bg-accent aria-expanded:text-accent-foreground",
-        destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        destructive: statusTone({ tone: "destructive", interactive: true }),
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
@@ -45,14 +45,45 @@ function Button({
   className,
   variant = "default",
   size = "default",
+  loading = false,
+  icon,
+  children,
+  disabled,
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props &
+  VariantProps<typeof buttonVariants> & {
+    loading?: boolean;
+    icon?: ReactNode;
+  }) {
   return (
     <ButtonPrimitive
       data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
+      className={cn(buttonVariants({ variant, size }), "relative", className)}
       {...props}
-    />
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      data-loading={loading || undefined}
+    >
+      {icon && (
+        <span
+          className="relative inline-flex shrink-0 items-center justify-center"
+          aria-hidden="true"
+        >
+          <span className={cn("inline-flex", loading && "invisible")}>
+            {icon}
+          </span>
+          {loading && <Spinner className="absolute size-full" />}
+        </span>
+      )}
+      {loading && !icon ? (
+        <>
+          <span className="opacity-0">{children}</span>
+          <Spinner className="absolute" />
+        </>
+      ) : (
+        children
+      )}
+    </ButtonPrimitive>
   );
 }
 

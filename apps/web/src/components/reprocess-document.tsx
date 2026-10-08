@@ -83,10 +83,11 @@ export function ReprocessDocument({
           </DialogClose>
           <Button
             disabled={pending || processing}
+            loading={pending}
+            icon={<HugeiconsIcon icon={RefreshCwIcon} />}
             onClick={() => void confirm()}
           >
-            <HugeiconsIcon icon={RefreshCwIcon} />
-            {pending ? "Starting processing" : "Reprocess"}
+            Reprocess
           </Button>
         </DialogFooter>
       </DialogContent>

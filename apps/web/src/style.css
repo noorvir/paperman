@@ -33,6 +33,10 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-attention: var(--attention);
+  --color-attention-foreground: var(--attention-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
@@ -74,8 +78,12 @@
   --accent: oklch(0.922 0 0);
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
+  --success: oklch(0.979 0.021 166);
+  --success-foreground: oklch(0.508 0.118 166);
+  --attention: oklch(0.987 0.022 95);
+  --attention-foreground: oklch(0.555 0.14 55);
   --info: oklch(0.97 0.014 255);
-  --info-foreground: oklch(0.54 0.05 255);
+  --info-foreground: oklch(0.57 0.09 255);
   --border: oklch(0.922 0 0);
   --input: oklch(0.922 0 0);
   --ring: oklch(0.708 0 0);
@@ -111,8 +119,12 @@
   --accent: oklch(0.371 0 0);
   --accent-foreground: oklch(0.985 0 0);
   --destructive: oklch(0.704 0.191 22.216);
+  --success: oklch(0.25 0.035 166);
+  --success-foreground: oklch(0.765 0.15 166);
+  --attention: oklch(0.26 0.035 75);
+  --attention-foreground: oklch(0.828 0.16 84);
   --info: oklch(0.24 0.025 255);
-  --info-foreground: oklch(0.76 0.055 255);
+  --info-foreground: oklch(0.79 0.075 255);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.556 0 0);
@@ -212,6 +224,31 @@
   }
   .workspace-heading {
     @apply flex min-h-11 shrink-0 items-center justify-between gap-3;
+  }
+  .workspace-heading-content {
+    @apply flex-1;
+  }
+  @media (width < 40rem) {
+    .workspace-heading {
+      @apply flex-wrap;
+    }
+    .workspace-heading-content {
+      @apply basis-full;
+    }
+    .workspace-heading-actions {
+      @apply ml-auto;
+    }
+  }
+  @container preview (max-width: 36rem) {
+    .workspace-heading {
+      @apply flex-wrap;
+    }
+    .workspace-heading-content {
+      @apply basis-full;
+    }
+    .workspace-heading-actions {
+      @apply ml-auto;
+    }
   }
   .workspace-section {
     @apply flex scroll-mt-4 flex-col gap-3;

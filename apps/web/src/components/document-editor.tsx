@@ -9,7 +9,6 @@ import { Button } from "./ui/button";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { DocumentEditorDetails } from "./document-editor-details";
-import { Spinner } from "./ui/spinner";
 
 export function DocumentEditor({
   document,
@@ -193,18 +192,9 @@ export function DocumentEditor({
           <Button
             type="submit"
             disabled={pending || !unsaved.isDirty || pages.length === 0}
-            aria-busy={pending}
-            aria-label="Save changes"
-            className="grid"
+            loading={pending}
           >
-            <span
-              className={`col-start-1 row-start-1 ${pending ? "invisible" : ""}`}
-            >
-              Save changes
-            </span>
-            {pending && (
-              <Spinner className="col-start-1 row-start-1 justify-self-center" />
-            )}
+            Save changes
           </Button>
         </div>
       </div>

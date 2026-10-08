@@ -1,4 +1,5 @@
 import asyncio
+from datetime import timedelta
 from pathlib import Path
 
 from fastapi.testclient import TestClient
@@ -8,7 +9,7 @@ from test_pipeline import FailingInference, FixtureInference, FixtureOCR, create
 from paperman.api import create_app
 from paperman.api_models import Dashboard, ScanDetail
 from paperman.config import Settings
-from paperman.models import Document, Scan, now
+from paperman.models import Document, Scan, Verification, now
 from paperman.pipeline import enrich_document, process_scan
 from paperman.storage import FileStorage, write_record
 
@@ -87,6 +88,7 @@ def test_progress_tracks_failure_retry_review_and_enrichment(tmp_path: Path) -> 
         "review": 0,
         "failed": 1,
         "complete": 1,
+        "unverified": 2,
     }
     assert dashboard.pipeline_items.items[0].kind == "document"
     assert dashboard.pipeline_items.items[0].id == documents[1].id
@@ -166,5 +168,48 @@ def test_status_counts_cover_all_pages_and_exclude_unpublished_work(
     assert dashboard.pipeline_items.total == 0
     assert dashboard.pipeline_items.page == 1
     assert dashboard.counts["running"] == 1
+    assert dashboard.counts["unverified"] == 27
     assert client.get("/api/dashboard?status=invalid").status_code == 422
     assert client.get("/api/dashboard?page=0").status_code == 422
+
+
+def test_overview_includes_old_unverified_documents_and_clears_after_verification(
+    tmp_path: Path,
+) -> None:
+    storage = FileStorage(tmp_path)
+    client = TestClient(create_app(Settings(data_dir=tmp_path)))
+    timestamp = now()
+    for index in range(30):
+        document = Document(
+            id=f"document-{index}",
+            scan_id="old-scan",
+            source_pages=[1],
+            owner_ids=["unknown"],
+            title=f"Document {index}",
+            document_date=timestamp.date(),
+            date_source="scan_fallback",
+            scanned_at=timestamp - timedelta(days=index * 30),
+            final_path=f"documents/unknown/document-{index}.pdf",
+            enrichment_status="complete",
+        )
+        storage.save_document(document)
+    dashboard = Dashboard.model_validate_json(
+        client.get("/api/dashboard?status=unverified&page=2").content
+    )
+    assert dashboard.counts["unverified"] == 30
+    assert dashboard.counts["review"] == 0
+    assert dashboard.counts["complete"] == 30
+    assert dashboard.pipeline_items.total == 30
+    assert len(dashboard.pipeline_items.items) == 5
+    assert dashboard.pipeline_items.items[-1].id == "document-29"
+    assert len(dashboard.unverified_documents) == 5
+    for document in storage.list_documents():
+        document.verification = Verification(by="Reviewer", at=timestamp)
+        storage.save_document(document)
+    dashboard = Dashboard.model_validate_json(
+        client.get("/api/dashboard?status=unverified").content
+    )
+    assert dashboard.counts["unverified"] == 0
+    assert dashboard.pipeline_items.items == []
+    assert dashboard.unverified_documents == []
+    assert dashboard.counts["complete"] == 30

@@ -35,7 +35,10 @@ export function OverviewWork({
   const scans = filtered
     ? work.items.filter((item) => item.kind === "scan")
     : [];
-  let noun = work.status === "complete" ? "documents" : "items";
+  let noun =
+    work.status === "complete" || work.status === "unverified"
+      ? "documents"
+      : "items";
   if (work.total === 1) {
     noun = noun.slice(0, -1);
   }
@@ -82,7 +85,7 @@ export function OverviewWork({
                   to="/scans/$scanId"
                   params={{ scanId: item.id }}
                   search={{ preview: true }}
-                  className="flex h-14 items-center gap-3 hover:bg-muted/40 focus-visible:bg-muted focus-visible:outline-none"
+                  className="flex h-14 items-center gap-3 hover:bg-accent/30 focus-visible:bg-accent/50 focus-visible:outline-none"
                 >
                   <FileIcon filename={item.filename} />
                   <div className="min-w-0 flex-1">
@@ -147,6 +150,7 @@ const emptyMessages = {
   queued: "No items are waiting to be processed.",
   running: "No items are being processed.",
   review: "No scans need review.",
+  unverified: "All documents are verified.",
   complete: "No documents have finished processing.",
   failed: "No failed scans or documents.",
 };

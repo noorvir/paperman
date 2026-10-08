@@ -1,6 +1,7 @@
 from pathlib import PurePosixPath
 
 from paperman.api_models import (
+    DashboardStatus,
     PipelineDocumentItem,
     PipelinePage,
     PipelineScanItem,
@@ -13,12 +14,13 @@ from paperman.models import Document, Scan, ScanStatus
 def pipeline_overview(
     scans: list[Scan],
     documents: list[Document],
-    status: ScanStatus,
+    status: DashboardStatus,
     page: int,
-) -> tuple[dict[ScanStatus, int], PipelinePage]:
-    groups: dict[ScanStatus, list[PipelineScanItem | PipelineDocumentItem]] = {
+) -> tuple[dict[DashboardStatus, int], PipelinePage, list[Document]]:
+    groups: dict[DashboardStatus, list[PipelineScanItem | PipelineDocumentItem]] = {
         key: [] for key in STATUS_LABELS
     }
+    groups["unverified"] = []
     by_id = {scan.id: scan for scan in scans}
     for scan in sorted(
         scans, key=lambda item: (item.scanned_at, item.id), reverse=True
@@ -46,37 +48,44 @@ def pipeline_overview(
         documents, key=lambda doc: (doc.scanned_at, doc.id), reverse=True
     ):
         scan = by_id.get(document.scan_id)
-        if scan is not None and (
-            scan.status != "complete" or document.id not in scan.document_ids
-        ):
+        if scan is not None and document.id not in scan.document_ids:
             continue
         document_status: ScanStatus = "queued"
         if document.enrichment_status != "pending":
             document_status = document.enrichment_status
-        groups[document_status].append(
-            PipelineDocumentItem(
-                document=document,
-                id=document.id,
-                title=document.title,
-                filename=PurePosixPath(document.final_path).name,
-                status=document_status,
-                detail=document.enrichment_error
-                or document.summary
-                or STATUS_LABELS[document_status],
-            )
+        item = PipelineDocumentItem(
+            document=document,
+            id=document.id,
+            title=document.title,
+            filename=PurePosixPath(document.final_path).name,
+            status=document_status,
+            detail=document.enrichment_error
+            or document.summary
+            or STATUS_LABELS[document_status],
         )
+        if document.verification is None:
+            groups["unverified"].append(item)
+        if scan is not None and scan.status != "complete":
+            continue
+        groups[document_status].append(item)
 
-    counts: dict[ScanStatus, int] = {key: len(items) for key, items in groups.items()}
+    counts: dict[DashboardStatus, int] = {
+        key: len(items) for key, items in groups.items()
+    }
     items = groups[status]
     pages = max(1, (len(items) + 24) // 25)
     page = min(page, pages)
-    return counts, PipelinePage(
+    result = PipelinePage(
         status=status,
         items=items[(page - 1) * 25 : page * 25],
         total=len(items),
         page=page,
         pages=pages,
     )
+    unverified = [
+        item.document for item in groups["unverified"][:5] if item.kind == "document"
+    ]
+    return counts, result, unverified
 
 
 def scan_progress(scan: Scan, documents: list[Document]) -> list[PipelineStep]:

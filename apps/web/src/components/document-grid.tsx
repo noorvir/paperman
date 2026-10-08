@@ -34,7 +34,7 @@ export default function DocumentGrid({
             key={doc.id}
             data-collection-row
             data-state={activeId === doc.id ? "selected" : undefined}
-            className="group relative min-w-0 rounded-xl bg-muted/60 p-3 hover:bg-muted data-[state=selected]:bg-muted has-[[data-collection-link]:focus-visible]:bg-muted"
+            className="group relative min-w-0 rounded-xl bg-muted/60 p-3 hover:bg-accent/30 data-[state=selected]:bg-accent/50 has-[[data-collection-link]:focus-visible]:bg-accent/50"
           >
             <CollectionLink
               itemId={doc.id}

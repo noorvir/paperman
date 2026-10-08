@@ -8,7 +8,6 @@ import { saveDocumentTags, saveEntry } from "@/lib/actions";
 import { ActionButton } from "./page";
 import { TagLink } from "./tag-link";
 import { Button } from "./ui/button";
-import { Spinner } from "./ui/spinner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -92,18 +91,15 @@ export function DocumentTags({
                   size="icon-xs"
                   className="h-6 rounded-l-none text-muted-foreground hover:text-foreground"
                   aria-label={`Remove ${tag.name}`}
-                  aria-busy={
+                  loading={
                     pending?.action === "remove" && pending.id === tag.id
+                  }
+                  icon={
+                    <HugeiconsIcon icon={Cancel01Icon} aria-hidden="true" />
                   }
                   disabled={Boolean(pending)}
                   onClick={() => void updateTag(tag.id, "remove")}
-                >
-                  {pending?.action === "remove" && pending.id === tag.id ? (
-                    <Spinner className="size-2.5" />
-                  ) : (
-                    <HugeiconsIcon icon={Cancel01Icon} aria-hidden="true" />
-                  )}
-                </Button>
+                />
               )}
             </span>
           ))}
@@ -115,18 +111,13 @@ export function DocumentTags({
                     variant="secondary"
                     size="icon-sm"
                     className="rounded-full"
+                    loading={pending?.action === "add"}
+                    icon={<HugeiconsIcon icon={Add01Icon} aria-hidden="true" />}
                   />
                 }
                 aria-label="Add tag"
-                aria-busy={pending?.action === "add"}
                 disabled={Boolean(pending) || availableTags.length === 0}
-              >
-                {pending?.action === "add" ? (
-                  <Spinner className="size-3" />
-                ) : (
-                  <HugeiconsIcon icon={Add01Icon} aria-hidden="true" />
-                )}
-              </DropdownMenuTrigger>
+              />
               <DropdownMenuContent className="w-48" aria-label="Available tags">
                 {availableTags.map((tag) => (
                   <DropdownMenuItem
@@ -162,6 +153,7 @@ export function DocumentTags({
                 className="max-w-full gap-1.5 rounded-full px-2 font-normal"
                 aria-label={`Add ${name} to catalog`}
                 title={`Add ${name} to catalog`}
+                icon={<HugeiconsIcon icon={Add01Icon} aria-hidden="true" />}
                 action={() =>
                   saveEntry({
                     data: {
@@ -172,7 +164,6 @@ export function DocumentTags({
                   })
                 }
               >
-                <HugeiconsIcon icon={Add01Icon} aria-hidden="true" />
                 <span className="truncate">{name}</span>
               </ActionButton>
             ))}

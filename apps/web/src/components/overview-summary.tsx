@@ -17,7 +17,7 @@ export function OverviewSummary({
       steps={statuses.map((item) => ({
         id: item.id,
         label: item.label,
-        status: item.id,
+        status: item.id === "unverified" ? "review" : item.id,
         count: counts[item.id] ?? 0,
         detail: "",
       }))}
@@ -30,12 +30,13 @@ export function OverviewSummary({
   );
 }
 
-type Status = components["schemas"]["Scan"]["status"];
+type Status = components["schemas"]["PipelinePage"]["status"];
 
 export const statuses: { id: Status; label: string }[] = [
   { id: "queued", label: "Unprocessed" },
   { id: "running", label: "Processing" },
-  { id: "review", label: "Needs review" },
-  { id: "complete", label: "Done" },
+  { id: "review", label: "Scan review" },
+  { id: "unverified", label: "Needs verification" },
+  { id: "complete", label: "Processed" },
   { id: "failed", label: "Failed" },
 ];

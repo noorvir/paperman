@@ -213,12 +213,12 @@ export function ReviewForm({
               </Button>
             </div>
             {draft.review_reason && (
-              <p className="text-xs text-amber-800 dark:text-amber-300">
+              <p className="text-xs text-attention-foreground">
                 {draft.review_reason}
               </p>
             )}
             {!draft.review_reason && draft.confidence < 0.9 && (
-              <p className="text-xs text-amber-800 dark:text-amber-300">
+              <p className="text-xs text-attention-foreground">
                 The model has low confidence in this document. Check its pages
                 and details.
               </p>
@@ -303,7 +303,7 @@ export function ReviewForm({
           >
             Cancel
           </Link>
-          <Button type="submit" disabled={pending}>
+          <Button type="submit" loading={pending}>
             {scan.status === "complete"
               ? "Save page groups"
               : "Approve and file"}

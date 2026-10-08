@@ -66,10 +66,16 @@ export function RemoveOwner({
     >
       <div className="inline-flex max-w-full flex-col items-start gap-2">
         <DialogTrigger
-          render={<Button variant="outline" disabled={pending} />}
+          render={
+            <Button
+              variant="outline"
+              loading={pending && usage === null}
+              disabled={pending}
+            />
+          }
           onClick={() => void remove()}
         >
-          {pending && usage === null ? "Removing" : "Remove"}
+          Remove
         </DialogTrigger>
         {usage === null && <ErrorNotice message={error} />}
       </div>
@@ -101,8 +107,12 @@ export function RemoveOwner({
           <DialogClose render={<Button variant="outline" disabled={pending} />}>
             Cancel
           </DialogClose>
-          <Button disabled={pending} onClick={() => void remove(replacement)}>
-            {pending ? "Reassigning" : "Reassign and remove"}
+          <Button
+            variant="destructive"
+            loading={pending}
+            onClick={() => void remove(replacement)}
+          >
+            Reassign and remove
           </Button>
         </DialogFooter>
       </DialogContent>

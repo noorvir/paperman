@@ -5,7 +5,6 @@ import { CircleCheckBigIcon } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
 import { verifyDocument } from "@/lib/actions";
 import { Button } from "./ui/button";
-import { Spinner } from "./ui/spinner";
 
 export function VerifyDocument({
   document,
@@ -49,18 +48,15 @@ export function VerifyDocument({
       disabled={pending || Boolean(document.verification)}
       className={`active:not-aria-[haspopup]:translate-y-0 disabled:opacity-100 ${document.verification && !pending ? "invisible" : ""}`}
       aria-hidden={Boolean(document.verification) && !pending}
-      aria-busy={pending}
-      onClick={() => void confirm()}
-    >
-      {pending ? (
-        <Spinner className="text-muted-foreground" />
-      ) : (
+      loading={pending}
+      icon={
         <HugeiconsIcon
           icon={CircleCheckBigIcon}
           className="size-3.5 text-muted-foreground"
-          aria-hidden="true"
         />
-      )}
+      }
+      onClick={() => void confirm()}
+    >
       Mark as verified
     </Button>
   );

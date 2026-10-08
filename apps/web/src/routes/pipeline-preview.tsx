@@ -123,14 +123,15 @@ function PipelinePreview() {
         </div>
         <div className="flex flex-wrap gap-x-5 gap-y-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-emerald-500" />8 complete
+            <span className="size-1.5 rounded-full bg-success-foreground" />8
+            complete
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-amber-500" />
+            <span className="size-1.5 rounded-full bg-attention-foreground" />
             12 remaining
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-red-500" />1 failed
+            <span className="size-1.5 rounded-full bg-destructive" />1 failed
           </span>
         </div>
       </section>

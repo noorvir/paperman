@@ -52,7 +52,12 @@ export const scanSearch = z.object({
 export const catalogKind = z.enum(["owners", "tags"]);
 
 export const dashboardSearch = z.object({
-  status: scanSearch.shape.status.unwrap().exclude([""]).optional(),
+  status: z
+    .union([
+      scanSearch.shape.status.unwrap().exclude([""]),
+      z.literal("unverified"),
+    ])
+    .optional(),
   page: z.coerce.number().int().min(1).default(1),
 });
 

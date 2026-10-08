@@ -9,7 +9,6 @@ import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
 import { SelectField } from "./select-field";
-import { Spinner } from "./ui/spinner";
 
 export function SettingsForm({
   settings,
@@ -217,21 +216,8 @@ export function SettingsForm({
       </p>
       <ErrorNotice message={error} />
       <div className="flex items-center gap-3">
-        <Button
-          type="submit"
-          disabled={pending}
-          aria-busy={pending}
-          aria-label="Save settings"
-          className="grid"
-        >
-          <span
-            className={`col-start-1 row-start-1 ${pending ? "invisible" : ""}`}
-          >
-            Save settings
-          </span>
-          {pending && (
-            <Spinner className="col-start-1 row-start-1 justify-self-center" />
-          )}
+        <Button type="submit" disabled={pending} loading={pending}>
+          Save settings
         </Button>
         {saved && (
           <span role="status" className="text-sm text-muted-foreground">

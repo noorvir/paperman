@@ -62,7 +62,7 @@ export function ReviewFeedback({
         <Button
           type="button"
           disabled={disabled || !instructions.trim()}
-          aria-busy={pending}
+          loading={pending}
           onClick={() => void revise()}
         >
           Update proposal

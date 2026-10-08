@@ -30,7 +30,7 @@ export function PageHeader({
 }) {
   return (
     <header className="workspace-heading">
-      <div className="flex min-w-0 flex-1 items-start gap-2">
+      <div className="workspace-heading-content flex min-w-0 items-start gap-2">
         {back}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
@@ -58,7 +58,7 @@ export function PageHeader({
         </div>
       </div>
       {children && (
-        <div className="flex shrink-0 items-center gap-2 self-start empty:hidden">
+        <div className="workspace-heading-actions flex shrink-0 flex-wrap items-center gap-2 self-start empty:hidden">
           {children}
         </div>
       )}
@@ -187,10 +187,11 @@ export function ActionButton({
       <Button
         {...props}
         variant={variant}
-        disabled={pending || disabled}
+        disabled={disabled}
+        loading={pending}
         onClick={() => void run()}
       >
-        {pending ? "Working" : children}
+        {children}
       </Button>
       <ErrorNotice message={error} />
     </div>

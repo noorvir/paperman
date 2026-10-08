@@ -7,12 +7,15 @@ export function PreviewAction({
   children,
   variant = "outline",
   ...props
-}: Omit<ComponentProps<typeof Button>, "size"> & {
+}: Omit<ComponentProps<typeof Button>, "size" | "icon"> & {
   icon: ComponentProps<typeof HugeiconsIcon>["icon"];
 }) {
   return (
-    <Button {...props} variant={variant}>
-      <HugeiconsIcon icon={icon} aria-hidden="true" />
+    <Button
+      {...props}
+      variant={variant}
+      icon={<HugeiconsIcon icon={icon} aria-hidden="true" />}
+    >
       {children}
     </Button>
   );

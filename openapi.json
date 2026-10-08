@@ -1019,14 +1019,22 @@
             "in": "query",
             "required": false,
             "schema": {
-              "enum": [
-                "queued",
-                "running",
-                "review",
-                "failed",
-                "complete"
+              "anyOf": [
+                {
+                  "enum": [
+                    "queued",
+                    "running",
+                    "review",
+                    "failed",
+                    "complete"
+                  ],
+                  "type": "string"
+                },
+                {
+                  "const": "unverified",
+                  "type": "string"
+                }
               ],
-              "type": "string",
               "default": "complete",
               "title": "Status"
             }
@@ -1367,20 +1375,18 @@
             "additionalProperties": {
               "type": "integer"
             },
-            "propertyNames": {
-              "enum": [
-                "queued",
-                "running",
-                "review",
-                "failed",
-                "complete"
-              ]
-            },
             "type": "object",
             "title": "Counts"
           },
           "pipeline_items": {
             "$ref": "#/components/schemas/PipelinePage"
+          },
+          "unverified_documents": {
+            "items": {
+              "$ref": "#/components/schemas/Document"
+            },
+            "type": "array",
+            "title": "Unverified Documents"
           }
         },
         "additionalProperties": false,
@@ -1397,7 +1403,8 @@
           "model_configured",
           "inbox_path",
           "counts",
-          "pipeline_items"
+          "pipeline_items",
+          "unverified_documents"
         ],
         "title": "Dashboard"
       },
@@ -2421,13 +2428,21 @@
       "PipelinePage": {
         "properties": {
           "status": {
-            "type": "string",
-            "enum": [
-              "queued",
-              "running",
-              "review",
-              "failed",
-              "complete"
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "queued",
+                  "running",
+                  "review",
+                  "failed",
+                  "complete"
+                ]
+              },
+              {
+                "type": "string",
+                "const": "unverified"
+              }
             ],
             "title": "Status"
           },

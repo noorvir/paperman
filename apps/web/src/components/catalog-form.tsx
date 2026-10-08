@@ -99,8 +99,8 @@ export function CatalogForm({
         {kind === "tags" && <TagIconPicker value={icon} onChange={setIcon} />}
         <ErrorNotice message={error} />
         <div className="flex items-center gap-4">
-          <Button type="submit" disabled={pending}>
-            {pending ? "Saving" : "Save"}
+          <Button type="submit" loading={pending} disabled={pending}>
+            Save
           </Button>
           <Link
             to="/settings/$catalog"

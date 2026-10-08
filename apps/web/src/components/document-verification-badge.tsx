@@ -27,8 +27,8 @@ export function DocumentVerificationBadge({
           icon={verification ? BadgeCheckIcon : BadgeAlertIcon}
           className={
             verification
-              ? "size-5 text-emerald-600 dark:text-emerald-400"
-              : "size-5 text-amber-600 dark:text-amber-400"
+              ? "size-5 text-success-foreground"
+              : "size-5 text-attention-foreground"
           }
           aria-hidden="true"
         />

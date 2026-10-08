@@ -21,6 +21,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { OverviewSummary } from "@/components/overview-summary";
 import { OverviewWork } from "@/components/overview-work";
+import { DocumentVerificationBadge } from "@/components/document-verification-badge";
 
 export const Route = createFileRoute("/")({
   validateSearch: dashboardSearch,
@@ -53,6 +54,15 @@ function Overview() {
     Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const unverifiedCount = state.counts.unverified ?? 0;
+  const needsAttention =
+    attention.length > 0 ||
+    unverifiedCount > 0 ||
+    !state.worker_online ||
+    state.worker?.status === "error" ||
+    !state.model_configured ||
+    !state.ocr_available ||
+    state.enrichment_failed > 0;
   return (
     <div className="workspace-page max-w-6xl lg:min-h-0 lg:flex-1 lg:shrink">
       <div className="flex shrink-0 flex-col gap-5 border-b pb-3">
@@ -165,7 +175,7 @@ function Overview() {
                   to="/scans/$scanId"
                   params={{ scanId: scan.id }}
                   search={{ preview: true }}
-                  className="flex flex-col items-start gap-2 py-4 hover:bg-muted/40"
+                  className="flex flex-col items-start gap-2 py-4 hover:bg-accent/30"
                 >
                   <ScanStatus status={scan.status} />
                   <p className="max-w-full truncate text-xs font-medium">
@@ -185,16 +195,49 @@ function Overview() {
                 </Link>
               ))}
             </div>
-            {attention.length === 0 && (
+            {unverifiedCount > 0 && (
+              <section
+                className="space-y-2 border-t py-4"
+                aria-labelledby="verification-heading"
+              >
+                <h3 id="verification-heading" className="text-xs font-medium">
+                  Needs verification ({unverifiedCount})
+                </h3>
+                <ul className="divide-y">
+                  {state.unverified_documents.map((document) => (
+                    <li key={document.id}>
+                      <Link
+                        to="/documents/$documentId"
+                        params={{ documentId: document.id }}
+                        className="flex items-center gap-2 rounded-md py-2 text-xs hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <DocumentVerificationBadge verification={null} />
+                        <span className="min-w-0 truncate">
+                          {document.title}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+                <Link
+                  to="/"
+                  search={{ status: "unverified" }}
+                  className={buttonVariants({ variant: "ghost", size: "sm" })}
+                >
+                  View all unverified documents
+                </Link>
+              </section>
+            )}
+            {!needsAttention && (
               <p className="workspace-description py-4">
-                You are all caught up. No scans need attention.
+                You are all caught up.
               </p>
             )}
           </div>
           <section className="shrink-0 border-t pt-4">
             <div className="flex items-center gap-2">
               <span
-                className={`size-1.5 rounded-full ${state.worker_online ? "bg-emerald-500" : "bg-muted-foreground"}`}
+                className={`size-1.5 rounded-full ${state.worker_online ? "bg-success-foreground" : "bg-muted-foreground"}`}
               />
               <h2 className="text-xs font-medium">
                 {state.worker_online

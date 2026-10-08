@@ -112,10 +112,11 @@ export function ReprocessScan({
           <Button
             variant="destructive"
             disabled={pending}
+            loading={pending}
+            icon={<HugeiconsIcon icon={RefreshCwIcon} />}
             onClick={() => void confirm()}
           >
-            <HugeiconsIcon icon={RefreshCwIcon} />
-            {pending ? "Starting new run" : "Reprocess and replace"}
+            Reprocess and replace
           </Button>
         </DialogFooter>
       </DialogContent>

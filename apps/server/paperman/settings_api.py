@@ -2,8 +2,8 @@ from typing import Annotated
 
 from fastapi import APIRouter, Query
 
-from paperman.api_models import ActionResult, Dashboard
-from paperman.models import ModelSettings, ScanStatus, now
+from paperman.api_models import ActionResult, Dashboard, DashboardStatus
+from paperman.models import ModelSettings, now
 from paperman.pdf import ocr_available
 from paperman.progress import pipeline_overview
 from paperman.storage import FileStorage, write_record
@@ -14,13 +14,13 @@ def routes(storage: FileStorage) -> APIRouter:
 
     @router.get("/api/dashboard", operation_id="dashboard")
     def dashboard(
-        status: ScanStatus = "complete",
+        status: DashboardStatus = "complete",
         page: Annotated[int, Query(ge=1)] = 1,
     ) -> Dashboard:
         with storage.transaction():
             scans = storage.list_scans()
             documents = storage.list_documents()
-        counts, items = pipeline_overview(scans, documents, status, page)
+        counts, items, unverified = pipeline_overview(scans, documents, status, page)
         worker = storage.worker_state()
         model = storage.settings()
         return Dashboard(
@@ -43,6 +43,7 @@ def routes(storage: FileStorage) -> APIRouter:
             inbox_path=str(storage.root / "inbox"),
             counts=counts,
             pipeline_items=items,
+            unverified_documents=unverified,
         )
 
     @router.get("/api/settings", operation_id="settings")

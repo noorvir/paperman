@@ -417,6 +417,8 @@ export interface components {
                 [key: string]: number;
             };
             pipeline_items: components["schemas"]["PipelinePage"];
+            /** Unverified Documents */
+            unverified_documents: components["schemas"]["Document"][];
         };
         /** Document */
         Document: {
@@ -844,11 +846,8 @@ export interface components {
         };
         /** PipelinePage */
         PipelinePage: {
-            /**
-             * Status
-             * @enum {string}
-             */
-            status: "queued" | "running" | "review" | "failed" | "complete";
+            /** Status */
+            status: ("queued" | "running" | "review" | "failed" | "complete") | "unverified";
             /** Items */
             items: (components["schemas"]["PipelineScanItem"] | components["schemas"]["PipelineDocumentItem"])[];
             /** Total */
@@ -1876,7 +1875,7 @@ export interface operations {
     dashboard: {
         parameters: {
             query?: {
-                status?: "queued" | "running" | "review" | "failed" | "complete";
+                status?: ("queued" | "running" | "review" | "failed" | "complete") | "unverified";
                 page?: number;
             };
             header?: never;

@@ -58,7 +58,7 @@ export function UploadForm() {
         className="mx-auto flex w-full max-w-xl flex-col items-center gap-4 py-16 text-center"
         role="status"
       >
-        <span className="rounded-full bg-emerald-500/10 p-3 text-emerald-600">
+        <span className="rounded-full bg-success p-3 text-success-foreground">
           <HugeiconsIcon icon={Tick02Icon} size={24} />
         </span>
         <h2 className="text-lg font-semibold">Scan received</h2>
@@ -150,8 +150,8 @@ export function UploadForm() {
         >
           Cancel
         </Link>
-        <Button type="submit" disabled={!file || pending}>
-          {pending ? "Uploading" : "Upload scan"}
+        <Button type="submit" loading={pending} disabled={!file || pending}>
+          Upload scan
         </Button>
       </div>
     </form>

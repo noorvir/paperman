@@ -148,16 +148,17 @@ export function ScanStatus({
   };
   return (
     <Badge
-      variant={status === "failed" ? "destructive" : "secondary"}
-      className={
-        status === "review"
-          ? "bg-amber-500/10 text-amber-700 dark:text-amber-400"
-          : ""
+      variant={
+        status === "complete"
+          ? "success"
+          : status === "failed"
+            ? "destructive"
+            : status === "review" || status === "running"
+              ? "attention"
+              : "secondary"
       }
     >
-      <span
-        className={`size-1.5 rounded-full ${status === "complete" ? "bg-emerald-500" : "bg-current"}`}
-      />
+      <span className="size-1.5 rounded-full bg-current" />
       {labels[status]}
     </Badge>
   );

@@ -16,7 +16,7 @@ export function TagIconPicker({
         {Object.entries(catalogIcons).map(([key, option]) => (
           <label
             key={key}
-            className="relative flex cursor-pointer flex-col items-center gap-2 rounded-md border border-input px-2 py-3 text-xs hover:bg-muted has-checked:border-foreground has-checked:bg-muted has-focus-visible:ring-2 has-focus-visible:ring-ring"
+            className="relative flex cursor-pointer flex-col items-center gap-2 rounded-md border border-input px-2 py-3 text-xs hover:bg-accent has-checked:border-ring has-checked:bg-accent/50 has-focus-visible:ring-2 has-focus-visible:ring-ring"
           >
             <input
               className="sr-only"

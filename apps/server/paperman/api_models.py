@@ -15,6 +15,7 @@ from pydantic import AliasChoices, Field
 from paperman.models import Document, Scan, ScanStatus, WorkerState
 
 PipelineStage = Literal["inbox", "ocr", "analyze", "review", "file", "tag", "ready"]
+DashboardStatus = ScanStatus | Literal["unverified"]
 
 
 class PipelineStep(Record):
@@ -43,7 +44,7 @@ class PipelineDocumentItem(PipelineItem):
 
 
 class PipelinePage(Record):
-    status: ScanStatus
+    status: DashboardStatus
     items: list[
         Annotated[PipelineScanItem | PipelineDocumentItem, Field(discriminator="kind")]
     ]
@@ -67,8 +68,9 @@ class Dashboard(Record):
     ocr_available: bool
     model_configured: bool
     inbox_path: str
-    counts: dict[ScanStatus, int]
+    counts: dict[DashboardStatus, int]
     pipeline_items: PipelinePage
+    unverified_documents: list[Document]
 
 
 class DocumentPage(Record):
