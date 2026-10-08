@@ -22,9 +22,9 @@ export function OverviewDocumentTable({
   catalog: components["schemas"]["Catalog"];
 }) {
   return (
-    <div className="@container/overview">
+    <div className="@container/overview [&>[data-slot=table-container]]:overflow-visible">
       <Table className="table-fixed [&_td]:px-2 [&_th]:px-2">
-        <TableHeader>
+        <TableHeader className="sticky top-0 z-10 bg-background">
           <TableRow>
             <TableHead className="hidden w-24 @sm/overview:table-cell">
               Date

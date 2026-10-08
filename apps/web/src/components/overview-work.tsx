@@ -45,7 +45,7 @@ export function OverviewWork({
     <section
       id="overview-work"
       aria-labelledby="overview-work-heading"
-      className="flex min-w-0 flex-col"
+      className="flex h-full min-h-0 min-w-0 flex-col"
     >
       <header className="mb-3 flex h-7 shrink-0 items-center justify-between gap-3">
         <h2
@@ -71,7 +71,8 @@ export function OverviewWork({
       </header>
       <div
         key={filtered ? `${work.status}-${work.page}` : "recent"}
-        className="min-w-0"
+        className="min-h-0 min-w-0 flex-1 overflow-y-auto overscroll-contain"
+        tabIndex={0}
         role="region"
         aria-label={`${title} list`}
       >
