@@ -123,11 +123,6 @@ export function DocumentEditor({
       noValidate
     >
       <UnsavedChangesDialog blocker={unsaved.blocker} />
-      <p className="mb-3 text-xs text-muted-foreground" role="status">
-        {pages.length
-          ? `Selected pages: ${pages.join(", ")}`
-          : "Select at least one page."}
-      </p>
       <Tabs.Root
         value={tab}
         onValueChange={(value) => {

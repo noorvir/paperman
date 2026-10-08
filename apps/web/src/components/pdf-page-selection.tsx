@@ -42,12 +42,13 @@ export function PdfPageSelection({
       />
       {position > 0 && (
         <Input
+          variant="info"
           aria-label={`Position for scan page ${page}`}
           title="Page position in document"
           inputMode="numeric"
           value={draft ?? String(position)}
           disabled={disabled}
-          className="absolute top-3 right-3 z-20 size-9 rounded-full border-2 border-blue-800 bg-blue-600 p-0 text-center text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:border-blue-900 focus-visible:ring-blue-500/40 md:text-sm dark:bg-blue-600"
+          className="absolute top-3 right-3 z-20 size-9 rounded-full border p-0 text-center text-sm font-semibold md:text-sm"
           onFocus={(event) => event.currentTarget.select()}
           onChange={(event) => setDraft(event.target.value)}
           onBlur={commit}

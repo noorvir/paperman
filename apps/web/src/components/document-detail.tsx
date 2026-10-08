@@ -92,7 +92,7 @@ export function DocumentDetail({
         </span>
       }
       description={
-        <>
+        <span className="flex flex-wrap items-start justify-between gap-x-4">
           <span className="-ml-1 flex flex-wrap items-center gap-x-0.5">
             {document.owner_ids.map((id) => {
               const name =
@@ -122,7 +122,17 @@ export function DocumentDetail({
               {date}
             </DocumentFilterLink>
           </span>
-        </>
+          {edit && (
+            <span
+              className="ml-auto text-right whitespace-normal"
+              role="status"
+            >
+              {pageDraft.pages.length
+                ? `Selected pages: ${pageDraft.pages.join(", ")}`
+                : "Select at least one page."}
+            </span>
+          )}
+        </span>
       }
       preview={preview}
       navigation={

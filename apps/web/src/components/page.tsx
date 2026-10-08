@@ -32,7 +32,7 @@ export function PageHeader({
     <header className="workspace-heading">
       <div className="flex min-w-0 flex-1 items-start gap-2">
         {back}
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1
               className="truncate text-base font-semibold tracking-tight"
@@ -58,7 +58,7 @@ export function PageHeader({
         </div>
       </div>
       {children && (
-        <div className="flex shrink-0 items-center gap-2 self-start">
+        <div className="flex shrink-0 items-center gap-2 self-start empty:hidden">
           {children}
         </div>
       )}
