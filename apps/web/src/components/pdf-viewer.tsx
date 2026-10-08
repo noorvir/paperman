@@ -146,16 +146,18 @@ export default function PdfViewer({
                       documentId={activeDocumentId}
                       renderPage={({ width, height, pageIndex }) => (
                         <div
-                          className="relative bg-white shadow-sm"
+                          className={`relative bg-white shadow-sm ${pageSelection ? "" : "data-[included=false]:opacity-25"}`}
                           data-page-number={pageIndex + 1}
                           data-included={includedPages?.includes(pageIndex + 1)}
                           style={{ width, height }}
                         >
                           <div
                             className="data-[included=false]:opacity-25"
-                            data-included={includedPages?.includes(
-                              pageIndex + 1,
-                            )}
+                            data-included={
+                              pageSelection
+                                ? includedPages?.includes(pageIndex + 1)
+                                : undefined
+                            }
                             style={{
                               width,
                               height,
