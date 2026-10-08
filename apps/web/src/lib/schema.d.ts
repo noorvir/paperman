@@ -486,6 +486,11 @@ export interface components {
              * @default 0
              */
             revision: number;
+            /**
+             * Pdf Revision
+             * @default 0
+             */
+            pdf_revision: number;
             /** History */
             history: components["schemas"]["Event"][];
             /**

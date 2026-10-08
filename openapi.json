@@ -1561,6 +1561,11 @@
             "title": "Revision",
             "default": 0
           },
+          "pdf_revision": {
+            "type": "integer",
+            "title": "Pdf Revision",
+            "default": 0
+          },
           "history": {
             "items": {
               "$ref": "#/components/schemas/Event"
@@ -1622,6 +1627,7 @@
           "summary_edited",
           "text_override",
           "revision",
+          "pdf_revision",
           "history",
           "enrichment_status",
           "enrichment_version",

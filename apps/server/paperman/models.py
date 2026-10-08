@@ -89,6 +89,7 @@ class Document(Ownership):
     summary_edited: bool = False
     text_override: str | None = None
     revision: int = 0
+    pdf_revision: int = 0
     history: list[Event] = Field(default_factory=list)
     enrichment_status: Literal["pending", "running", "complete", "failed"] = "pending"
     enrichment_version: str = ""

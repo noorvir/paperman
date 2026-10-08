@@ -1,5 +1,6 @@
 import {
   lazy,
+  memo,
   Suspense,
   useCallback,
   useState,
@@ -10,7 +11,7 @@ import { PdfLoading, PdfError } from "./pdf-preview-state";
 
 const PdfViewer = lazy(() => import("./pdf-viewer"));
 
-export function PdfPreview({
+export const PdfPreview = memo(function PdfPreview({
   url,
   title,
   rotations,
@@ -66,4 +67,4 @@ export function PdfPreview({
       </div>
     </div>
   );
-}
+});

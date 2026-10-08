@@ -132,7 +132,7 @@ export function DocumentView({
                 title: `Source scan: ${source.scan.original_name}`,
                 pages: document.source_pages,
               }}
-              url={`/api/documents/${document.id}/pdf?revision=${pdfRevision}`}
+              url={`/api/documents/${document.id}/pdf?pdf_revision=${pdfRevision}`}
             />
           )}
         </div>

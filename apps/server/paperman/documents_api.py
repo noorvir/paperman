@@ -227,6 +227,7 @@ def routes(storage: FileStorage) -> APIRouter:
                 ]
                 with atomic_target(path) as temporary:
                     temporary.write_bytes(changed_pdf)
+                doc.pdf_revision += 1
             if pages_changed:
                 doc.source_pages = pages
             if selected_text is not None:

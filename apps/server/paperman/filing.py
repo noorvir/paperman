@@ -64,6 +64,7 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                         with atomic_target(target) as temporary:
                             temporary.write_bytes(corrected)
                     document.page_rotations = rotations
+                    document.pdf_revision += 1
                 document.processing = allocate_usage(calls, item.pages, retained_pages)
                 storage.save_document(document)
             document_ids.append(document.id)
@@ -150,6 +151,8 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                 text = split_pdf(source, target, item.pages)
                 with atomic_target(target.with_suffix(".txt")) as temporary:
                     temporary.write_text(text)
+                if existing is not None:
+                    document.pdf_revision += 1
             storage.save_document(document)
         document_ids.append(identifier)
 

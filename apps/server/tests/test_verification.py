@@ -29,6 +29,7 @@ def test_verification_is_persisted_once_and_survives_edits(tmp_path: Path) -> No
     assert verified.verification is not None
     assert verified.verification.by == "Alice"
     assert verified.revision == 1
+    assert verified.pdf_revision == doc.pdf_revision
     assert verified.history[-1].stage == "verify"
     assert (
         FileStorage(tmp_path).get_document(doc.id).verification == verified.verification
@@ -51,3 +52,4 @@ def test_verification_is_persisted_once_and_survives_edits(tmp_path: Path) -> No
     ).raise_for_status()
     asyncio.run(enrich_document(store, FixtureInference(), store.get_document(doc.id)))
     assert store.get_document(doc.id).verification == verified.verification
+    assert store.get_document(doc.id).pdf_revision == doc.pdf_revision

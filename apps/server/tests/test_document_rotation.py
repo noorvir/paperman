@@ -55,6 +55,7 @@ def test_rotation_save_preserves_text_copies_and_rejects_stale_edits(
     response = client.put(f"/api/documents/{doc.id}", json=edit.model_dump(mode="json"))
     assert response.status_code == 200
     updated = DocumentDetail.model_validate_json(response.content).document
+    assert updated.pdf_revision == doc.pdf_revision + 1
     hashes = set[str]()
     for path in updated.file_paths:
         pdf = tmp_path / path
@@ -86,6 +87,7 @@ def test_rotation_save_preserves_text_copies_and_rejects_stale_edits(
     response = client.put(f"/api/documents/{doc.id}", json=undo.model_dump(mode="json"))
     assert response.status_code == 200
     updated = storage.get_document(doc.id)
+    assert updated.pdf_revision == doc.pdf_revision + 2
     assert updated.manual_rotations == []
     assert [
         page.rotation % 360 for page in PdfReader(tmp_path / updated.final_path).pages

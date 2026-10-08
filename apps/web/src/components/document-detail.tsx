@@ -75,20 +75,18 @@ export function DocumentDetail({
       }
       badge={
         <span className="inline-flex size-6 shrink-0">
-          {(preview || document.verification) && (
-            <DocumentVerificationBadge
-              verification={document.verification}
-              render={
-                preview ? (
-                  <Link
-                    to="/documents/$documentId"
-                    params={{ documentId: document.id }}
-                    search={{ ...search, view }}
-                  />
-                ) : undefined
-              }
-            />
-          )}
+          <DocumentVerificationBadge
+            verification={document.verification}
+            render={
+              preview ? (
+                <Link
+                  to="/documents/$documentId"
+                  params={{ documentId: document.id }}
+                  search={{ ...search, view }}
+                />
+              ) : undefined
+            }
+          />
         </span>
       }
       description={
@@ -203,7 +201,7 @@ export function DocumentDetail({
       <DocumentView
         key={document.id}
         document={document}
-        pdfRevision={edit ? pageDraft.revision : document.revision}
+        pdfRevision={edit ? pageDraft.revision : document.pdf_revision}
         rotations={edit ? pageDraft.rotations : undefined}
         onRotatePage={
           edit && !saving
@@ -288,7 +286,7 @@ function getPageDraft(
   return {
     edit,
     documentId: document.id,
-    revision: document.revision,
+    revision: document.pdf_revision,
     pages: [...document.source_pages],
     rotations,
     initialRotations: [...rotations],

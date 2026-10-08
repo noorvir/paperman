@@ -82,6 +82,9 @@ test(
       await tabs.getByRole("link", { name: "PDF", exact: true }).click();
       const initial = await getDocument(doc.id);
       assert.equal(initial.verification, null);
+      await page
+        .getByRole("img", { name: "Not verified", exact: true })
+        .waitFor();
       assert.equal(await tabs.getByRole("link").count(), 5);
       await page
         .locator(".detail-sidebar")
@@ -126,6 +129,40 @@ test(
       );
       assert.equal(overflow, false);
       await source.getByText("Source scan details", { exact: true }).click();
+      await page.setViewportSize({ width: 1532, height: 1000 });
+      await tabs.getByRole("link", { name: "PDF", exact: true }).click();
+      await page
+        .getByRole("button", { name: "View in context", exact: true })
+        .click();
+      const documentPdf = page
+        .locator(".pdf-viewer")
+        .and(page.getByRole("region", { name: doc.title, exact: true }));
+      await documentPdf.waitFor();
+      await documentPdf
+        .getByRole("button", { name: "Zoom in", exact: true })
+        .click();
+      const documentPage = documentPdf.getByRole("textbox", {
+        name: "PDF page number",
+      });
+      await documentPage.fill("2");
+      await documentPage.press("Enter");
+      await page.waitForTimeout(300);
+      const pdfNode = await documentPdf.elementHandle();
+      const renderedPage = await documentPdf
+        .locator('[data-page-number="2"] img')
+        .first()
+        .elementHandle();
+      const zoom = await documentPdf
+        .getByRole("combobox", { name: "PDF zoom" })
+        .innerText();
+      const pdfRequests = [];
+      page.on("request", (request) => {
+        if (
+          new URL(request.url()).pathname === `/api/documents/${doc.id}/pdf`
+        ) {
+          pdfRequests.push(request.url());
+        }
+      });
       const writeGate = Promise.withResolvers();
       const failWrite = async (route) => {
         if (route.request().method() !== "POST") {
@@ -162,7 +199,7 @@ test(
       const failed = await getDocument(doc.id);
       assert.equal(failed.verification, null);
       await context.unroute("**/*", failWrite);
-      const sourceURL = page.url();
+      const viewURL = page.url();
       const headerBounds = () =>
         page.locator('[data-slot="collection-header"]').evaluate((header) =>
           Array.from(header.querySelectorAll("h1, button, nav")).map(
@@ -177,14 +214,29 @@ test(
         .getByRole("button", { name: "Mark as verified", exact: true })
         .click();
       await page.getByRole("img", { name: "Verified", exact: true }).waitFor();
-      assert.equal(page.url(), sourceURL);
+      assert.equal(page.url(), viewURL);
       const afterSuccess = await headerBounds();
       assert.deepEqual(afterSuccess, beforeSuccess);
+      await page.waitForTimeout(5500);
+      assert.equal(await pdfNode.evaluate((el) => el.isConnected), true);
+      assert.equal(await renderedPage.evaluate((el) => el.isConnected), true);
+      assert.equal(
+        await documentPdf
+          .getByRole("combobox", { name: "PDF zoom" })
+          .innerText(),
+        zoom,
+      );
+      assert.equal(await documentPage.inputValue(), "2");
+      assert.deepEqual(
+        pdfRequests,
+        [],
+        "Verification and polling must not reload the PDF",
+      );
       const saved = await getDocument(doc.id);
       assert.equal(saved.verification.by, "unknown");
       assert.ok(Date.parse(saved.verification.at));
       await page.reload({ waitUntil: "networkidle" });
-      await source.locator('.pdf-preview[aria-busy="false"]').waitFor();
+      await documentPdf.waitFor();
       await page.getByRole("img", { name: "Verified", exact: true }).waitFor();
       await page.setViewportSize({ width: 1532, height: 1000 });
       await page.goto(`/documents?preview=${previewDoc.id}&view=details`, {
