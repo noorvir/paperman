@@ -14,6 +14,7 @@ import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as DocumentsTestRouteImport } from './routes/documents-test'
 import { Route as NavigationPreviewRouteImport } from './routes/navigation-preview'
 import { Route as PipelinePreviewRouteImport } from './routes/pipeline-preview'
+import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ScansRouteImport } from './routes/scans'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
@@ -49,6 +50,11 @@ const NavigationPreviewRoute = NavigationPreviewRouteImport.update({
 const PipelinePreviewRoute = PipelinePreviewRouteImport.update({
   id: '/pipeline-preview',
   path: '/pipeline-preview',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RoadmapRoute = RoadmapRouteImport.update({
+  id: '/roadmap',
+  path: '/roadmap',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScansRoute = ScansRouteImport.update({
@@ -114,6 +120,7 @@ export interface FileRoutesByFullPath {
   '/documents-test': typeof DocumentsTestRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
+  '/roadmap': typeof RoadmapRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
@@ -132,6 +139,7 @@ export interface FileRoutesByTo {
   '/documents-test': typeof DocumentsTestRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
+  '/roadmap': typeof RoadmapRoute
   '/scans': typeof ScansRouteWithChildren
   '/api/$': typeof ApiSplatRoute
   '/documents/$documentId': typeof DocumentsDocumentIdRoute
@@ -150,6 +158,7 @@ export interface FileRoutesById {
   '/documents-test': typeof DocumentsTestRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
+  '/roadmap': typeof RoadmapRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
   '/api/$': typeof ApiSplatRoute
@@ -170,6 +179,7 @@ export interface FileRouteTypes {
     | '/documents-test'
     | '/navigation-preview'
     | '/pipeline-preview'
+    | '/roadmap'
     | '/scans'
     | '/settings'
     | '/api/$'
@@ -188,6 +198,7 @@ export interface FileRouteTypes {
     | '/documents-test'
     | '/navigation-preview'
     | '/pipeline-preview'
+    | '/roadmap'
     | '/scans'
     | '/api/$'
     | '/documents/$documentId'
@@ -205,6 +216,7 @@ export interface FileRouteTypes {
     | '/documents-test'
     | '/navigation-preview'
     | '/pipeline-preview'
+    | '/roadmap'
     | '/scans'
     | '/settings'
     | '/api/$'
@@ -224,6 +236,7 @@ export interface RootRouteChildren {
   DocumentsTestRoute: typeof DocumentsTestRoute
   NavigationPreviewRoute: typeof NavigationPreviewRoute
   PipelinePreviewRoute: typeof PipelinePreviewRoute
+  RoadmapRoute: typeof RoadmapRoute
   ScansRoute: typeof ScansRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
   ApiSplatRoute: typeof ApiSplatRoute
@@ -266,6 +279,13 @@ declare module '@tanstack/react-router' {
       path: '/pipeline-preview'
       fullPath: '/pipeline-preview'
       preLoaderRoute: typeof PipelinePreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/roadmap': {
+      id: '/roadmap'
+      path: '/roadmap'
+      fullPath: '/roadmap'
+      preLoaderRoute: typeof RoadmapRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scans': {
@@ -394,6 +414,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentsTestRoute: DocumentsTestRoute,
   NavigationPreviewRoute: NavigationPreviewRoute,
   PipelinePreviewRoute: PipelinePreviewRoute,
+  RoadmapRoute: RoadmapRoute,
   ScansRoute: ScansRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
   ApiSplatRoute: ApiSplatRoute,

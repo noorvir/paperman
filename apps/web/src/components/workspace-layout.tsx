@@ -6,6 +6,7 @@ import {
   DashboardSquare01Icon,
   Menu01Icon,
   ScanIcon,
+  ListViewIcon,
   Settings01Icon,
 } from "@hugeicons/core-free-icons";
 import { useWorkspaceBreadcrumbs } from "@/hooks/use-workspace-breadcrumbs";
@@ -80,6 +81,12 @@ export function WorkspaceLayout({
                 Demo workspace
               </span>
             )}
+            <nav
+              aria-label="Additional navigation"
+              className="workspace-nav-tabs"
+            >
+              <Link to="/roadmap">Roadmap</Link>
+            </nav>
             <Tooltip>
               <TooltipTrigger
                 render={
@@ -131,6 +138,10 @@ export function WorkspaceLayout({
                   </DropdownMenuItem>
                 ))}
                 <DropdownMenuSeparator />
+                <DropdownMenuItem render={<Link to="/roadmap" />}>
+                  <HugeiconsIcon icon={ListViewIcon} aria-hidden="true" />
+                  Roadmap
+                </DropdownMenuItem>
                 <DropdownMenuItem render={<Link to="/settings" />}>
                   <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
                   Settings

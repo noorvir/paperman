@@ -150,20 +150,6 @@ export function OverviewAttention({
           <p className="workspace-description py-4">You are all caught up.</p>
         )}
       </div>
-      <section className="shrink-0 border-t pt-4">
-        <div className="flex items-center gap-2">
-          <span
-            className={`size-1.5 rounded-full ${state.worker_online ? "bg-success-foreground" : "bg-muted-foreground"}`}
-          />
-          <h2 className="text-xs font-medium">
-            {state.worker_online ? "Inbox is being watched" : "Inbox is paused"}
-          </h2>
-        </div>
-        <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-          New PDFs are picked up automatically. Originals are kept with their
-          scan history.
-        </p>
-      </section>
     </aside>
   );
 }
