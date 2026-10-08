@@ -85,7 +85,7 @@ function Overview() {
     <div className="workspace-page min-h-0 max-w-6xl flex-1 shrink overflow-hidden">
       <div
         hidden={mobile && panel === "attention"}
-        className="shrink-0 flex-col gap-5 border-b pb-3 not-hidden:flex"
+        className="flex shrink-0 flex-col gap-5 border-b pb-3 [&[hidden]]:hidden"
       >
         <PageHeader
           title="Overview"
