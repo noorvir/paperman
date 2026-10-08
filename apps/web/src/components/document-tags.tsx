@@ -82,7 +82,7 @@ export function DocumentTags({
           {tags.map((tag) => (
             <span
               key={tag.id}
-              className="inline-flex items-center rounded-md bg-muted transition-colors hover:bg-accent has-focus-visible:bg-accent"
+              className="inline-flex items-center rounded-md bg-muted transition-colors has-[a:hover]:bg-accent has-[a:focus-visible]:bg-accent"
             >
               <TagLink
                 tag={tag}
@@ -93,7 +93,7 @@ export function DocumentTags({
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  className="h-6 rounded-l-none text-muted-foreground hover:bg-transparent hover:text-foreground"
+                  className="h-6 rounded-l-none text-muted-foreground hover:text-foreground"
                   aria-label={`Remove ${tag.name}`}
                   loading={
                     pending?.action === "remove" && pending.id === tag.id
