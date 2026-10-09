@@ -9,6 +9,15 @@ export const features: {
   category: FeatureCategory;
 }[] = [
   {
+    id: "correspondents-parties",
+    title: "Implement correspondents / parties",
+    description:
+      "Group documents by the person or organization that sent them, or by other relevant parties.",
+    category: "User facing",
+    done: false,
+    date: null,
+  },
+  {
     id: "pdf-preloading",
     title: "PDF preloading and client-side caching",
     description:
