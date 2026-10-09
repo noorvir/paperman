@@ -5,7 +5,8 @@ import {
   UserShield01Icon,
   UserGroupIcon,
   LockPasswordIcon,
-  Logout01Icon,
+  Settings01Icon,
+  LogoutSquare01Icon,
 } from "@hugeicons/core-free-icons";
 import { Link } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth/client";
@@ -14,6 +15,7 @@ import { canAdmin } from "@/lib/auth/access";
 import { useAccess } from "./access-context";
 import { Button } from "../ui/button";
 import { OwnerAvatar } from "../collection";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,19 +45,35 @@ export function AccountMenu() {
   return (
     <div className="min-w-0 shrink-0">
       <DropdownMenu>
-        <DropdownMenuTrigger
-          render={
-            <Button
-              variant="ghost"
-              size="icon-lg"
-              loading={pending}
-              className="rounded-full"
-              aria-label="Account menu"
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-lg"
+                    loading={pending}
+                    className="rounded-full"
+                    aria-label={`Account menu — ${access.mode === "admin" ? "Admin mode" : "Personal mode"}`}
+                  />
+                }
+              />
+            }
+          >
+            <OwnerAvatar
+              name={access.name}
+              className={
+                access.mode === "admin"
+                  ? "ring-[1.5px] ring-destructive"
+                  : undefined
+              }
             />
-          }
-        >
-          <OwnerAvatar name={access.name} />
-        </DropdownMenuTrigger>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            {access.mode === "admin" ? "Admin mode" : "Personal mode"}
+          </TooltipContent>
+        </Tooltip>
         <DropdownMenuContent align="end" className="w-64 [&_[role=menuitem]]:whitespace-nowrap">
           <div className="px-2 py-2">
             <p className="truncate text-xs font-medium">{access.name}</p>
@@ -92,6 +110,10 @@ export function AccountMenu() {
             <HugeiconsIcon icon={LockPasswordIcon} aria-hidden="true" />
             Change password
           </DropdownMenuItem>
+          <DropdownMenuItem render={<Link to="/settings" />}>
+            <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
+            Settings
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
             onClick={() =>
@@ -103,7 +125,7 @@ export function AccountMenu() {
               }, "/login")
             }
           >
-            <HugeiconsIcon icon={Logout01Icon} aria-hidden="true" />
+            <HugeiconsIcon icon={LogoutSquare01Icon} aria-hidden="true" />
             Sign out
           </DropdownMenuItem>
         </DropdownMenuContent>

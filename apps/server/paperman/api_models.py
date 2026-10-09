@@ -166,6 +166,10 @@ class DocumentVerify(Record):
     reviewer: Name
 
 
+class DeliveryConfirmation(Record):
+    revision: int = Field(ge=0)
+
+
 class ScanReview(Analysis):
     document_revisions: dict[Identifier, int] = Field(default_factory=dict)
 

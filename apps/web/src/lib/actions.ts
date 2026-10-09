@@ -5,19 +5,16 @@ import { client, unwrap } from "./api.server";
 import { catalogIconInput } from "./catalog-icons";
 import { catalogKind } from "./queries";
 
-export const saveDocumentAccess = createServerFn({ method: "POST" })
-  .validator(
-    z.object({
-      id: z.string(),
-      revision: z.number().int().min(0),
-      user_ids: z.array(z.string()).max(1000),
-    }),
-  )
-  .handler(async ({ data: { id, revision, user_ids } }) => {
-    const result = await client.PUT("/api/documents/{document_id}/access", {
-      params: { path: { document_id: id } },
-      body: { revision, user_ids },
-    });
+export const confirmDelivery = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string(), revision: z.number().int().min(0) }))
+  .handler(async ({ data: { id, revision } }) => {
+    const result = await client.POST(
+      "/api/documents/{document_id}/confirm-delivery",
+      {
+        params: { path: { document_id: id } },
+        body: { revision },
+      },
+    );
     return unwrap(result);
   });
 

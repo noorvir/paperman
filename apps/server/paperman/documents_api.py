@@ -9,6 +9,7 @@ from paperman_parser.pdf import rotate_pages
 
 from paperman.api_models import (
     AccountInbox,
+    DeliveryConfirmation,
     DocumentAccess,
     DocumentDelivery,
     DocumentDetail,
@@ -49,6 +50,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             "tags_desc",
             "verification_asc",
             "verification_desc",
+            "delivery_asc",
+            "delivery_desc",
             "processed_asc",
             "processed_desc",
         ] = "date_desc",
@@ -115,6 +118,10 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             )
         elif sort.startswith("verification_"):
             items.sort(key=lambda doc: doc.verification is not None, reverse=descending)
+        elif sort.startswith("delivery_"):
+            items.sort(
+                key=lambda doc: doc.delivery_status == "delivered", reverse=descending
+            )
         elif sort.startswith("processed_"):
             items.sort(
                 key=lambda doc: (
@@ -229,6 +236,10 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             changed = [name for name, different in updates.items() if different]
             if not changed:
                 return document_detail(storage, principal, doc)
+            if doc.owner_ids != value.owner_ids or pages_changed:
+                doc.delivery_confirmation = None
+                if doc.inbox_id == "shared":
+                    doc.delivery_status = "review"
             doc.title = value.title
             doc.owner_ids = value.owner_ids
             doc.document_date = value.document_date or doc.scanned_at.date()
@@ -278,6 +289,49 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             if pages_changed:
                 storage.rebuild_index()
             return document_detail(storage, principal, doc)
+
+    @router.post(
+        "/api/documents/{document_id}/confirm-delivery",
+        operation_id="confirm_delivery",
+    )
+    def confirm_delivery(
+        document_id: Identifier,
+        value: DeliveryConfirmation,
+        principal: Annotated[Principal | None, Depends(auth.require_admin)],
+    ) -> Document:
+        with storage.transaction():
+            doc = storage.get_document(document_id)
+            check_document(principal, doc)
+            ensure_filed(storage, doc)
+            if doc.inbox_id != "shared":
+                raise HTTPException(
+                    409, "Personal documents do not need delivery confirmation"
+                )
+            if doc.revision != value.revision:
+                raise HTTPException(
+                    409, "This document changed. Reload before confirming delivery"
+                )
+            owners = {owner.id for owner in storage.catalog().owners} - {"unknown"}
+            if not set(doc.owner_ids) <= owners:
+                raise HTTPException(
+                    422, "Select known owners before confirming delivery"
+                )
+            if doc.delivery_confirmation is not None:
+                return doc
+            doc.delivery_confirmation = Verification(
+                at=now(), by=principal.name if principal else "Admin"
+            )
+            doc.delivery_status = "delivered"
+            doc.revision += 1
+            doc.history.append(
+                Event(
+                    at=doc.delivery_confirmation.at,
+                    stage="delivery",
+                    message=f"Owners confirmed by {doc.delivery_confirmation.by}",
+                )
+            )
+            storage.save_document(doc)
+            return doc
 
     @router.post("/api/documents/{document_id}/verify", operation_id="verify_document")
     def verify_document(
@@ -430,7 +484,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             if owner is not None:
                 users.add(owner)
             doc.access_user_ids = sorted(users)
-            doc.delivery_status = "delivered" if users else "review"
+            if doc.inbox_id != "shared":
+                doc.delivery_status = "delivered"
             doc.revision += 1
             doc.history.append(
                 Event(stage="delivery", message="Document access updated")

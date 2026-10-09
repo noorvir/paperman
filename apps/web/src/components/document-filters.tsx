@@ -85,12 +85,12 @@ export function DocumentFilters({
       {access.state === "authenticated" && canAdmin(access) && (
         <div className="w-full shrink-0 @min-[74rem]/library:w-32">
           <SelectField
-            label="Delivery status"
+            label="Routing status"
             value={search.delivery}
             items={[
-              { value: "", label: "Any delivery" },
-              { value: "review", label: "Needs delivery" },
-              { value: "delivered", label: "Delivered" },
+              { value: "", label: "Any routing" },
+              { value: "review", label: "Needs routing" },
+              { value: "delivered", label: "Routed or direct" },
             ]}
             onValueChange={(value) =>
               change({ delivery: documentSearch.shape.delivery.parse(value) })

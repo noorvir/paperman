@@ -20,7 +20,7 @@ Use HTTPS for the browser. Keep Python on loopback or a private container networ
 
 Compose applies the same mode and API secret to both services. The persistent `auth` volume is mounted only in the web container. Do not remove it during deployment. Without Docker, use an absolute persistent path writable by the web service account.
 
-Better Auth migrations run before auth requests are served. Session mode is stored in the auth database. Inboxes, routing suggestions, and explicit document access are stored with the documents. Owner names remain catalog metadata and never grant access. Back up the database and auth secret separately from documents. Use SQLite's backup facility or stop the web service before copying the database and its WAL files.
+Better Auth migrations run before auth requests are served. Session mode is stored in the auth database. Inboxes, owner links, delivery confirmations, and explicit sharing permissions are stored with the documents. Detected owner names alone never grant access. Shared documents need admin confirmation before linked accounts can read them. Back up the database and auth secret separately from documents. Use SQLite's backup facility or stop the web service before copying the database and its WAL files.
 
 ## First administrator
 
@@ -46,7 +46,7 @@ docker compose exec \
 unset PAPERMAN_BOOTSTRAP_PASSWORD
 ```
 
-Sign in, select **Switch to admin mode**, then **Manage users**. Create accounts, change roles, set shared-mail routing suggestions, suspend accounts, reset passwords, and end sessions there. Each account has one personal inbox. Creating accounts through Manage users provisions it immediately; existing and bootstrapped accounts are provisioned on first use. The user list also registers existing accounts as it loads them. Users can change their password through the account menu.
+Sign in, select **Switch to admin mode**, then **Manage users**. Create accounts, change roles, link owners to accounts, suspend accounts, reset passwords, and end sessions there. Each account has one personal inbox. Creating accounts through Manage users provisions it immediately; existing and bootstrapped accounts are provisioned on first use. The user list also registers existing accounts as it loads them. Users can change their password through the account menu.
 
 ## Inboxes and delivery
 
@@ -56,24 +56,26 @@ There is one **shared inbox** per installation and one **personal inbox** per ac
 - The root `inbox/` folder receives shared scans. Each personal inbox has its own `inbox/personal-<id>/` folder. The worker watches all registered inbox folders without using authentication or account credentials.
 - Identical PDFs in different inboxes remain separate sources. Repeated arrivals within one inbox use the same source.
 - Personal documents are delivered to the submitting account. Detected owner names do not share them.
-- Shared documents enter **Needs delivery** after filing. Admins check the pages and select recipients under **Document access**. Owner-to-account routing rules suggest recipients; they do not deliver automatically. Unknown or uncertain recipients remain in review until the admin chooses an account.
+- Shared documents enter **Needs delivery** after filing. Admins open the full document page, check the owners, and click **Deliver**. The signpost badge changes from **Not delivered** to **Delivered**. Badges in tables and previews show status only; clicking them does not deliver a document. No recipient selection is required. Unknown owners must be corrected first.
+- In **Manage users → Linked owners**, select the owners represented by each account. These links give access only to confirmed shared documents. Owners can have no account. Linking an account later makes its confirmed documents available; removing a link removes that route of access. Personal inbox and separate sharing access stay unchanged.
+- Changing document owners or pages clears delivery confirmation. Title, tags, summaries, and verification do not clear it. An admin can still verify any document they can access.
 - Tags and summaries run per document after filing. Delivery does not wait for enrichment. Recipients can see processing progress, correct metadata, verify, and retry document processing.
 - Source grouping/OCR review is still scan-wide. Early publication before filing is not part of this flow.
 
 ## Permissions
 
-| Operation                                                    | Personal mode                         | Admin mode                                                  |
-| ------------------------------------------------------------ | ------------------------------------- | ----------------------------------------------------------- |
-| Settings and Scans navigation                                | Visible                               | Visible                                                     |
-| Read documents, search, counts, PDF                          | Explicitly delivered/shared documents | Same, plus all shared-inbox documents                       |
-| Read full sources                                            | Own personal sources                  | Own personal sources and shared sources                     |
-| Edit metadata, tags, summary, text; verify; retry enrichment | Visible documents                     | Visible documents                                           |
-| Change document owners or pages                              | No                                    | Own/shared sources; page changes also require source access |
-| Upload, review source groups, retry/reprocess source         | Own personal inbox                    | Own personal inbox and shared inbox                         |
-| Share/revoke document access                                 | Documents from own personal inbox     | Same, plus shared-inbox delivery                            |
-| Display preference and password                              | Own account                           | Own account                                                 |
-| Catalog, global processing settings, search rebuild          | Read relevant catalog only            | Manage installation                                         |
-| Users, roles, routing suggestions, account sessions          | No                                    | Yes                                                         |
+| Operation                                                    | Personal mode                              | Admin mode                                                  |
+| ------------------------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------- |
+| Settings and Scans navigation                                | Visible                                    | Visible                                                     |
+| Read documents, search, counts, PDF                          | Confirmed linked-owner or shared documents | Same, plus all shared-inbox documents                       |
+| Read full sources                                            | Own personal sources                       | Own personal sources and shared sources                     |
+| Edit metadata, tags, summary, text; verify; retry enrichment | Visible documents                          | Visible documents                                           |
+| Change document owners or pages                              | No                                         | Own/shared sources; page changes also require source access |
+| Upload, review source groups, retry/reprocess source         | Own personal inbox                         | Own personal inbox and shared inbox                         |
+| Confirm shared delivery                                      | No                                         | Yes                                                         |
+| Display preference and password                              | Own account                                | Own account                                                 |
+| Catalog, global processing settings, search rebuild          | Read relevant catalog only                 | Manage installation                                         |
+| Users, roles, owner links, account sessions                  | No                                         | Yes                                                         |
 
 Sharing a document never grants access to its original scan or other documents from that scan. The source tab remains visible and explains when source access is restricted. An admin who receives a document from another personal inbox has the same source restriction. Admin status does not grant access to other personal inboxes.
 
@@ -83,12 +85,12 @@ Each admin session starts in personal mode. Switch to Admin mode to manage the s
 
 The data directory contains:
 
-- `state/inboxes.json`: inbox IDs, account IDs, names, routing owner IDs, and display preferences. Personal inbox IDs are stable hashes of account IDs. The shared inbox ID is `shared`.
+- `state/inboxes.json`: inbox IDs, account IDs, names, linked owner IDs (`routing_owner_ids`), and display preferences. Personal inbox IDs are stable hashes of account IDs. The shared inbox ID is `shared`.
 - `scans/<id>/scan.json`: immutable `inbox_id` provenance and processing history.
-- Document TOML metadata: `inbox_id`, explicit `access_user_ids`, and `delivery_status` (`review` or `delivered`). `owner_ids` is a separate field.
+- Document TOML metadata: `inbox_id`, explicit sharing `access_user_ids`, `delivery_confirmation` (who and when), and `delivery_status` (`review` or `delivered`). Confirmed `owner_ids` are matched against the account’s stored owner links on each request. Links supplied in identity tokens are not used.
 - The existing PDFs, text files, catalog, and processing settings remain in their existing filesystem storage.
 
-Older scans and documents without these fields are treated as shared. With auth enabled, documents without explicit grants are visible to admins and appear in Needs delivery. Old user-to-owner assignments do not grant access. An admin must deliver these documents explicitly. With auth disabled, all existing documents remain accessible; no account migration is required.
+Older scans and documents without these fields are treated as shared. With auth enabled, shared documents without a delivery confirmation appear in Needs delivery. Existing explicit sharing grants remain valid. An admin must confirm the owners before linked-owner access begins. With auth disabled, all existing documents remain accessible; no account migration is required.
 
 The application enforces these permissions. A person with direct server/filesystem access can still read unencrypted files and backups.
 
@@ -96,7 +98,7 @@ The application enforces these permissions. A person with direct server/filesyst
 
 Every web request checks the database session, current role, and mode. Each API request checks the current document/source permissions in storage. Cookie session caching is disabled. The web server removes incoming authorization and sends Python its own HS256 identity, with issuer `paperman-web`, audience `paperman-api`, and a 30-second lifetime. Python checks the signature, required claims, issuer, audience, issued time, and expiry. No browser endpoint issues these internal tokens.
 
-Logout, revocation, suspension, and role changes affect the next web request. Explicit document access changes affect the next API request. Owner metadata and routing suggestions do not change existing access. A request already sent to Python may finish within its 30-second token lifetime. Displayed or downloaded content cannot be recalled. Password changes end other sessions; an admin password reset also ends the user's sessions.
+Logout, revocation, suspension, and role changes affect the next web request. Explicit document access changes affect the next API request. Owner-link changes take effect on the next API request. Changing a document’s owners or pages clears confirmation and requires a new delivery approval. A request already sent to Python may finish within its 30-second token lifetime. Displayed or downloaded content cannot be recalled. Password changes end other sessions; an admin password reset also ends the user's sessions.
 
 The API proxy and server functions use the same identity path. TanStack Start's CSRF middleware protects server functions. Better Auth checks origins on auth routes. Proxy writes require the same origin. Do not cache authenticated responses in a shared proxy.
 
@@ -107,7 +109,7 @@ Set `PAPERMAN_AUTH_ENABLED=false` on both services and restart them. The origina
 ## Checks
 
 ```sh
-uv --directory apps/server run pytest tests/test_auth.py tests/test_inboxes.py
+uv --directory apps/server run pytest tests/test_auth.py tests/test_inboxes.py tests/test_delivery_confirmation.py
 bun --filter @paperman/web test:auth
 ```
 

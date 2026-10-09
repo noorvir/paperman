@@ -44,9 +44,16 @@ class Principal(BaseModel):
         return self.role == "admin" and self.mode == "admin"
 
     def can_view(self, document: Document) -> bool:
+        confirmed_owner = (
+            document.inbox_id == "shared"
+            and document.delivery_confirmation is not None
+            and bool(set(self.owner_ids).intersection(document.owner_ids))
+        )
         return (
-            self.admin and document.inbox_id == "shared"
-        ) or self.sub in document.access_user_ids
+            (self.admin and document.inbox_id == "shared")
+            or self.sub in document.access_user_ids
+            or confirmed_owner
+        )
 
     @property
     def inbox_id(self) -> str:
@@ -102,6 +109,7 @@ class Auth:
             if inbox.name != principal.name:
                 inbox.name = principal.name
                 self.storage.save_inbox(inbox)
+            principal.owner_ids = inbox.routing_owner_ids.copy()
         return principal
 
     def require_admin(

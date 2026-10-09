@@ -104,6 +104,7 @@ class Document(Ownership):
     inbox_id: Identifier = "shared"
     access_user_ids: list[Identifier] = Field(default_factory=list)
     delivery_status: Literal["review", "delivered"] = "review"
+    delivery_confirmation: Verification | None = None
     verification: Verification | None = None
     manual_rotations: list[PageRotation] = Field(default_factory=list)
     owner_ids: list[Identifier] = Field(
@@ -134,6 +135,14 @@ class Document(Ownership):
     enrichment_version: str = ""
     enrichment_error: str = ""
     processing: list[UsageAllocation] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def restore_delivery_status(self) -> Self:
+        if self.inbox_id == "shared":
+            self.delivery_status = (
+                "delivered" if self.delivery_confirmation else "review"
+            )
+        return self
 
     @model_validator(mode="after")
     def restore_processing_time(self) -> Self:

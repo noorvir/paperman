@@ -77,11 +77,11 @@ export function UserAccess({
         </Select>
       </label>
       <fieldset disabled={Boolean(pending)} className="space-y-2 border-t pt-4">
-        <legend className="text-xs font-medium">Shared-mail routing</legend>
+        <legend className="text-xs font-medium">Linked owners</legend>
         <p className="workspace-description">
-          These owners suggest this account as a recipient for shared mail. An
-          admin must confirm delivery. These settings do not change access to
-          existing documents.
+          This account receives shared documents for these owners after an admin
+          confirms delivery. Changes also apply to documents already confirmed.
+          Personal inboxes and separate sharing permissions are unchanged.
         </p>
         {owners
           .filter((owner) => owner.id !== "unknown")
@@ -121,7 +121,7 @@ export function UserAccess({
             })
           }
         >
-          Save routing and role
+          Save owners and role
         </Button>
       </fieldset>
       <section className="workspace-section border-t pt-4">

@@ -1,3 +1,6 @@
+import { Link } from "@tanstack/react-router";
+import { useAccess } from "./auth/access-context";
+import { DocumentDelivery } from "./document-delivery";
 import { CollectionLink, CollectionRow } from "./collection-workspace";
 import type { components } from "@/lib/schema";
 import type { documentSearch } from "@/lib/queries";
@@ -11,9 +14,10 @@ import { formatDate } from "./page";
 import { Button } from "./ui/button";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
-  ArrowDown01Icon,
-  ArrowUp01Icon,
+  ArrowDownAZIcon,
+  ArrowUpZAIcon,
   ArrowUpDownIcon,
+  FilterIcon,
 } from "@hugeicons/core-free-icons";
 import {
   Table,
@@ -42,6 +46,12 @@ const columns: { label: string; asc: Sort; desc: Sort; className: string }[] = [
     className: "w-32 text-center",
   },
   {
+    label: "Routing",
+    asc: "delivery_asc",
+    desc: "delivery_desc",
+    className: "w-24 text-center",
+  },
+  {
     label: "Processed at",
     asc: "processed_asc",
     desc: "processed_desc",
@@ -64,51 +74,69 @@ export function DocumentTable({
   preview?: boolean;
   onSort?: (sort: z.output<typeof documentSearch>["sort"]) => void;
 }) {
+  const access = useAccess();
+  const showDelivery = access.state === "authenticated";
+  const filteredColumns: Partial<Record<Sort, boolean>> = {
+    date_asc: Boolean(search.after || search.before),
+    title: Boolean(search.q.trim()),
+    owners_asc: search.owner.length > 0,
+    tags_asc: search.tag.length > 0 || Boolean(search.status),
+    delivery_asc: Boolean(search.delivery),
+  };
   return (
     <Table className="min-w-[1180px] table-fixed [&_td]:py-2.5">
       <TableHeader>
         <TableRow>
-          {columns.map((column) => {
-            const direction =
-              search.sort === column.asc
-                ? "ascending"
-                : search.sort === column.desc
-                  ? "descending"
-                  : "none";
-            return (
-              <TableHead
-                key={column.label}
-                className={column.className}
-                aria-sort={onSort ? direction : undefined}
-              >
-                {onSort ? (
-                  <Button
-                    variant="ghost"
-                    className="-ml-2"
-                    onClick={() =>
-                      onSort(
-                        search.sort === column.asc ? column.desc : column.asc,
-                      )
-                    }
-                  >
-                    {column.label}
-                    <HugeiconsIcon
-                      aria-hidden="true"
-                      icon={
-                        direction === "ascending"
-                          ? ArrowUp01Icon
-                          : direction === "descending"
-                            ? ArrowDown01Icon
-                            : ArrowUpDownIcon
+          {columns
+            .filter((column) => column.label !== "Routing" || showDelivery)
+            .map((column) => {
+              const direction =
+                search.sort === column.asc
+                  ? "ascending"
+                  : search.sort === column.desc
+                    ? "descending"
+                    : "none";
+              return (
+                <TableHead
+                  key={column.label}
+                  className={column.className}
+                  aria-sort={onSort ? direction : undefined}
+                >
+                  {onSort ? (
+                    <Button
+                      variant="ghost"
+                      className="-ml-2"
+                      onClick={() =>
+                        onSort(
+                          search.sort === column.asc ? column.desc : column.asc,
+                        )
                       }
-                    />
-                  </Button>
-                ) : (
-                  column.label
-                )}
-              </TableHead>
-            );
-          })}
+                    >
+                      {column.label}
+                      <HugeiconsIcon
+                        aria-hidden="true"
+                        icon={
+                          direction === "ascending"
+                            ? ArrowDownAZIcon
+                            : direction === "descending"
+                              ? ArrowUpZAIcon
+                              : ArrowUpDownIcon
+                        }
+                      />
+                      {filteredColumns[column.asc] && (
+                        <HugeiconsIcon
+                          icon={FilterIcon}
+                          role="img"
+                          aria-label="Filter applied"
+                        />
+                      )}
+                    </Button>
+                  ) : (
+                    column.label
+                  )}
+                </TableHead>
+              );
+            })}
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -166,8 +194,31 @@ export function DocumentTable({
               />
             </TableCell>
             <TableCell className="text-center">
-              <DocumentVerificationBadge verification={doc.verification} />
+              <DocumentVerificationBadge
+                verification={doc.verification}
+                render={
+                  <Link
+                    to="/documents/$documentId"
+                    params={{ documentId: doc.id }}
+                    search={{ ...search, view: "pdf" }}
+                  />
+                }
+              />
             </TableCell>
+            {showDelivery && (
+              <TableCell className="text-center">
+                <DocumentDelivery
+                  document={doc}
+                  render={
+                    <Link
+                      to="/documents/$documentId"
+                      params={{ documentId: doc.id }}
+                      search={{ ...search, view: "pdf" }}
+                    />
+                  }
+                />
+              </TableCell>
+            )}
             <TableCell className="whitespace-nowrap text-xs text-muted-foreground">
               <LocalTime value={doc.processed_at} />
             </TableCell>

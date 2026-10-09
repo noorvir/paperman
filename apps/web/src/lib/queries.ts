@@ -30,6 +30,8 @@ export const documentSearch = z.object({
       "tags_desc",
       "verification_asc",
       "verification_desc",
+      "delivery_asc",
+      "delivery_desc",
       "processed_asc",
       "processed_desc",
     ])
@@ -149,12 +151,3 @@ export const getInboxes = createServerFn({ method: "GET" }).handler(
     return unwrap(result);
   },
 );
-
-export const getDocumentAccess = createServerFn({ method: "GET" })
-  .validator(z.string())
-  .handler(async ({ data }) => {
-    const result = await client.GET("/api/documents/{document_id}/access", {
-      params: { path: { document_id: data } },
-    });
-    return unwrap(result);
-  });

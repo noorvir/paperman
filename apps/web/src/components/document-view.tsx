@@ -1,5 +1,3 @@
-import { DocumentAccess } from "./document-access";
-import { useAccess } from "./auth/access-context";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { linkOptions } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
@@ -15,6 +13,7 @@ import { DetailViewLayout } from "./detail-view-layout";
 import { FileLink } from "./file-link";
 import { ScanInformation } from "./scan-information";
 import { DocumentSource } from "./document-source";
+import { SourceAccessHelp } from "./source-access-help";
 import type { documentView } from "@/lib/queries";
 import type { z } from "zod";
 
@@ -22,7 +21,6 @@ export function DocumentView({
   document,
   source,
   sourceReference,
-  canManageAccess,
   canEditPages,
   text,
   catalog,
@@ -39,7 +37,6 @@ export function DocumentView({
   document: components["schemas"]["Document"];
   source: ComponentProps<typeof ScanInformation> | null;
   sourceReference: components["schemas"]["SourceReference"];
-  canManageAccess: boolean;
   canEditPages: boolean;
   text: string;
   catalog: components["schemas"]["Catalog"];
@@ -53,7 +50,6 @@ export function DocumentView({
   onRotatePage?: (page: number) => void;
   pageSelection?: ComponentProps<typeof PdfPreview>["pageSelection"];
 }) {
-  const access = useAccess();
   const sidebar = !preview;
   const [showContext, setShowContext] = useState(false);
   const contextControls = source && (
@@ -81,9 +77,12 @@ export function DocumentView({
       filename={source.scan.original_name}
     />
   ) : (
-    <span className="text-muted-foreground">
-      {sourceReference.inbox === "shared" ? "Shared inbox" : "Personal inbox"} ·
-      Source access restricted
+    <span className="flex flex-col items-start gap-1 text-muted-foreground">
+      <span>
+        {sourceReference.inbox === "shared" ? "Shared inbox" : "Personal inbox"}{" "}
+        · Source access restricted
+      </span>
+      <SourceAccessHelp inbox={sourceReference.inbox} />
     </span>
   );
   return (
@@ -96,11 +95,6 @@ export function DocumentView({
         ) : (
           <DocumentInformation
             viewControls={view === "pdf" && contextControls}
-            accessControls={
-              canManageAccess &&
-              access.state === "authenticated" &&
-              allowActions && <DocumentAccess document={document} />
-            }
             document={document}
             sourceLink={sourceLink}
             catalog={catalog}
@@ -212,11 +206,6 @@ export function DocumentView({
           >
             <DocumentInformation
               document={document}
-              accessControls={
-                canManageAccess &&
-                access.state === "authenticated" &&
-                allowActions && <DocumentAccess document={document} />
-              }
               sourceLink={sourceLink}
               catalog={catalog}
               search={search}
@@ -280,6 +269,7 @@ export function DocumentView({
               <p className="text-xs text-muted-foreground">
                 Source pages: {document.source_pages.join(", ")}
               </p>
+              <SourceAccessHelp inbox={sourceReference.inbox} />
             </div>
           )}
           {openedSource && source && (

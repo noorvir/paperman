@@ -90,7 +90,7 @@ export function WorkspaceLayout({
               className="workspace-nav-tabs"
             >
               <Link to="/roadmap">Roadmap</Link>
-              <Link to="/settings">Settings</Link>
+              {access.state !== "authenticated" && <Link to="/settings">Settings</Link>}
             </nav>
           </div>
           <div className="workspace-nav-menu">
@@ -128,10 +128,12 @@ export function WorkspaceLayout({
                   <HugeiconsIcon icon={ListViewIcon} aria-hidden="true" />
                   Roadmap
                 </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/settings" />}>
-                  <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
-                  Settings
-                </DropdownMenuItem>
+                {access.state !== "authenticated" && (
+                  <DropdownMenuItem render={<Link to="/settings" />}>
+                    <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
+                    Settings
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

@@ -69,18 +69,17 @@ test(
         .getByRole("button", { name: "Create user", exact: true })
         .click();
       await admin.getByRole("link", { name: new RegExp(email) }).click();
-      await admin.getByText("Shared-mail routing", { exact: true }).waitFor();
+      await admin.getByText("Linked owners", { exact: true }).waitFor();
+      const accountUrl = admin.url();
       await login(user, email, password);
       let result = await userContext.request.get(base + "/api/documents");
       assert.equal((await result.json()).total, 0);
       await admin
         .getByRole("checkbox", { name: "Alex Morgan", exact: true })
         .check();
+      await admin.getByRole("button", { name: "Save owners and role" }).click();
       await admin
-        .getByRole("button", { name: "Save routing and role" })
-        .click();
-      await admin
-        .getByRole("button", { name: "Save routing and role" })
+        .getByRole("button", { name: "Save owners and role" })
         .waitFor({ state: "visible" });
       await admin.waitForFunction(
         () => !document.querySelector('[aria-busy="true"]'),
@@ -93,12 +92,10 @@ test(
       const target = all.items.find((doc) => doc.owner_ids.includes("alex"));
       assert.ok(target);
       await admin.goto(`${base}/documents/${target.id}`);
-      await admin.getByRole("button", { name: "Manage access" }).click();
-      await admin.getByRole("checkbox", { name: /Access Test User/ }).check();
+      await admin.getByRole("button", { name: "Deliver", exact: true }).click();
       await admin
-        .getByRole("button", { name: "Save access", exact: true })
-        .click();
-      await admin.getByRole("button", { name: "Manage access" }).waitFor();
+        .getByRole("img", { name: `Delivered: ${target.title}`, exact: true })
+        .waitFor();
       result = await userContext.request.get(base + "/api/documents");
       const permitted = await result.json();
       assert.deepEqual(
@@ -190,12 +187,14 @@ test(
       await user.goto(base + "/settings");
       await user.getByRole("heading", { name: "Your account" }).waitFor();
       await user.getByRole("heading", { name: "Your inbox" }).waitFor();
-      await admin.getByRole("button", { name: "Manage access" }).click();
-      await admin.getByRole("checkbox", { name: /Access Test User/ }).uncheck();
+      await admin.goto(accountUrl);
       await admin
-        .getByRole("button", { name: "Save access", exact: true })
-        .click();
-      await admin.getByRole("button", { name: "Manage access" }).waitFor();
+        .getByRole("checkbox", { name: "Alex Morgan", exact: true })
+        .uncheck();
+      await admin.getByRole("button", { name: "Save owners and role" }).click();
+      await admin.waitForFunction(
+        () => !document.querySelector('[aria-busy="true"]'),
+      );
       assert.equal(
         (
           await userContext.request.get(`${base}/api/documents/${doc.id}`)

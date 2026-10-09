@@ -115,7 +115,7 @@ function Documents() {
         title="Documents"
         description={
           search.delivery === "review"
-            ? "Shared documents waiting for delivery"
+            ? "Shared documents waiting for routing"
             : "Your document library"
         }
         count={documents.total}

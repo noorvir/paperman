@@ -1,3 +1,7 @@
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import type { FeatureCategory } from "@/components/roadmap/features";
 import { createFileRoute } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Tick02Icon } from "@hugeicons/core-free-icons";
@@ -8,7 +12,10 @@ import { formatDate } from "@/components/page";
 export const Route = createFileRoute("/roadmap")({ component: Roadmap });
 
 function Roadmap() {
-  const ordered = [...features].sort((a, b) => Number(a.done) - Number(b.done));
+  const [category, setCategory] = useState<FeatureCategory | "All">("All");
+  const ordered = features
+    .filter((feature) => category === "All" || feature.category === category)
+    .sort((a, b) => Number(a.done) - Number(b.done));
 
   return (
     <div className="workspace-page max-w-6xl">
@@ -16,6 +23,33 @@ function Roadmap() {
         <h1 className="mb-4 border-b pb-3 text-base font-semibold tracking-tight">
           Roadmap
         </h1>
+        <div
+          className="mb-6 flex flex-wrap gap-1"
+          role="group"
+          aria-label="Filter roadmap"
+        >
+          <Button
+            variant={category === "All" ? "secondary" : "ghost"}
+            aria-pressed={category === "All"}
+            onClick={() => setCategory("All")}
+          >
+            All
+          </Button>
+          <Button
+            variant={category === "Internal" ? "secondary" : "ghost"}
+            aria-pressed={category === "Internal"}
+            onClick={() => setCategory("Internal")}
+          >
+            Internal
+          </Button>
+          <Button
+            variant={category === "User facing" ? "secondary" : "ghost"}
+            aria-pressed={category === "User facing"}
+            onClick={() => setCategory("User facing")}
+          >
+            User facing
+          </Button>
+        </div>
         <ol aria-label="Feature roadmap">
           {ordered.map((feature, index) => (
             <li key={feature.id} className="grid grid-cols-[1.5rem_1fr] gap-4">
@@ -57,7 +91,10 @@ function Roadmap() {
                     "Date not set"
                   )}
                 </p>
-                <h2 className="text-sm font-medium">{feature.title}</h2>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-sm font-medium">{feature.title}</h2>
+                  <Badge variant="secondary">{feature.category}</Badge>
+                </div>
                 <p className="mt-1 whitespace-pre-line text-sm leading-6 text-muted-foreground">
                   {feature.description}
                 </p>

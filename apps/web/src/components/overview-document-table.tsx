@@ -1,3 +1,6 @@
+import { Link } from "@tanstack/react-router";
+import { useAccess } from "./auth/access-context";
+import { DocumentDelivery } from "./document-delivery";
 import type { components } from "@/lib/schema";
 import { CollectionLink, CollectionRow } from "./collection-workspace";
 import { OwnerAvatar } from "./collection";
@@ -21,6 +24,8 @@ export function OverviewDocumentTable({
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
 }) {
+  const access = useAccess();
+  const showDelivery = access.state === "authenticated";
   return (
     <div className="@container/overview [&>[data-slot=table-container]]:overflow-visible">
       <Table className="table-fixed [&_td]:px-2 [&_th]:px-2">
@@ -38,6 +43,13 @@ export function OverviewDocumentTable({
                 Verification
               </span>
             </TableHead>
+            {showDelivery && (
+              <TableHead className="w-10 text-center @lg/overview:w-20">
+                <span className="sr-only @lg/overview:not-sr-only">
+                  Routing
+                </span>
+              </TableHead>
+            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -105,8 +117,29 @@ export function OverviewDocumentTable({
                 <TableCell className="text-center">
                   <DocumentVerificationBadge
                     verification={document.verification}
+                    render={
+                      <Link
+                        to="/documents/$documentId"
+                        params={{ documentId: document.id }}
+                        search={{ view: "pdf" }}
+                      />
+                    }
                   />
                 </TableCell>
+                {showDelivery && (
+                  <TableCell className="text-center">
+                    <DocumentDelivery
+                      document={document}
+                      render={
+                        <Link
+                          to="/documents/$documentId"
+                          params={{ documentId: document.id }}
+                          search={{ view: "pdf" }}
+                        />
+                      }
+                    />
+                  </TableCell>
+                )}
               </CollectionRow>
             );
           })}

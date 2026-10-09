@@ -169,7 +169,7 @@ def test_personal_and_shared_delivery_keep_sources_and_metadata_separate(
     )
     assert client.get(access_url, headers=alice).status_code == 403
 
-    # A later correction to owner metadata cannot grant or remove delivery.
+    # Explicit sharing is separate from owner-based delivery.
     shared_doc = store.get_document(shared_doc.id)
     result = client.put(
         f"/api/documents/{shared_doc.id}",
@@ -228,8 +228,8 @@ def test_personal_and_shared_delivery_keep_sources_and_metadata_separate(
     assert "private-confidential-letter" not in response.text
     dashboard = Dashboard.model_validate_json(response.content)
     assert dashboard.documents == 3
-    assert dashboard.routing_total == 1
-    assert {doc.id for doc in dashboard.routing_documents} == {shared.document_ids[1]}
+    assert dashboard.routing_total == 2
+    assert {doc.id for doc in dashboard.routing_documents} == set(shared.document_ids)
     for status in ["complete", "unverified", "running", "review"]:
         response = client.get(f"/api/dashboard?status={status}", headers=bob)
         dashboard = Dashboard.model_validate_json(response.content)

@@ -13,6 +13,7 @@ import { ErrorNotice, formatDate } from "@/components/page";
 import { DocumentView } from "@/components/document-view";
 import { DocumentTabs } from "@/components/document-tabs";
 import { VerifyDocument } from "@/components/verify-document";
+import { DocumentDelivery } from "./document-delivery";
 import { DocumentVerificationBadge } from "./document-verification-badge";
 import { ReprocessDocument } from "@/components/reprocess-document";
 import { DocumentFilterLink } from "@/components/document-filter-link";
@@ -93,9 +94,22 @@ export function DocumentDetail({
         </Link>
       }
       badge={
-        <span className="inline-flex size-6 shrink-0">
+        <span className="inline-flex shrink-0 items-center gap-1">
           <DocumentVerificationBadge
             verification={document.verification}
+            render={
+              preview ? (
+                <Link
+                  to="/documents/$documentId"
+                  params={{ documentId: document.id }}
+                  search={{ ...search, view }}
+                />
+              ) : undefined
+            }
+          />
+          <DocumentDelivery
+            key={document.id}
+            document={document}
             render={
               preview ? (
                 <Link
@@ -203,6 +217,9 @@ export function DocumentDetail({
       actions={
         !edit && (
           <>
+            {!preview && (
+              <DocumentDelivery key={document.id} document={document} action />
+            )}
             <PreviewAction icon={Pen01Icon} onClick={() => setEditing(true)}>
               Edit
             </PreviewAction>
@@ -262,7 +279,6 @@ export function DocumentDetail({
         }
         source={source}
         sourceReference={sourceReference}
-        canManageAccess={can_manage_access}
         canEditPages={can_edit_pages}
         text={text}
         catalog={catalog}

@@ -262,6 +262,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/{document_id}/confirm-delivery": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Confirm Delivery */
+        post: operations["confirm_delivery"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/documents/{document_id}/verify": {
         parameters: {
             query?: never;
@@ -518,6 +535,11 @@ export interface components {
             /** Unverified Documents */
             unverified_documents: components["schemas"]["Document"][];
         };
+        /** DeliveryConfirmation */
+        DeliveryConfirmation: {
+            /** Revision */
+            revision: number;
+        };
         /** Document */
         Document: {
             /** Owner Ids */
@@ -535,6 +557,7 @@ export interface components {
              * @enum {string}
              */
             delivery_status: "review" | "delivered";
+            delivery_confirmation: components["schemas"]["Verification"] | null;
             verification: components["schemas"]["Verification"] | null;
             /** Manual Rotations */
             manual_rotations: components["schemas"]["PageRotation"][];
@@ -1985,7 +2008,7 @@ export interface operations {
                 inbox?: string;
                 after?: string | null;
                 before?: string | null;
-                sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "processed_asc" | "processed_desc";
+                sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "delivery_asc" | "delivery_desc" | "processed_asc" | "processed_desc";
                 page?: number;
             };
             header?: {
@@ -2073,6 +2096,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["DocumentDetail"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    confirm_delivery: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeliveryConfirmation"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
                 };
             };
             /** @description Validation Error */

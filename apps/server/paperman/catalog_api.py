@@ -140,6 +140,9 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
                         if len(remaining) > 1:
                             remaining.discard("unknown")
                         document.owner_ids = sorted(remaining)
+                        document.delivery_confirmation = None
+                        if document.inbox_id == "shared":
+                            document.delivery_status = "review"
                         document.revision += 1
                         document.history.append(
                             Event(

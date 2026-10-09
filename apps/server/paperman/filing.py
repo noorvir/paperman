@@ -45,6 +45,10 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                     or document.date_source != date_source
                 ):
                     document.title = item.title
+                    if document.owner_ids != item.owner_ids:
+                        document.delivery_confirmation = None
+                        if document.inbox_id == "shared":
+                            document.delivery_status = "review"
                     document.owner_ids = item.owner_ids
                     document.document_date = document_date
                     document.date_source = date_source
@@ -140,7 +144,9 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                 if previous is not None:
                     document.verification = previous.verification
                     document.access_user_ids = previous.access_user_ids.copy()
-                    document.delivery_status = previous.delivery_status
+                    if previous.owner_ids == document.owner_ids:
+                        document.delivery_confirmation = previous.delivery_confirmation
+                        document.delivery_status = previous.delivery_status
             document.processing = allocate_usage(calls, item.pages, retained_pages)
             if existing is None and scan.filing_revision:
                 replaced = [

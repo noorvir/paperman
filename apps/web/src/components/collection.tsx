@@ -1,4 +1,5 @@
 import type { FormEvent, ReactNode } from "react";
+import { cn } from "cn";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Search01Icon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import { Input } from "./ui/input";
@@ -124,7 +125,13 @@ export function OwnerLabel({ name }: { name: string }) {
   );
 }
 
-export function OwnerAvatar({ name }: { name: string }) {
+export function OwnerAvatar({
+  name,
+  className,
+}: {
+  name: string;
+  className?: string;
+}) {
   const initials = name
     .split(" ")
     .map((part) => part[0])
@@ -133,7 +140,10 @@ export function OwnerAvatar({ name }: { name: string }) {
   return (
     <span
       aria-hidden="true"
-      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-foreground ring-1 ring-inset ring-border"
+      className={cn(
+        "flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-foreground ring-1 ring-inset ring-border",
+        className,
+      )}
     >
       {initials}
     </span>

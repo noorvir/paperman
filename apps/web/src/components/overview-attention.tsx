@@ -118,7 +118,7 @@ export function OverviewAttention({
         {state.routing_total > 0 && (
           <section className="space-y-2 border-t py-4">
             <h3 className="text-xs font-medium">
-              Needs delivery ({state.routing_total})
+              Needs routing ({state.routing_total})
             </h3>
             <ul className="divide-y">
               {state.routing_documents.map((document) => (

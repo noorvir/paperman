@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { useContext, useEffect, useState, type ComponentProps } from "react";
 import {
   CollectionLink,
@@ -9,6 +10,7 @@ import type { DocumentTable } from "./document-table";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import wasmUrl from "@embedpdf/pdfium/pdfium.wasm?url";
 import { DocumentOwners } from "./document-owners";
+import { DocumentDelivery } from "./document-delivery";
 import { DocumentVerificationBadge } from "./document-verification-badge";
 
 export default function DocumentGrid({
@@ -70,7 +72,28 @@ export default function DocumentGrid({
               <p className="truncate text-xs font-medium" title={doc.title}>
                 {doc.title}
               </p>
-              <DocumentVerificationBadge verification={doc.verification} />
+              <span className="relative z-10 inline-flex shrink-0 items-center gap-2">
+                <DocumentVerificationBadge
+                  verification={doc.verification}
+                  render={
+                    <Link
+                      to="/documents/$documentId"
+                      params={{ documentId: doc.id }}
+                      search={{ ...search, view: "pdf" }}
+                    />
+                  }
+                />
+                <DocumentDelivery
+                  document={doc}
+                  render={
+                    <Link
+                      to="/documents/$documentId"
+                      params={{ documentId: doc.id }}
+                      search={{ ...search, view: "pdf" }}
+                    />
+                  }
+                />
+              </span>
             </div>
             <div className="mt-3 flex items-center justify-between gap-2 text-xs">
               <DocumentOwners

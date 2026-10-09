@@ -1130,6 +1130,8 @@
                 "tags_desc",
                 "verification_asc",
                 "verification_desc",
+                "delivery_asc",
+                "delivery_desc",
                 "processed_asc",
                 "processed_desc"
               ],
@@ -1293,6 +1295,72 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/DocumentDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/documents/{document_id}/confirm-delivery": {
+      "post": {
+        "summary": "Confirm Delivery",
+        "operationId": "confirm_delivery",
+        "parameters": [
+          {
+            "name": "document_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$",
+              "title": "Document Id"
+            }
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeliveryConfirmation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Document"
                 }
               }
             }
@@ -2296,6 +2364,21 @@
         ],
         "title": "Dashboard"
       },
+      "DeliveryConfirmation": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "minimum": 0.0,
+            "title": "Revision"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision"
+        ],
+        "title": "DeliveryConfirmation"
+      },
       "Document": {
         "properties": {
           "owner_ids": {
@@ -2329,6 +2412,16 @@
             ],
             "title": "Delivery Status",
             "default": "review"
+          },
+          "delivery_confirmation": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Verification"
+              },
+              {
+                "type": "null"
+              }
+            ]
           },
           "verification": {
             "anyOf": [
@@ -2520,6 +2613,7 @@
           "inbox_id",
           "access_user_ids",
           "delivery_status",
+          "delivery_confirmation",
           "verification",
           "manual_rotations",
           "id",
