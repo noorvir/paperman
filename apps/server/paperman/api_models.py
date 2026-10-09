@@ -145,3 +145,8 @@ class ScanReprocess(Record):
 class ScanFeedback(Record):
     proposal: Analysis
     instructions: Annotated[str, Field(min_length=1, max_length=4000)]
+
+
+class WorkspaceSettings(Record):
+    time_format: Literal["24h", "12h"]
+    demo: bool

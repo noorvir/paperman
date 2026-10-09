@@ -8,12 +8,14 @@ export function DocumentTabs({
   view,
   preview,
   edit,
+  showSource = true,
 }: {
   documentId: string;
   search: z.output<typeof documentSearch>;
   view: z.output<typeof documentView>;
   preview: boolean;
   edit: boolean;
+  showSource?: boolean;
 }) {
   const views: (typeof view)[] = [
     "pdf",
@@ -24,38 +26,40 @@ export function DocumentTabs({
   ];
   return (
     <nav aria-label="Document view" className="view-tabs">
-      {views.map((tab) => {
-        const link = preview
-          ? linkOptions({
-              to: "/documents",
-              search: { ...search, preview: documentId, view: tab },
-            })
-          : linkOptions({
-              to: "/documents/$documentId",
-              params: { documentId },
-              search: { ...search, view: tab, edit },
-            });
-        return (
-          <Link
-            key={tab}
-            {...link}
-            replace
-            resetScroll={false}
-            data-active={view === tab}
-            aria-current={view === tab ? "page" : undefined}
-          >
-            {
+      {views
+        .filter((tab) => showSource || tab !== "source")
+        .map((tab) => {
+          const link = preview
+            ? linkOptions({
+                to: "/documents",
+                search: { ...search, preview: documentId, view: tab },
+              })
+            : linkOptions({
+                to: "/documents/$documentId",
+                params: { documentId },
+                search: { ...search, view: tab, edit },
+              });
+          return (
+            <Link
+              key={tab}
+              {...link}
+              replace
+              resetScroll={false}
+              data-active={view === tab}
+              aria-current={view === tab ? "page" : undefined}
+            >
               {
-                pdf: "PDF",
-                text: "Text",
-                summary: "Summary",
-                details: "Details",
-                source: "Source",
-              }[tab]
-            }
-          </Link>
-        );
-      })}
+                {
+                  pdf: "PDF",
+                  text: "Text",
+                  summary: "Summary",
+                  details: "Details",
+                  source: "Source",
+                }[tab]
+              }
+            </Link>
+          );
+        })}
     </nav>
   );
 }

@@ -15,5 +15,5 @@ export default defineConfig({
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
     dedupe: ["react", "react-dom"],
   },
-  server: { port: 3001, proxy: { "/api": "http://127.0.0.1:3000" } },
+  server: { port: 3001 },
 });

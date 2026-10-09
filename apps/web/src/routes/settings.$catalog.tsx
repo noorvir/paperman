@@ -1,14 +1,14 @@
+import { Pen01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { getTagIcon } from "@/lib/catalog-icons";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { catalogKind, getCatalog } from "@/lib/queries";
-import { ActionButton, EmptyState, PageHeader } from "@/components/page";
+import { EmptyState, PageHeader } from "@/components/page";
 import { SettingsNav } from "@/components/settings-nav";
 import { buttonVariants } from "@/components/ui/button";
 import { OwnerLabel } from "@/components/collection";
 import { Badge } from "@/components/ui/badge";
-import { deleteEntry } from "@/lib/actions";
-import { RemoveOwner } from "@/components/remove-owner";
+import { RemoveCatalogEntry } from "@/components/remove-catalog-entry";
 import {
   Table,
   TableHeader,
@@ -22,7 +22,12 @@ export const Route = createFileRoute("/settings/$catalog")({
   loader: async ({ params }) => {
     const kind = catalogKind.parse(params.catalog);
     const catalog = await getCatalog();
-    return { kind, entries: catalog[kind] };
+    return {
+      kind,
+      entries: [...catalog[kind]].sort((a, b) =>
+        a.name.localeCompare(b.name, "en", { sensitivity: "base", numeric: true }),
+      ),
+    };
   },
   component: Catalog,
 });
@@ -49,7 +54,7 @@ function Catalog() {
         </Link>
       </PageHeader>
       <SettingsNav active={kind} />
-      <div className="max-w-4xl">
+      <div className="w-full">
         {entries.length === 0 ? (
           <EmptyState
             title={`No ${kind} yet`}
@@ -85,25 +90,18 @@ function Catalog() {
                     <TableCell>{entry.aliases.join(", ") || "—"}</TableCell>
                   )}
                   <TableCell>
-                    <div className="flex justify-end gap-3">
+                    <div className="flex justify-end gap-1">
                       <Link
                         to="/settings/$catalog/$entryId/edit"
                         params={{ catalog: kind, entryId: entry.id }}
-                        className={buttonVariants({ variant: "ghost" })}
+                        className={buttonVariants({ variant: "ghost", size: "icon" })}
+                        aria-label={`Edit ${entry.name}`}
+                        title={`Edit ${entry.name}`}
                       >
-                        Edit
+                        <HugeiconsIcon icon={Pen01Icon} aria-hidden="true" />
                       </Link>
-                      {kind === "owners" && entry.id !== "unknown" && (
-                        <RemoveOwner owner={entry} owners={entries} />
-                      )}
-                      {kind === "tags" && (
-                        <ActionButton
-                          action={() =>
-                            deleteEntry({ data: { kind, id: entry.id } })
-                          }
-                        >
-                          Remove
-                        </ActionButton>
+                      {(kind === "tags" || entry.id !== "unknown") && (
+                        <RemoveCatalogEntry kind={kind} entry={entry} owners={entries} />
                       )}
                     </div>
                   </TableCell>

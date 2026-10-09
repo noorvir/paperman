@@ -102,7 +102,7 @@ export function DocumentEditor({
         },
       });
       unsaved.markSaved();
-      await router.invalidate();
+      await router.invalidate({ sync: true });
       onDone();
     } catch (error) {
       setError(

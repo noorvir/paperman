@@ -40,10 +40,20 @@ export function DocumentDetail({
 }) {
   const navigate = useNavigate();
   const [pageDraft, setPageDraft] = useState(() =>
-    getPageDraft(document, source.scan.page_count, edit),
+    getPageDraft(
+      document,
+      source?.scan.page_count ?? document.source_pages.length,
+      edit,
+    ),
   );
   if (pageDraft.edit !== edit || pageDraft.documentId !== document.id) {
-    setPageDraft(getPageDraft(document, source.scan.page_count, edit));
+    setPageDraft(
+      getPageDraft(
+        document,
+        source?.scan.page_count ?? document.source_pages.length,
+        edit,
+      ),
+    );
   }
   const [saving, setSaving] = useState(false);
   const [verificationError, setVerificationError] = useState({
@@ -120,7 +130,7 @@ export function DocumentDetail({
               {date}
             </DocumentFilterLink>
           </span>
-          {edit && (
+          {edit && source && (
             <span
               className="ml-auto text-right whitespace-normal"
               role="status"
@@ -138,9 +148,10 @@ export function DocumentDetail({
           <DocumentTabs
             documentId={document.id}
             search={search}
-            view={view}
+            view={view === "source" && !source ? "pdf" : view}
             preview={preview}
             edit={edit}
+            showSource={source !== null}
           />
         )
       }
@@ -186,7 +197,7 @@ export function DocumentDetail({
             <PreviewAction icon={Pen01Icon} onClick={() => setEditing(true)}>
               Edit
             </PreviewAction>
-            <ReprocessDocument document={document} />
+            {source && <ReprocessDocument document={document} />}
           </>
         )
       }
@@ -202,9 +213,9 @@ export function DocumentDetail({
         key={document.id}
         document={document}
         pdfRevision={edit ? pageDraft.revision : document.pdf_revision}
-        rotations={edit ? pageDraft.rotations : undefined}
+        rotations={edit && source ? pageDraft.rotations : undefined}
         onRotatePage={
-          edit && !saving
+          edit && source && !saving
             ? (page) => {
                 setPageDraft((current) => ({
                   ...current,
@@ -216,7 +227,7 @@ export function DocumentDetail({
             : undefined
         }
         pageSelection={
-          edit
+          edit && source
             ? {
                 pages: pageDraft.pages,
                 disabled: saving,
@@ -241,7 +252,7 @@ export function DocumentDetail({
         source={source}
         text={text}
         catalog={catalog}
-        view={view}
+        view={view === "source" && !source ? "pdf" : view}
         allowActions={!preview && !edit}
         preview={preview}
         search={documentSearch.parse(search)}

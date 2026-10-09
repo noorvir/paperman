@@ -1,3 +1,5 @@
+import { canAdmin } from "@/lib/auth/access";
+import { useAccess } from "./auth/access-context";
 import { useState, type ComponentProps } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -26,6 +28,7 @@ export function DocumentTags({
   allowActions: boolean;
   search: ComponentProps<typeof TagLink>["search"];
 }) {
+  const admin = canAdmin(useAccess());
   const router = useRouter();
   const [pending, setPending] = useState<{
     id: string;
@@ -145,7 +148,7 @@ export function DocumentTags({
           </p>
         )}
       </section>
-      {allowActions && suggestions.length > 0 && (
+      {allowActions && admin && suggestions.length > 0 && (
         <section className="workspace-section">
           <h3 className="text-xs font-medium">Suggested tags</h3>
           <div className="flex flex-wrap gap-2">

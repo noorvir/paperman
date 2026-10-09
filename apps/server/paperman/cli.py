@@ -40,9 +40,12 @@ def main() -> None:
         asyncio.run(run_worker(Settings()))
     elif args.command == "schema":
         from paperman.api import create_app
+        from paperman.auth import AuthSettings
 
         with TemporaryDirectory(prefix="paperman-schema-") as directory:
-            app = create_app(Settings(data_dir=Path(directory)))
+            app = create_app(
+                Settings(data_dir=Path(directory)), AuthSettings(auth_enabled=False)
+            )
             Path("openapi.json").write_text(json.dumps(app.openapi(), indent=2) + "\n")
     elif args.command == "rename-documents":
         from paperman.document_names import rename_documents

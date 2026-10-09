@@ -29,6 +29,9 @@ export const Route = createFileRoute("/scans/$scanId")({
       getScanWithDocuments({ data: params.scanId }),
       getCatalog(),
     ]);
+    if (!source) {
+      throw new Error("Admin mode is required");
+    }
     return { ...source, catalog };
   },
   component: ScanDetail,

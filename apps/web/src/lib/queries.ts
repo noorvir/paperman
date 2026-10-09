@@ -1,3 +1,6 @@
+import { getRequestHeaders } from "@tanstack/react-start/server";
+import { getAccess } from "./auth/session.server";
+import { canAdmin } from "./auth/access";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { client, unwrap } from "./api.server";
@@ -121,6 +124,10 @@ export const getScan = createServerFn({ method: "GET" })
 export const getScanWithDocuments = createServerFn({ method: "GET" })
   .validator(z.string())
   .handler(async ({ data }) => {
+    const access = await getAccess(getRequestHeaders());
+    if (!canAdmin(access)) {
+      return null;
+    }
     const result = await client.GET("/api/scans/{scan_id}", {
       params: { path: { scan_id: data } },
     });

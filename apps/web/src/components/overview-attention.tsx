@@ -1,3 +1,5 @@
+import { useAccess } from "./auth/access-context";
+import { canAdmin } from "@/lib/auth/access";
 import { Link } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
 import { ScanStatus } from "./collection";
@@ -14,14 +16,16 @@ export function OverviewAttention({
   attention: components["schemas"]["Scan"][];
   onViewAll: () => void;
 }) {
+  const admin = canAdmin(useAccess());
   const unverifiedCount = state.counts.unverified ?? 0;
   const needsAttention =
     attention.length > 0 ||
     unverifiedCount > 0 ||
-    !state.worker_online ||
-    state.worker?.status === "error" ||
-    !state.model_configured ||
-    !state.ocr_available ||
+    (admin &&
+      (!state.worker_online ||
+        state.worker?.status === "error" ||
+        !state.model_configured ||
+        !state.ocr_available)) ||
     state.enrichment_failed > 0;
   return (
     <aside
@@ -36,7 +40,7 @@ export function OverviewAttention({
       </h2>
       <div className="min-h-0 flex-1">
         <div className="space-y-3">
-          {!state.worker_online && (
+          {admin && !state.worker_online && (
             <Alert variant="destructive">
               <AlertTitle>Worker is offline</AlertTitle>
               <AlertDescription>
@@ -44,13 +48,13 @@ export function OverviewAttention({
               </AlertDescription>
             </Alert>
           )}
-          {state.worker?.status === "error" && (
+          {admin && state.worker?.status === "error" && (
             <Alert variant="destructive">
               <AlertTitle>Worker needs attention</AlertTitle>
               <AlertDescription>{state.worker.message}</AlertDescription>
             </Alert>
           )}
-          {!state.model_configured && (
+          {admin && !state.model_configured && (
             <Alert>
               <AlertTitle>Connect a model</AlertTitle>
               <AlertDescription>
@@ -61,7 +65,7 @@ export function OverviewAttention({
               </AlertDescription>
             </Alert>
           )}
-          {!state.ocr_available && (
+          {admin && !state.ocr_available && (
             <Alert variant="destructive">
               <AlertTitle>OCR is unavailable</AlertTitle>
               <AlertDescription>

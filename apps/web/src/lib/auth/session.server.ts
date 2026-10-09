@@ -1,0 +1,79 @@
+import { SignJWT } from "jose";
+import { z } from "zod";
+import { getAuth } from "./auth.server";
+import { canAdmin, type Access } from "./access";
+
+export async function getAccess(headers: Headers): Promise<Access> {
+  const runtime = await getAuth();
+  if (!runtime) {
+    return { state: "disabled" };
+  }
+  const session = await runtime.auth.api.getSession({
+    headers,
+    query: { disableCookieCache: true },
+  });
+  if (!session || session.user.banned) {
+    return { state: "anonymous" };
+  }
+  const role = session.user.role === "admin" ? "admin" : "user";
+  const storedMode = runtime.db
+    .prepare("SELECT mode FROM session_mode WHERE session_id = ?")
+    .get(session.session.id);
+  const mode =
+    role === "admin" && storedMode?.mode === "admin" ? "admin" : "personal";
+  const owners = runtime.db
+    .prepare(
+      "SELECT owner_id FROM user_owner WHERE user_id = ? ORDER BY owner_id",
+    )
+    .all(session.user.id);
+  const ownerIds = z
+    .array(z.object({ owner_id: z.string() }))
+    .parse(owners)
+    .map(({ owner_id }) => owner_id);
+  return {
+    state: "authenticated",
+    userId: session.user.id,
+    name: session.user.name,
+    role,
+    mode,
+    ownerIds,
+  };
+}
+
+export async function identityHeaders(headers: Headers) {
+  const access = await getAccess(headers);
+  if (access.state === "anonymous") {
+    return null;
+  }
+  const result = new Headers();
+  if (access.state === "disabled") {
+    return result;
+  }
+  const runtime = await getAuth();
+  if (!runtime) {
+    throw new Error("Authentication configuration changed");
+  }
+  const token = await new SignJWT({
+    name: access.name,
+    role: access.role,
+    mode: access.mode,
+    owner_ids: access.ownerIds,
+  })
+    .setProtectedHeader({ alg: "HS256" })
+    .setSubject(access.userId)
+    .setIssuer("paperman-web")
+    .setAudience("paperman-api")
+    .setIssuedAt()
+    .setExpirationTime("30s")
+    .sign(new TextEncoder().encode(runtime.config.apiSecret));
+  result.set("Authorization", `Bearer ${token}`);
+  return result;
+}
+
+export async function requireAdmin(headers: Headers) {
+  const access = await getAccess(headers);
+  if (access.state !== "authenticated" || !canAdmin(access)) {
+    throw new Error("Admin mode is required");
+  }
+  return access;
+}

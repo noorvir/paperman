@@ -279,6 +279,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/workspace": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Workspace Settings */
+        get: operations["workspace_settings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/dashboard": {
         parameters: {
             query?: never;
@@ -1241,6 +1258,16 @@ export interface components {
              */
             message: string;
         };
+        /** WorkspaceSettings */
+        WorkspaceSettings: {
+            /**
+             * Time Format
+             * @enum {string}
+             */
+            time_format: "24h" | "12h";
+            /** Demo */
+            demo: boolean;
+        };
     };
     responses: never;
     parameters: never;
@@ -1253,7 +1280,9 @@ export interface operations {
     catalog: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1268,12 +1297,23 @@ export interface operations {
                     "application/json": components["schemas"]["Catalog"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     create_entry: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 kind: "owners" | "tags";
             };
@@ -1308,7 +1348,9 @@ export interface operations {
     update_entry: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 kind: "owners" | "tags";
                 entry_id: string;
@@ -1346,7 +1388,9 @@ export interface operations {
             query?: {
                 reassign_to?: string | null;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 kind: "owners" | "tags";
                 entry_id: string;
@@ -1382,7 +1426,9 @@ export interface operations {
                 q?: string;
                 page?: number;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1411,7 +1457,9 @@ export interface operations {
     scan: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 scan_id: string;
             };
@@ -1444,7 +1492,9 @@ export interface operations {
             query?: {
                 variant?: "original" | "searchable";
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 scan_id: string;
             };
@@ -1475,7 +1525,9 @@ export interface operations {
     retry_scan: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 scan_id: string;
             };
@@ -1506,7 +1558,9 @@ export interface operations {
     reprocess_scan: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 scan_id: string;
             };
@@ -1541,7 +1595,9 @@ export interface operations {
     approve_scan: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 scan_id: string;
             };
@@ -1576,7 +1632,9 @@ export interface operations {
     revise_scan: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 scan_id: string;
             };
@@ -1611,7 +1669,9 @@ export interface operations {
     upload: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1653,7 +1713,9 @@ export interface operations {
                 sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "processed_asc" | "processed_desc";
                 page?: number;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1682,7 +1744,9 @@ export interface operations {
     document: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 document_id: string;
             };
@@ -1713,7 +1777,9 @@ export interface operations {
     edit_document: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 document_id: string;
             };
@@ -1748,7 +1814,9 @@ export interface operations {
     verify_document: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 document_id: string;
             };
@@ -1783,7 +1851,9 @@ export interface operations {
     document_pdf: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 document_id: string;
             };
@@ -1814,7 +1884,9 @@ export interface operations {
     document_tags: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 document_id: string;
             };
@@ -1849,7 +1921,9 @@ export interface operations {
     enrich_document: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path: {
                 document_id: string;
             };
@@ -1877,13 +1951,46 @@ export interface operations {
             };
         };
     };
+    workspace_settings: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     dashboard: {
         parameters: {
             query?: {
                 status?: ("queued" | "running" | "review" | "failed" | "complete") | "unverified";
                 page?: number;
             };
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1912,7 +2019,9 @@ export interface operations {
     settings: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1927,12 +2036,23 @@ export interface operations {
                     "application/json": components["schemas"]["ModelSettings-Output"];
                 };
             };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
         };
     };
     save_settings: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1965,7 +2085,9 @@ export interface operations {
     rebuild_index: {
         parameters: {
             query?: never;
-            header?: never;
+            header?: {
+                authorization?: string | null;
+            };
             path?: never;
             cookie?: never;
         };
@@ -1978,6 +2100,15 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ActionResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

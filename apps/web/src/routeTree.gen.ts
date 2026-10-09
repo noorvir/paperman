@@ -10,19 +10,23 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AccountRouteImport } from './routes/account'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as DocumentsTestRouteImport } from './routes/documents-test'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as NavigationPreviewRouteImport } from './routes/navigation-preview'
 import { Route as PipelinePreviewRouteImport } from './routes/pipeline-preview'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
 import { Route as ScansRouteImport } from './routes/scans'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as UsersRouteImport } from './routes/users'
 import { Route as ApiSplatRouteImport } from './routes/api.$'
 import { Route as DocumentsDocumentIdRouteImport } from './routes/documents.$documentId'
 import { Route as ScansScanIdRouteImport } from './routes/scans.$scanId'
 import { Route as ScansUploadRouteImport } from './routes/scans_.upload'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsCatalogRouteImport } from './routes/settings.$catalog'
+import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
 import { Route as ScansScanIdReviewRouteImport } from './routes/scans_.$scanId.review'
 import { Route as SettingsCatalogNewRouteImport } from './routes/settings.$catalog_.new'
 import { Route as SettingsCatalogEntryIdEditRouteImport } from './routes/settings.$catalog_.$entryId.edit'
@@ -30,6 +34,11 @@ import { Route as SettingsCatalogEntryIdEditRouteImport } from './routes/setting
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AccountRoute = AccountRouteImport.update({
+  id: '/account',
+  path: '/account',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DocumentsRoute = DocumentsRouteImport.update({
@@ -40,6 +49,11 @@ const DocumentsRoute = DocumentsRouteImport.update({
 const DocumentsTestRoute = DocumentsTestRouteImport.update({
   id: '/documents-test',
   path: '/documents-test',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NavigationPreviewRoute = NavigationPreviewRouteImport.update({
@@ -65,6 +79,11 @@ const ScansRoute = ScansRouteImport.update({
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UsersRoute = UsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSplatRoute = ApiSplatRouteImport.update({
@@ -97,6 +116,11 @@ const SettingsCatalogRoute = SettingsCatalogRouteImport.update({
   path: '/$catalog',
   getParentRoute: () => SettingsRoute,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScansScanIdReviewRoute = ScansScanIdReviewRouteImport.update({
   id: '/scans_/$scanId/review',
   path: '/scans/$scanId/review',
@@ -116,37 +140,45 @@ const SettingsCatalogEntryIdEditRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
+  '/login': typeof LoginRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/roadmap': typeof RoadmapRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/users': typeof UsersRoute
   '/api/$': typeof ApiSplatRoute
   '/documents/$documentId': typeof DocumentsDocumentIdRoute
   '/scans/$scanId': typeof ScansScanIdRoute
   '/scans/upload': typeof ScansUploadRoute
   '/settings/$catalog': typeof SettingsCatalogRoute
   '/settings/': typeof SettingsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/scans/$scanId/review': typeof ScansScanIdReviewRoute
   '/settings/$catalog/new': typeof SettingsCatalogNewRoute
   '/settings/$catalog/$entryId/edit': typeof SettingsCatalogEntryIdEditRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
+  '/login': typeof LoginRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/roadmap': typeof RoadmapRoute
   '/scans': typeof ScansRouteWithChildren
+  '/users': typeof UsersRoute
   '/api/$': typeof ApiSplatRoute
   '/documents/$documentId': typeof DocumentsDocumentIdRoute
   '/scans/$scanId': typeof ScansScanIdRoute
   '/scans/upload': typeof ScansUploadRoute
   '/settings/$catalog': typeof SettingsCatalogRoute
   '/settings': typeof SettingsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/scans/$scanId/review': typeof ScansScanIdReviewRoute
   '/settings/$catalog/new': typeof SettingsCatalogNewRoute
   '/settings/$catalog/$entryId/edit': typeof SettingsCatalogEntryIdEditRoute
@@ -154,19 +186,23 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/account': typeof AccountRoute
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
+  '/login': typeof LoginRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/roadmap': typeof RoadmapRoute
   '/scans': typeof ScansRouteWithChildren
   '/settings': typeof SettingsRouteWithChildren
+  '/users': typeof UsersRoute
   '/api/$': typeof ApiSplatRoute
   '/documents/$documentId': typeof DocumentsDocumentIdRoute
   '/scans/$scanId': typeof ScansScanIdRoute
   '/scans_/upload': typeof ScansUploadRoute
   '/settings/$catalog': typeof SettingsCatalogRoute
   '/settings/': typeof SettingsIndexRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
   '/scans_/$scanId/review': typeof ScansScanIdReviewRoute
   '/settings/$catalog_/new': typeof SettingsCatalogNewRoute
   '/settings/$catalog_/$entryId/edit': typeof SettingsCatalogEntryIdEditRoute
@@ -175,56 +211,68 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/account'
     | '/documents'
     | '/documents-test'
+    | '/login'
     | '/navigation-preview'
     | '/pipeline-preview'
     | '/roadmap'
     | '/scans'
     | '/settings'
+    | '/users'
     | '/api/$'
     | '/documents/$documentId'
     | '/scans/$scanId'
     | '/scans/upload'
     | '/settings/$catalog'
     | '/settings/'
+    | '/api/auth/$'
     | '/scans/$scanId/review'
     | '/settings/$catalog/new'
     | '/settings/$catalog/$entryId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/account'
     | '/documents'
     | '/documents-test'
+    | '/login'
     | '/navigation-preview'
     | '/pipeline-preview'
     | '/roadmap'
     | '/scans'
+    | '/users'
     | '/api/$'
     | '/documents/$documentId'
     | '/scans/$scanId'
     | '/scans/upload'
     | '/settings/$catalog'
     | '/settings'
+    | '/api/auth/$'
     | '/scans/$scanId/review'
     | '/settings/$catalog/new'
     | '/settings/$catalog/$entryId/edit'
   id:
     | '__root__'
     | '/'
+    | '/account'
     | '/documents'
     | '/documents-test'
+    | '/login'
     | '/navigation-preview'
     | '/pipeline-preview'
     | '/roadmap'
     | '/scans'
     | '/settings'
+    | '/users'
     | '/api/$'
     | '/documents/$documentId'
     | '/scans/$scanId'
     | '/scans_/upload'
     | '/settings/$catalog'
     | '/settings/'
+    | '/api/auth/$'
     | '/scans_/$scanId/review'
     | '/settings/$catalog_/new'
     | '/settings/$catalog_/$entryId/edit'
@@ -232,15 +280,19 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AccountRoute: typeof AccountRoute
   DocumentsRoute: typeof DocumentsRouteWithChildren
   DocumentsTestRoute: typeof DocumentsTestRoute
+  LoginRoute: typeof LoginRoute
   NavigationPreviewRoute: typeof NavigationPreviewRoute
   PipelinePreviewRoute: typeof PipelinePreviewRoute
   RoadmapRoute: typeof RoadmapRoute
   ScansRoute: typeof ScansRouteWithChildren
   SettingsRoute: typeof SettingsRouteWithChildren
+  UsersRoute: typeof UsersRoute
   ApiSplatRoute: typeof ApiSplatRoute
   ScansUploadRoute: typeof ScansUploadRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
   ScansScanIdReviewRoute: typeof ScansScanIdReviewRoute
 }
 
@@ -251,6 +303,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/account': {
+      id: '/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AccountRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/documents': {
@@ -265,6 +324,13 @@ declare module '@tanstack/react-router' {
       path: '/documents-test'
       fullPath: '/documents-test'
       preLoaderRoute: typeof DocumentsTestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/navigation-preview': {
@@ -300,6 +366,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/users': {
+      id: '/users'
+      path: '/users'
+      fullPath: '/users'
+      preLoaderRoute: typeof UsersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/$': {
@@ -343,6 +416,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/settings/$catalog'
       preLoaderRoute: typeof SettingsCatalogRouteImport
       parentRoute: typeof SettingsRoute
+    }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/scans_/$scanId/review': {
       id: '/scans_/$scanId/review'
@@ -410,15 +490,19 @@ const SettingsRouteWithChildren = SettingsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AccountRoute: AccountRoute,
   DocumentsRoute: DocumentsRouteWithChildren,
   DocumentsTestRoute: DocumentsTestRoute,
+  LoginRoute: LoginRoute,
   NavigationPreviewRoute: NavigationPreviewRoute,
   PipelinePreviewRoute: PipelinePreviewRoute,
   RoadmapRoute: RoadmapRoute,
   ScansRoute: ScansRouteWithChildren,
   SettingsRoute: SettingsRouteWithChildren,
+  UsersRoute: UsersRoute,
   ApiSplatRoute: ApiSplatRoute,
   ScansUploadRoute: ScansUploadRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
   ScansScanIdReviewRoute: ScansScanIdReviewRoute,
 }
 export const routeTree = rootRouteImport

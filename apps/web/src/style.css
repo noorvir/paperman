@@ -224,6 +224,27 @@
       @apply block;
     }
   }
+  @media (width < 64rem) {
+    .workspace-toolbar[data-authenticated="true"] .workspace-nav-tabs,
+    .workspace-toolbar[data-authenticated="true"] .workspace-toolbar-controls {
+      @apply hidden;
+    }
+    .workspace-toolbar[data-authenticated="true"] .workspace-nav-menu {
+      @apply block;
+    }
+  }
+  @media (width < 40rem) {
+    .workspace-toolbar[data-authenticated="true"] {
+      @apply grid-cols-[minmax(0,1fr)_auto];
+    }
+    .workspace-toolbar[data-authenticated="true"]
+      .workspace-toolbar-breadcrumbs {
+      @apply hidden;
+    }
+    .workspace-toolbar[data-authenticated="true"] .workspace-toolbar-end {
+      @apply col-start-2;
+    }
+  }
   .workspace-content {
     @apply flex min-h-0 min-w-0 flex-1 flex-col gap-5 overflow-y-auto p-4 sm:px-6 sm:pb-6 lg:px-8;
     scrollbar-gutter: stable;

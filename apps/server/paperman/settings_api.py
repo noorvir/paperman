@@ -1,27 +1,49 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
 
-from paperman.api_models import ActionResult, Dashboard, DashboardStatus
+from paperman.api_models import (
+    ActionResult,
+    Dashboard,
+    DashboardStatus,
+    WorkspaceSettings,
+)
+from paperman.auth import Auth, Principal
 from paperman.models import ModelSettings, now
 from paperman.pdf import ocr_available
 from paperman.progress import pipeline_overview
 from paperman.storage import FileStorage, write_record
 
 
-def routes(storage: FileStorage) -> APIRouter:
+def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     router = APIRouter()
+
+    @router.get(
+        "/api/workspace",
+        operation_id="workspace_settings",
+        dependencies=[Depends(auth)],
+    )
+    def workspace_settings() -> WorkspaceSettings:
+        settings = storage.settings()
+        return WorkspaceSettings(
+            time_format=settings.time_format, demo=settings.provider == "demo"
+        )
 
     @router.get("/api/dashboard", operation_id="dashboard")
     def dashboard(
+        principal: Annotated[Principal | None, Depends(auth)],
         status: DashboardStatus = "complete",
         page: Annotated[int, Query(ge=1)] = 1,
     ) -> Dashboard:
         with storage.transaction():
             scans = storage.list_scans()
             documents = storage.list_documents()
+        if principal is not None and not principal.admin:
+            scans = []
+            documents = [doc for doc in documents if principal.can_view(doc)]
         counts, items, unverified = pipeline_overview(scans, documents, status, page)
-        worker = storage.worker_state()
+        is_admin = principal is None or principal.admin
+        worker = storage.worker_state() if is_admin else None
         model = storage.settings()
         return Dashboard(
             documents=len(documents),
@@ -37,20 +59,28 @@ def routes(storage: FileStorage) -> APIRouter:
                 and worker.status != "stopped"
                 and (now() - worker.heartbeat).total_seconds() < 20
             ),
-            ocr_available=ocr_available(),
-            model_configured=model.provider == "demo"
-            or bool(model.base_url and model.model),
-            inbox_path=str(storage.root / "inbox"),
+            ocr_available=is_admin and ocr_available(),
+            model_configured=is_admin
+            and (model.provider == "demo" or bool(model.base_url and model.model)),
+            inbox_path=str(storage.root / "inbox") if is_admin else "",
             counts=counts,
             pipeline_items=items,
             unverified_documents=unverified,
         )
 
-    @router.get("/api/settings", operation_id="settings")
+    @router.get(
+        "/api/settings",
+        operation_id="settings",
+        dependencies=[Depends(auth.require_admin)],
+    )
     def model_settings() -> ModelSettings:
         return storage.settings()
 
-    @router.put("/api/settings", operation_id="save_settings")
+    @router.put(
+        "/api/settings",
+        operation_id="save_settings",
+        dependencies=[Depends(auth.require_admin)],
+    )
     def save_settings(value: ModelSettings) -> ModelSettings:
         with storage.transaction():
             current = storage.settings()
@@ -60,7 +90,11 @@ def routes(storage: FileStorage) -> APIRouter:
             write_record(storage.root / "settings.toml", value)
         return value
 
-    @router.post("/api/search/rebuild", operation_id="rebuild_index")
+    @router.post(
+        "/api/search/rebuild",
+        operation_id="rebuild_index",
+        dependencies=[Depends(auth.require_admin)],
+    )
     def rebuild() -> ActionResult:
         with storage.transaction():
             index = storage.rebuild_index()

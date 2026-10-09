@@ -10,7 +10,7 @@ export function DocumentPdf({
   ComponentProps<typeof PdfPreview>,
   "url" | "title" | "rotations" | "onRotatePage"
 > & {
-  source: { url: string; title: string; pages: number[] };
+  source: { url: string; title: string; pages: number[] } | null;
   showContext: boolean;
 }) {
   const [openedContext, setOpenedContext] = useState(showContext);
@@ -40,7 +40,7 @@ export function DocumentPdf({
         aria-hidden={!showContext}
         inert={!showContext}
       >
-        {openedContext && (
+        {openedContext && source && (
           <PdfPreview
             url={source.url}
             title={source.title}

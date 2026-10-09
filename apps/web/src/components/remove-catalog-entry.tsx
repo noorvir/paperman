@@ -1,3 +1,5 @@
+import { HugeiconsIcon } from "@hugeicons/react";
+import { Delete02Icon } from "@hugeicons/core-free-icons";
 import { useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { deleteEntry } from "@/lib/actions";
@@ -16,14 +18,17 @@ import {
 } from "./ui/dialog";
 import { SelectField } from "./select-field";
 
-export function RemoveOwner({
-  owner,
+export function RemoveCatalogEntry({
+  entry,
+  kind,
   owners,
 }: {
-  owner: components["schemas"]["CatalogEntry"];
+  kind: "owners" | "tags";
+  entry: components["schemas"]["CatalogEntry"];
   owners: components["schemas"]["CatalogEntry"][];
 }) {
   const router = useRouter();
+  const [open, setOpen] = useState(false);
   const [usage, setUsage] = useState<
     components["schemas"]["EntryRemoval"] | null
   >(null);
@@ -36,18 +41,19 @@ export function RemoveOwner({
     setError("");
     try {
       const result = await deleteEntry({
-        data: { kind: "owners", id: owner.id, reassignTo },
+        data: { kind, id: entry.id, reassignTo },
       });
       if (result.status === "in_use") {
         setReplacement("unknown");
         setUsage(result);
         return;
       }
+      setOpen(false);
       setUsage(null);
       await router.invalidate({ sync: true });
     } catch (error) {
       setError(
-        error instanceof Error ? error.message : "Could not remove this owner",
+        error instanceof Error ? error.message : "Could not remove this entry",
       );
     } finally {
       setPending(false);
@@ -56,9 +62,10 @@ export function RemoveOwner({
 
   return (
     <Dialog
-      open={usage !== null}
+      open={open}
       onOpenChange={(open) => {
-        if (!open && !pending) {
+        if (!pending) {
+          setOpen(open);
           setUsage(null);
           setError("");
         }
@@ -68,26 +75,28 @@ export function RemoveOwner({
         <DialogTrigger
           render={
             <Button
-              variant="outline"
-              loading={pending && usage === null}
+              variant="ghost"
+              size="icon"
+              className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+              aria-label={`Remove ${entry.name}`}
+              title={`Remove ${entry.name}`}
               disabled={pending}
             />
           }
-          onClick={() => void remove()}
         >
-          Remove
+          <HugeiconsIcon icon={Delete02Icon} aria-hidden="true" />
         </DialogTrigger>
-        {usage === null && <ErrorNotice message={error} />}
       </div>
       <DialogContent showCloseButton={!pending}>
         <DialogHeader>
-          <DialogTitle>Remove {owner.name}?</DialogTitle>
+          <DialogTitle>Remove {entry.name}?</DialogTitle>
           <DialogDescription>
-            {usage?.documents ?? 0} filed documents and {usage?.scans ?? 0} scan
-            batches use this owner. Select their new owner before removal.
+            {usage
+              ? `${usage.documents} filed documents and ${usage.scans} scan batches use this owner. Select their new owner before removal.`
+              : `Remove this ${kind === "owners" ? "owner" : "tag"} from the catalog? This action cannot be undone.`}
           </DialogDescription>
         </DialogHeader>
-        <label className="field-label">
+        {usage && <label className="field-label">
           Reassign to
           <SelectField
             label="Reassign to"
@@ -95,10 +104,10 @@ export function RemoveOwner({
             disabled={pending}
             onValueChange={setReplacement}
             items={owners
-              .filter((entry) => entry.id !== owner.id)
+              .filter((owner) => owner.id !== entry.id)
               .map((entry) => ({ value: entry.id, label: entry.name }))}
           />
-        </label>
+        </label>}
         <p className="text-xs text-muted-foreground">
           Documents are kept. Their stored files stay in the same location.
         </p>
@@ -110,9 +119,9 @@ export function RemoveOwner({
           <Button
             variant="destructive"
             loading={pending}
-            onClick={() => void remove(replacement)}
+            onClick={() => void remove(usage ? replacement : undefined)}
           >
-            Reassign and remove
+            {usage ? "Reassign and remove" : "Remove"}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Annotated, Literal
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Query, UploadFile
+from fastapi import APIRouter, Depends, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
 from paperman_parser.inference import EndpointInference
 from paperman_parser.models import Analysis, Identifier, validate_analysis
@@ -16,6 +16,7 @@ from paperman.api_models import (
     ScanReprocess,
     ScanReview,
 )
+from paperman.auth import Auth
 from paperman.config import Settings
 from paperman.models import Event, Scan, now
 from paperman.pdf import validate_scan
@@ -24,8 +25,8 @@ from paperman.storage import FileStorage, atomic_target, write_record
 from paperman.usage import record_scan_usage
 
 
-def routes(storage: FileStorage, config: Settings) -> APIRouter:
-    router = APIRouter()
+def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
+    router = APIRouter(dependencies=[Depends(auth.require_admin)])
 
     @router.get("/api/scans", operation_id="scans")
     def scans(

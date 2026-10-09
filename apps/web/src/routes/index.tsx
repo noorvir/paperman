@@ -1,3 +1,6 @@
+import { getSessionAccess } from "@/lib/auth/functions";
+import { canAdmin } from "@/lib/auth/access";
+import { useAccess } from "@/components/auth/access-context";
 import { useState } from "react";
 import { Tabs } from "@base-ui/react/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -29,11 +32,13 @@ export const Route = createFileRoute("/")({
   search: { middlewares: [stripSearchParams({ page: 1 })] },
   loaderDeps: ({ search: { status, page } }) => ({ status, page }),
   loader: async ({ deps }) => {
+    const access = await getSessionAccess();
+    const admin = canAdmin(access);
     const [state, documents, review, failed, catalog] = await Promise.all([
       getDashboard({ data: deps }),
       getDocuments({ data: documentSearch.parse({}) }),
-      getScans({ data: scanSearch.parse({ status: "review" }) }),
-      getScans({ data: scanSearch.parse({ status: "failed" }) }),
+      admin ? getScans({ data: scanSearch.parse({ status: "review" }) }) : null,
+      admin ? getScans({ data: scanSearch.parse({ status: "failed" }) }) : null,
       getCatalog(),
     ]);
     return {
@@ -41,7 +46,10 @@ export const Route = createFileRoute("/")({
       selectedStatus: deps.status,
       catalog,
       documents,
-      attention: [...failed.items, ...review.items].slice(0, 5),
+      attention: [...(failed?.items ?? []), ...(review?.items ?? [])].slice(
+        0,
+        5,
+      ),
     };
   },
   component: Overview,
@@ -51,6 +59,7 @@ export const Route = createFileRoute("/")({
 
 function Overview() {
   useLiveData();
+  const admin = canAdmin(useAccess());
   const { state, documents, attention, catalog, selectedStatus } =
     Route.useLoaderData();
   const search = Route.useSearch();
@@ -91,25 +100,29 @@ function Overview() {
           title="Overview"
           description="A clear view of your paperwork."
         >
-          <Link to="/scans/upload" className={buttonVariants()}>
-            <HugeiconsIcon icon={Upload04Icon} /> Upload scan
-          </Link>
+          {admin && (
+            <Link to="/scans/upload" className={buttonVariants()}>
+              <HugeiconsIcon icon={Upload04Icon} /> Upload scan
+            </Link>
+          )}
         </PageHeader>
-        <OverviewSummary
-          counts={state.counts}
-          status={search.status}
-          onSelect={(status) => {
-            setPanel("documents");
-            void navigate({
-              search: {
-                ...search,
-                status: status === search.status ? undefined : status,
-                page: 1,
-              },
-              resetScroll: false,
-            });
-          }}
-        />
+        {admin && (
+          <OverviewSummary
+            counts={state.counts}
+            status={search.status}
+            onSelect={(status) => {
+              setPanel("documents");
+              void navigate({
+                search: {
+                  ...search,
+                  status: status === search.status ? undefined : status,
+                  page: 1,
+                },
+                resetScroll: false,
+              });
+            }}
+          />
+        )}
       </div>
       {mobile ? (
         <Tabs.Root

@@ -50,10 +50,12 @@ export function DocumentInformation({
             <LocalTime value={document.scanned_at} />
           </dd>
         </div>
-        <div className="space-y-1.5">
-          <dt className="text-muted-foreground">Source scan</dt>
-          <dd>{sourceLink}</dd>
-        </div>
+        {sourceLink && (
+          <div className="space-y-1.5">
+            <dt className="text-muted-foreground">Source scan</dt>
+            <dd>{sourceLink}</dd>
+          </div>
+        )}
       </dl>
       {viewControls}
       <DocumentTags

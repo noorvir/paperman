@@ -1,3 +1,6 @@
+import { AccountMenu } from "./auth/account-menu";
+import { useAccess } from "./auth/access-context";
+import { canAdmin } from "@/lib/auth/access";
 import type { ComponentProps, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -11,8 +14,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { useWorkspaceBreadcrumbs } from "@/hooks/use-workspace-breadcrumbs";
 import { NavigationBreadcrumbs } from "./navigation-breadcrumbs";
-import { Button, buttonVariants } from "./ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
+import { Button } from "./ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,12 +40,16 @@ export function WorkspaceLayout({
   children: ReactNode;
   demo: boolean;
 }) {
+  const access = useAccess();
+  const admin = canAdmin(access);
+  const visiblePages = pages.filter(({ to }) => admin || to !== "/scans");
   const breadcrumbs = useWorkspaceBreadcrumbs();
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-hidden">
       <header
         className="workspace-toolbar"
         data-breadcrumbs={breadcrumbs.length > 0}
+        data-authenticated={access.state === "authenticated"}
       >
         <div className="workspace-toolbar-start">
           <Link
@@ -56,7 +62,7 @@ export function WorkspaceLayout({
           </Link>
           <nav aria-label="Main navigation" className="workspace-nav">
             <div className="workspace-nav-tabs">
-              {pages.map(({ to, label }) => (
+              {visiblePages.map(({ to, label }) => (
                 <Link
                   key={to}
                   to={to}
@@ -86,26 +92,8 @@ export function WorkspaceLayout({
               className="workspace-nav-tabs"
             >
               <Link to="/roadmap">Roadmap</Link>
+              {admin && <Link to="/settings">Settings</Link>}
             </nav>
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Link
-                    to="/settings"
-                    aria-label="Settings"
-                    className={buttonVariants({
-                      variant: "ghost",
-                      size: "icon",
-                      className:
-                        "text-muted-foreground aria-[current=page]:bg-muted aria-[current=page]:text-foreground",
-                    })}
-                  />
-                }
-              >
-                <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Settings</TooltipContent>
-            </Tooltip>
           </div>
           <div className="workspace-nav-menu">
             <DropdownMenu>
@@ -122,7 +110,7 @@ export function WorkspaceLayout({
                 <HugeiconsIcon icon={Menu01Icon} aria-hidden="true" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {pages.map(({ to, label, icon }) => (
+                {visiblePages.map(({ to, label, icon }) => (
                   <DropdownMenuItem
                     key={to}
                     render={
@@ -142,13 +130,16 @@ export function WorkspaceLayout({
                   <HugeiconsIcon icon={ListViewIcon} aria-hidden="true" />
                   Roadmap
                 </DropdownMenuItem>
-                <DropdownMenuItem render={<Link to="/settings" />}>
-                  <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
-                  Settings
-                </DropdownMenuItem>
+                {admin && (
+                  <DropdownMenuItem render={<Link to="/settings" />}>
+                    <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
+                    Settings
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
+          <AccountMenu />
         </div>
       </header>
       <main className="workspace-content">{children}</main>

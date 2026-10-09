@@ -1,3 +1,5 @@
+import { canAdmin } from "@/lib/auth/access";
+import { useAccess } from "./auth/access-context";
 import type { components } from "@/lib/schema";
 import { getTagIcon } from "@/lib/catalog-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -17,6 +19,7 @@ export function DocumentEditorDetails({
   onChange: (value: components["schemas"]["DocumentEdit"]) => void;
   disabled: boolean;
 }) {
+  const admin = canAdmin(useAccess());
   return (
     <>
       <fieldset
@@ -35,11 +38,13 @@ export function DocumentEditorDetails({
             }
           />
         </label>
-        <OwnerSelection
-          owners={catalog.owners}
-          value={value.owner_ids}
-          onChange={(owner_ids) => onChange({ ...value, owner_ids })}
-        />
+        {admin && (
+          <OwnerSelection
+            owners={catalog.owners}
+            value={value.owner_ids}
+            onChange={(owner_ids) => onChange({ ...value, owner_ids })}
+          />
+        )}
         <div className="field-label">
           Issue date
           <DatePicker

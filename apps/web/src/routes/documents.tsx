@@ -1,3 +1,5 @@
+import { useAccess } from "@/components/auth/access-context";
+import { canAdmin } from "@/lib/auth/access";
 import { useLiveData } from "@/hooks/use-live-data";
 import { z } from "zod";
 import {
@@ -78,6 +80,7 @@ export const Route = createFileRoute("/documents")({
 });
 function Documents() {
   useLiveData();
+  const admin = canAdmin(useAccess());
   const { documents, catalog, preview, source } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -116,18 +119,19 @@ function Documents() {
         description="documents/ · All folders"
         count={documents.total}
       >
-        <Link to="/scans/upload" className={buttonVariants()}>
-          <HugeiconsIcon icon={Upload04Icon} />
-          Upload scan
-        </Link>
+        {admin && (
+          <Link to="/scans/upload" className={buttonVariants()}>
+            <HugeiconsIcon icon={Upload04Icon} />
+            Upload scan
+          </Link>
+        )}
       </PageHeader>
       <Collection
         preview={
           full ? (
             <Outlet />
           ) : (
-            preview &&
-            source && (
+            preview && (
               <DocumentDetail
                 {...preview}
                 source={source}

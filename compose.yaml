@@ -8,6 +8,8 @@ services:
     environment:
       PAPERMAN_DATA_DIR: /data
       PAPERMAN_MODEL_API_KEY: ${PAPERMAN_MODEL_API_KEY:-local}
+      PAPERMAN_AUTH_ENABLED: ${PAPERMAN_AUTH_ENABLED:-false}
+      PAPERMAN_API_AUTH_SECRET: ${PAPERMAN_API_AUTH_SECRET:-}
     volumes:
       - ${PAPERMAN_DATA_DIR:?Set PAPERMAN_DATA_DIR to an existing document directory}:/data
   worker:
@@ -29,7 +31,17 @@ services:
     restart: unless-stopped
     environment:
       PAPERMAN_API_URL: http://api:3000
+      PAPERMAN_AUTH_ENABLED: ${PAPERMAN_AUTH_ENABLED:-false}
+      PAPERMAN_AUTH_URL: ${PAPERMAN_AUTH_URL:-}
+      PAPERMAN_AUTH_DATABASE: /auth/auth.sqlite
+      PAPERMAN_AUTH_SECRET: ${PAPERMAN_AUTH_SECRET:-}
+      PAPERMAN_API_AUTH_SECRET: ${PAPERMAN_API_AUTH_SECRET:-}
+    volumes:
+      - auth:/auth
     ports:
       - "${PAPERMAN_BIND:-127.0.0.1}:3020:3001"
     depends_on:
       - api
+
+volumes:
+  auth:

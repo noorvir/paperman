@@ -10,7 +10,7 @@ PaperMan turns scanned PDFs into a searchable document library. It splits scan b
 
 ## Get started
 
-Install Python 3.13+, [uv](https://docs.astral.sh/uv/), [Bun](https://bun.sh/) 1.3+, Poppler, and Tesseract. Install Tesseract language data for the documents you expect to scan.
+Install Node.js 24+, Python 3.13+, [uv](https://docs.astral.sh/uv/), [Bun](https://bun.sh/) 1.3+, Poppler, and Tesseract. Install Tesseract language data for the documents you expect to scan.
 
 On macOS, the system packages are available with `brew install poppler tesseract tesseract-lang`. On Debian or Ubuntu, use `poppler-utils` and `tesseract-ocr`, plus the required language packages.
 
@@ -40,13 +40,17 @@ For a filed document, select **Reprocess** and confirm to generate tags, tag sug
 
 Documents start as unverified. Use the normal PDF, Text, Summary, and Details tabs to check the document. The Source tab, also available through the source file link, shows the original scan and its details in the same document view. The document side panel has **View in context** controls that show the full scan with unrelated pages dimmed while keeping the PDF tab and document details. Turn context off to return to the document PDF. The context toggle is available only in the full document sidebar. List previews show a verification badge beside the linked title; open the full document to verify it. Click outside a preview to close it. Collection rows keep their normal selection and opening behavior. It starts at the first source page and dims unrelated pages. The scan sidebar links to the other extracted documents; narrow views have expandable source details. Source remains available after verification.
 
-Select **Verify** to save verification immediately, without leaving the current view. After saving, the Verify button disappears and a green verified icon appears beside the title; its tooltip shows Verified. Reserved header space prevents layout shifts. The table uses the same icon-only badge, centered in its column. During saving, a circular spinner replaces its icon; the text and width stay unchanged. Metadata records the time and reviewer `unknown` until reviewer identification is added. Cards and the table show verification status. Edits and document reprocessing retain verification; scan reprocessing retains it when source pages match.
+Select **Verify** to save verification immediately, without leaving the current view. After saving, the Verify button disappears and a green verified icon appears beside the title; its tooltip shows Verified. Reserved header space prevents layout shifts. The table uses the same icon-only badge, centered in its column. During saving, a circular spinner replaces its icon; the text and width stay unchanged. Metadata records the time and reviewer `unknown` when authentication is disabled, or the signed-in user’s name when enabled. Cards and the table show verification status. Edits and document reprocessing retain verification; scan reprocessing retains it when source pages match.
 
 Select a document or scan to preview it. Select the same row again to open the full page. Full scan pages show scan details and links to the extracted documents in a sidebar.
 
 Document editing shows the PDF beside Details, Summary, and Text tabs. In edit mode, the PDF rotate button turns the current page by 90 degrees. Save changes updates the filed PDF and all owner copies; Cancel discards the rotation. The text layer and original scan are retained. Outside edit mode, rotation changes only the view. Changes stay in one draft until you select **Save changes**. **Edit pages** opens the source scan's page groups. Leaving any edit form with unsaved changes asks you to keep editing or discard them; reloading or closing the tab uses the browser's confirmation.
 
 To try the interface without an AI service, run `bun run demo` instead. It uses fictional documents in a separate `.demo-data/` directory.
+
+## Optional authentication
+
+PaperMan works without login by default. Enable [authentication and owner access](docs/authentication.md) to use admin-created accounts, personal/admin modes, and per-owner document access. Users can edit metadata and verify permitted documents; only admin mode can change owners or pages, access full scans, or change global settings.
 
 ## Connect your setup
 

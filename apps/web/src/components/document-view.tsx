@@ -32,7 +32,7 @@ export function DocumentView({
   pageSelection,
 }: {
   document: components["schemas"]["Document"];
-  source: ComponentProps<typeof ScanInformation>;
+  source: ComponentProps<typeof ScanInformation> | null;
   text: string;
   catalog: components["schemas"]["Catalog"];
   view: z.output<typeof documentView>;
@@ -47,7 +47,7 @@ export function DocumentView({
 }) {
   const sidebar = !preview;
   const [showContext, setShowContext] = useState(false);
-  const contextControls = (
+  const contextControls = source && (
     <DocumentContextControls checked={showContext} onChange={setShowContext} />
   );
   const [openedSource, setOpenedSource] = useState(view === "source");
@@ -64,7 +64,7 @@ export function DocumentView({
         params: { documentId: document.id },
         search: { ...search, view: "source" },
       });
-  const sourceLink = (
+  const sourceLink = source && (
     <FileLink
       {...sourceDestination}
       replace
@@ -77,7 +77,7 @@ export function DocumentView({
       editor={editor}
       sidebar={
         sidebar &&
-        (view === "source" ? (
+        (view === "source" && source ? (
           <ScanInformation {...source} />
         ) : (
           <DocumentInformation
@@ -112,7 +112,7 @@ export function DocumentView({
           aria-hidden={!editor && view !== "pdf"}
           inert={!editor && view !== "pdf"}
         >
-          {editor ? (
+          {editor && source ? (
             <PdfPreview
               url={`/api/scans/${source.scan.id}/pdf?variant=searchable`}
               title={`Select pages from ${source.scan.original_name}`}
@@ -126,12 +126,16 @@ export function DocumentView({
               title={document.title}
               rotations={rotations}
               onRotatePage={onRotatePage}
-              showContext={!editor && showContext}
-              source={{
-                url: `/api/scans/${source.scan.id}/pdf`,
-                title: `Source scan: ${source.scan.original_name}`,
-                pages: document.source_pages,
-              }}
+              showContext={!editor && source !== null && showContext}
+              source={
+                source
+                  ? {
+                      url: `/api/scans/${source.scan.id}/pdf`,
+                      title: `Source scan: ${source.scan.original_name}`,
+                      pages: document.source_pages,
+                    }
+                  : null
+              }
               url={`/api/documents/${document.id}/pdf?pdf_revision=${pdfRevision}`}
             />
           )}
@@ -196,8 +200,12 @@ export function DocumentView({
             />
           </div>
           <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 break-all p-3 text-xs leading-relaxed">
-            <dt>Source scan</dt>
-            <dd>{sourceLink}</dd>
+            {sourceLink && (
+              <>
+                <dt>Source scan</dt>
+                <dd>{sourceLink}</dd>
+              </>
+            )}
             <dt>Source pages</dt>
             <dd>{document.source_pages.join(", ")}</dd>
             <dt>Processing run</dt>
@@ -234,7 +242,7 @@ export function DocumentView({
           inert={Boolean(editor) || view !== "source"}
           aria-label="Source scan"
         >
-          {openedSource && (
+          {openedSource && source && (
             <DocumentSource
               source={source}
               pages={document.source_pages}

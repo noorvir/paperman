@@ -4,10 +4,17 @@ version = "0.1.0"
 description = "Private document processing with filesystem state"
 requires-python = ">=3.13"
 dependencies = [
-  "fastapi>=0.115", "uvicorn[standard]>=0.34", "pydantic>=2.11",
-  "pydantic-settings>=2.8", "paperman-parser", "pypdf>=6",
-  "tomli-w>=1.2", "watchfiles>=1",
-  "filelock>=3.18", "python-multipart>=0.0.20",
+  "fastapi>=0.115",
+  "uvicorn[standard]>=0.34",
+  "pydantic>=2.11",
+  "pydantic-settings>=2.8",
+  "paperman-parser",
+  "pypdf>=6",
+  "tomli-w>=1.2",
+  "watchfiles>=1",
+  "filelock>=3.18",
+  "python-multipart>=0.0.20",
+  "pyjwt>=2.15.1",
 ]
 [dependency-groups]
 dev = [

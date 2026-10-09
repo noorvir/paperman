@@ -1,22 +1,36 @@
-from typing import Literal
+from typing import Annotated, Literal
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from paperman_parser.models import Catalog, CatalogEntry, Identifier
 
 from paperman.api_models import EntryInput, EntryRemoval
+from paperman.auth import Auth, Principal
 from paperman.models import Event
 from paperman.storage import FileStorage, slug, write_record
 
 
-def routes(storage: FileStorage) -> APIRouter:
+def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     router = APIRouter()
 
     @router.get("/api/catalog", operation_id="catalog")
-    def catalog() -> Catalog:
-        return storage.catalog()
+    def catalog(principal: Annotated[Principal | None, Depends(auth)]) -> Catalog:
+        catalog = storage.catalog()
+        if principal is not None and not principal.admin:
+            visible_owners = set(principal.owner_ids)
+            for document in storage.list_documents():
+                if principal.can_view(document):
+                    visible_owners.update(document.owner_ids)
+            catalog.owners = [
+                owner for owner in catalog.owners if owner.id in visible_owners
+            ]
+        return catalog
 
-    @router.post("/api/catalog/{kind}", operation_id="create_entry")
+    @router.post(
+        "/api/catalog/{kind}",
+        operation_id="create_entry",
+        dependencies=[Depends(auth.require_admin)],
+    )
     def create_entry(
         kind: Literal["owners", "tags"], value: EntryInput
     ) -> CatalogEntry:
@@ -38,7 +52,11 @@ def routes(storage: FileStorage) -> APIRouter:
             write_record(storage.root / "catalog.toml", catalog)
             return entry
 
-    @router.put("/api/catalog/{kind}/{entry_id}", operation_id="update_entry")
+    @router.put(
+        "/api/catalog/{kind}/{entry_id}",
+        operation_id="update_entry",
+        dependencies=[Depends(auth.require_admin)],
+    )
     def update_entry(
         kind: Literal["owners", "tags"], entry_id: Identifier, value: EntryInput
     ) -> CatalogEntry:
@@ -60,7 +78,11 @@ def routes(storage: FileStorage) -> APIRouter:
                     return entry
             raise FileNotFoundError()
 
-    @router.delete("/api/catalog/{kind}/{entry_id}", operation_id="delete_entry")
+    @router.delete(
+        "/api/catalog/{kind}/{entry_id}",
+        operation_id="delete_entry",
+        dependencies=[Depends(auth.require_admin)],
+    )
     def delete_entry(
         kind: Literal["owners", "tags"],
         entry_id: Identifier,

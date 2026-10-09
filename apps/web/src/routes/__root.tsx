@@ -1,5 +1,6 @@
 import {
   createRootRoute,
+  redirect,
   HeadContent,
   Outlet,
   Scripts,
@@ -10,12 +11,34 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "cn";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { getSettings } from "@/lib/queries";
+import { getWorkspace, getSessionAccess } from "@/lib/auth/functions";
+import { canAdmin } from "@/lib/auth/access";
+import { AccessContext } from "@/components/auth/access-context";
 import "@/style.css";
 import interFont from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
 
 export const Route = createRootRoute({
-  loader: () => getSettings(),
+  beforeLoad: async ({ location }) => {
+    const access = await getSessionAccess();
+    if (access.state === "anonymous" && location.pathname !== "/login") {
+      throw redirect({ to: "/login" });
+    }
+    if (access.state !== "anonymous" && location.pathname === "/login") {
+      throw redirect({ to: "/" });
+    }
+    const adminPage = /^\/(scans|settings|users)(\/|$)/.test(location.pathname);
+    if (adminPage && !canAdmin(access)) {
+      throw redirect({ to: "/documents" });
+    }
+    if (
+      access.state === "disabled" &&
+      ["/users", "/account"].includes(location.pathname)
+    ) {
+      throw redirect({ to: "/" });
+    }
+    return { access };
+  },
+  loader: () => getWorkspace(),
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -54,9 +77,15 @@ function Root() {
       </head>
       <body>
         <TooltipProvider>
-          <WorkspaceLayout demo={settings.provider === "demo"}>
-            <Outlet />
-          </WorkspaceLayout>
+          <AccessContext value={settings.access}>
+            {settings.access.state === "anonymous" ? (
+              <Outlet />
+            ) : (
+              <WorkspaceLayout demo={settings.demo}>
+                <Outlet />
+              </WorkspaceLayout>
+            )}
+          </AccessContext>
         </TooltipProvider>
         <Scripts />
       </body>

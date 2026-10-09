@@ -2,7 +2,7 @@ from datetime import date
 from pathlib import Path
 from typing import Annotated, Literal
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import FileResponse
 from paperman_parser.models import Identifier, PageRotation
 from paperman_parser.pdf import rotate_pages
@@ -14,16 +14,18 @@ from paperman.api_models import (
     DocumentVerify,
     TagSelection,
 )
+from paperman.auth import Auth, Principal, check_document
 from paperman.models import Document, Event, SearchIndex, Verification, now
 from paperman.pdf import edit_pages
 from paperman.storage import FileStorage, atomic_target, safe_path
 
 
-def routes(storage: FileStorage) -> APIRouter:
+def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     router = APIRouter()
 
     @router.get("/api/documents", operation_id="documents")
     def documents(
+        principal: Annotated[Principal | None, Depends(auth)],
         q: str = "",
         owner: Annotated[list[str] | None, Query()] = None,
         tag: Annotated[list[str] | None, Query()] = None,
@@ -62,7 +64,8 @@ def routes(storage: FileStorage) -> APIRouter:
         items = [
             doc
             for doc in documents
-            if (not owners or set(doc.owner_ids).intersection(owners))
+            if (principal is None or principal.can_view(doc))
+            and (not owners or set(doc.owner_ids).intersection(owners))
             and (not tags or not tags.isdisjoint(effective_tags(doc)))
             and (not status or doc.enrichment_status == status)
             and (not after or doc.document_date >= after)
@@ -121,20 +124,37 @@ def routes(storage: FileStorage) -> APIRouter:
         )
 
     @router.get("/api/documents/{document_id}", operation_id="document")
-    def document(document_id: Identifier) -> DocumentDetail:
+    def document(
+        document_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
+    ) -> DocumentDetail:
         doc = storage.get_document(document_id)
+        check_document(principal, doc)
         return DocumentDetail(document=doc, text=storage.document_text(doc))
 
     @router.put("/api/documents/{document_id}", operation_id="edit_document")
-    def edit_document(document_id: Identifier, value: DocumentEdit) -> DocumentDetail:
+    def edit_document(
+        document_id: Identifier,
+        value: DocumentEdit,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> DocumentDetail:
         with storage.transaction():
             doc = storage.get_document(document_id)
+            check_document(principal, doc)
             ensure_filed(storage, doc)
             if doc.revision != value.revision:
                 raise HTTPException(
                     409,
                     "This document changed. Cancel and reopen the editor to load the latest version",
                 )
+            if principal is not None and not principal.admin:
+                if (
+                    value.owner_ids != doc.owner_ids
+                    or value.rotations
+                    or value.source_pages not in (None, doc.source_pages)
+                ):
+                    raise HTTPException(
+                        403, "Admin mode is required to change owners or pages"
+                    )
             catalog = storage.catalog()
             if not set(value.owner_ids) <= {owner.id for owner in catalog.owners}:
                 raise ValueError("Select owners from the catalog")
@@ -243,9 +263,14 @@ def routes(storage: FileStorage) -> APIRouter:
             return DocumentDetail(document=doc, text=storage.document_text(doc))
 
     @router.post("/api/documents/{document_id}/verify", operation_id="verify_document")
-    def verify_document(document_id: Identifier, value: DocumentVerify) -> Document:
+    def verify_document(
+        document_id: Identifier,
+        value: DocumentVerify,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> Document:
         with storage.transaction():
             doc = storage.get_document(document_id)
+            check_document(principal, doc)
             ensure_filed(storage, doc)
             if doc.verification is not None:
                 return doc
@@ -253,21 +278,25 @@ def routes(storage: FileStorage) -> APIRouter:
                 raise HTTPException(
                     409, "This document changed. Reload it before verifying"
                 )
-            doc.verification = Verification(at=now(), by=value.reviewer)
+            reviewer = principal.name if principal else value.reviewer
+            doc.verification = Verification(at=now(), by=reviewer)
             doc.revision += 1
             doc.history.append(
                 Event(
                     at=doc.verification.at,
                     stage="verify",
-                    message=f"Verified by {value.reviewer}",
+                    message=f"Verified by {reviewer}",
                 )
             )
             storage.save_document(doc)
             return doc
 
     @router.get("/api/documents/{document_id}/pdf", operation_id="document_pdf")
-    def document_pdf(document_id: Identifier) -> FileResponse:
+    def document_pdf(
+        document_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
+    ) -> FileResponse:
         doc = storage.get_document(document_id)
+        check_document(principal, doc)
         return FileResponse(
             safe_path(storage.root, doc.final_path),
             media_type="application/pdf",
@@ -276,9 +305,14 @@ def routes(storage: FileStorage) -> APIRouter:
         )
 
     @router.put("/api/documents/{document_id}/tags", operation_id="document_tags")
-    def document_tags(document_id: Identifier, value: TagSelection) -> Document:
+    def document_tags(
+        document_id: Identifier,
+        value: TagSelection,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> Document:
         with storage.transaction():
             doc = storage.get_document(document_id)
+            check_document(principal, doc)
             ensure_filed(storage, doc)
             allowed = {tag.id for tag in storage.catalog().tags}
             if not set(value.tag_ids) <= allowed:
@@ -290,10 +324,17 @@ def routes(storage: FileStorage) -> APIRouter:
             storage.save_document(doc)
             return doc
 
-    @router.post("/api/documents/{document_id}/enrich", operation_id="enrich_document")
-    def enrich(document_id: Identifier) -> Document:
+    @router.post(
+        "/api/documents/{document_id}/enrich",
+        operation_id="enrich_document",
+        dependencies=[Depends(auth.require_admin)],
+    )
+    def enrich(
+        document_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
+    ) -> Document:
         with storage.transaction():
             doc = storage.get_document(document_id)
+            check_document(principal, doc)
             ensure_filed(storage, doc)
             if doc.enrichment_status in ("pending", "running"):
                 raise HTTPException(
