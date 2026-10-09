@@ -117,6 +117,7 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                     storage.save_scan(scan)
             document = existing or Document(
                 id=identifier,
+                inbox_id=scan.inbox_id,
                 scan_id=scan.id,
                 processing_run=scan.processing_run,
                 source_pages=item.pages,
@@ -129,11 +130,17 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                 final_path=final_path,
             )
             if existing is None:
+                inbox = storage.get_inbox(scan.inbox_id)
+                if inbox.account_id is not None:
+                    document.access_user_ids = [inbox.account_id]
+                    document.delivery_status = "delivered"
                 previous = next(
                     (doc for doc in current if doc.source_pages == item.pages), None
                 )
                 if previous is not None:
                     document.verification = previous.verification
+                    document.access_user_ids = previous.access_user_ids.copy()
+                    document.delivery_status = previous.delivery_status
             document.processing = allocate_usage(calls, item.pages, retained_pages)
             if existing is None and scan.filing_revision:
                 replaced = [

@@ -58,6 +58,8 @@ class ScanDetail(Scan):
 
 
 class Dashboard(Record):
+    routing_documents: list[Document]
+    routing_total: int
     documents: int
     pending: int
     review: int
@@ -107,9 +109,40 @@ class EntryRemoval(Record):
     scans: int
 
 
+class SourceReference(Record):
+    scan_id: Identifier
+    inbox: Literal["personal", "shared"]
+    accessible: bool
+
+
 class DocumentDetail(Record):
     document: Document
     text: str
+    source: SourceReference
+    can_manage_access: bool
+    can_edit_pages: bool
+
+
+class AccountInbox(Record):
+    account_id: Identifier
+    name: Name
+
+
+class InboxRouting(Record):
+    owner_ids: list[Identifier]
+
+
+class DocumentAccess(Record):
+    user_ids: list[Identifier]
+    owner_user_id: Identifier | None
+    suggested_user_ids: list[Identifier]
+    recipients: list[AccountInbox]
+    revision: int
+
+
+class DocumentDelivery(Record):
+    user_ids: list[Identifier] = Field(max_length=1000)
+    revision: int = Field(ge=0)
 
 
 class DocumentEdit(Ownership):
@@ -150,3 +183,7 @@ class ScanFeedback(Record):
 class WorkspaceSettings(Record):
     time_format: Literal["24h", "12h"]
     demo: bool
+
+
+class WorkspacePreferences(Record):
+    time_format: Literal["24h", "12h"]

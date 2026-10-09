@@ -30,7 +30,7 @@ function Users() {
     <div className="workspace-page max-w-5xl">
       <PageHeader
         title="Users"
-        description="Manage accounts, owner access, and sessions."
+        description="Manage accounts, shared-mail routing, and sessions."
         count={total}
       />
       <div className="grid min-w-0 grid-cols-1 items-start gap-8 md:grid-cols-[minmax(0,1fr)_20rem]">

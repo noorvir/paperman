@@ -26,7 +26,10 @@ export const Route = createRootRoute({
     if (access.state !== "anonymous" && location.pathname === "/login") {
       throw redirect({ to: "/" });
     }
-    const adminPage = /^\/(scans|settings|users)(\/|$)/.test(location.pathname);
+    const adminPage =
+      /^\/users(\/|$)/.test(location.pathname) ||
+      /^\/settings\/.+\/(new|edit)$/.test(location.pathname) ||
+      /^\/settings\/[^/]+\/new$/.test(location.pathname);
     if (adminPage && !canAdmin(access)) {
       throw redirect({ to: "/documents" });
     }

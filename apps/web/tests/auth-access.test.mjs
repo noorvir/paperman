@@ -46,7 +46,7 @@ test(
       await login(admin, adminEmail, adminPassword);
       assert.equal(
         (await adminContext.request.get(base + "/api/scans")).status(),
-        403,
+        200,
       );
       await admin
         .getByRole("button", { name: "Administrator", exact: true })
@@ -69,27 +69,42 @@ test(
         .getByRole("button", { name: "Create user", exact: true })
         .click();
       await admin.getByRole("link", { name: new RegExp(email) }).click();
-      await admin.getByText("Allowed owners", { exact: true }).waitFor();
+      await admin.getByText("Shared-mail routing", { exact: true }).waitFor();
       await login(user, email, password);
       let result = await userContext.request.get(base + "/api/documents");
       assert.equal((await result.json()).total, 0);
       await admin
         .getByRole("checkbox", { name: "Alex Morgan", exact: true })
         .check();
-      await admin.getByRole("button", { name: "Save access" }).click();
       await admin
-        .getByRole("button", { name: "Save access" })
+        .getByRole("button", { name: "Save routing and role" })
+        .click();
+      await admin
+        .getByRole("button", { name: "Save routing and role" })
         .waitFor({ state: "visible" });
       await admin.waitForFunction(
         () => !document.querySelector('[aria-busy="true"]'),
       );
       result = await userContext.request.get(base + "/api/documents");
-      const permitted = await result.json();
-      assert.ok(permitted.total > 0);
-      assert.ok(permitted.items.every((doc) => doc.owner_ids.includes("alex")));
+      assert.equal((await result.json()).total, 0);
       const all = await (
         await adminContext.request.get(base + "/api/documents")
       ).json();
+      const target = all.items.find((doc) => doc.owner_ids.includes("alex"));
+      assert.ok(target);
+      await admin.goto(`${base}/documents/${target.id}`);
+      await admin.getByRole("button", { name: "Manage access" }).click();
+      await admin.getByRole("checkbox", { name: /Access Test User/ }).check();
+      await admin
+        .getByRole("button", { name: "Save access", exact: true })
+        .click();
+      await admin.getByRole("button", { name: "Manage access" }).waitFor();
+      result = await userContext.request.get(base + "/api/documents");
+      const permitted = await result.json();
+      assert.deepEqual(
+        permitted.items.map((doc) => doc.id),
+        [target.id],
+      );
       const other = all.items.find((doc) => !doc.owner_ids.includes("alex"));
       assert.ok(other);
       for (const suffix of ["", "/pdf"]) {
@@ -102,26 +117,33 @@ test(
           404,
         );
       }
-      for (const url of [
-        "/api/settings",
-        "/api/scans",
-        `/api/scans/${other.scan_id}/pdf`,
-        "/api/auth/admin/list-users",
-      ]) {
+      for (const url of ["/api/settings", "/api/auth/admin/list-users"]) {
         assert.equal((await userContext.request.get(base + url)).status(), 403);
       }
+      assert.equal(
+        (await userContext.request.get(base + "/api/scans")).status(),
+        200,
+      );
+      assert.equal(
+        (
+          await userContext.request.get(
+            `${base}/api/scans/${other.scan_id}/pdf`,
+          )
+        ).status(),
+        404,
+      );
       const doc = permitted.items[0];
       await user.goto(`${base}/documents/${doc.id}`);
       await user.getByRole("button", { name: "Edit", exact: true }).waitFor();
       assert.equal(
         await user.getByRole("link", { name: "Source", exact: true }).count(),
-        0,
+        1,
       );
       assert.equal(
         await user
           .getByRole("button", { name: "Reprocess", exact: true })
           .count(),
-        0,
+        1,
       );
       assert.equal(
         (
@@ -166,20 +188,22 @@ test(
         assert.equal(verified.document.verification.by, "Access Test User");
       }
       await user.goto(base + "/settings");
-      await user.waitForURL(base + "/documents");
+      await user.getByRole("heading", { name: "Your account" }).waitFor();
+      await user.getByRole("heading", { name: "Your inbox" }).waitFor();
+      await admin.getByRole("button", { name: "Manage access" }).click();
+      await admin.getByRole("checkbox", { name: /Access Test User/ }).uncheck();
       await admin
-        .getByRole("checkbox", { name: "Alex Morgan", exact: true })
-        .uncheck();
-      await admin.getByRole("button", { name: "Save access" }).click();
-      await admin.waitForFunction(
-        () => !document.querySelector('[aria-busy="true"]'),
-      );
+        .getByRole("button", { name: "Save access", exact: true })
+        .click();
+      await admin.getByRole("button", { name: "Manage access" }).waitFor();
       assert.equal(
         (
           await userContext.request.get(`${base}/api/documents/${doc.id}`)
         ).status(),
         404,
       );
+      await admin.goto(base + "/users");
+      await admin.getByRole("link", { name: new RegExp(email) }).click();
       await admin
         .getByRole("button", { name: "Suspend account", exact: true })
         .click();

@@ -21,6 +21,6 @@ await runtime.auth.api.createUser({
   body: { email, name, password, role: "admin" },
 });
 console.info(
-  "Administrator created. Sign in and switch to admin mode to assign owners.",
+  "Administrator created. Sign in and switch to admin mode to manage users and deliver shared documents.",
 );
 runtime.db.close();

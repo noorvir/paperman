@@ -1,6 +1,5 @@
 import { AccountMenu } from "./auth/account-menu";
 import { useAccess } from "./auth/access-context";
-import { canAdmin } from "@/lib/auth/access";
 import type { ComponentProps, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -41,8 +40,7 @@ export function WorkspaceLayout({
   demo: boolean;
 }) {
   const access = useAccess();
-  const admin = canAdmin(access);
-  const visiblePages = pages.filter(({ to }) => admin || to !== "/scans");
+  const visiblePages = pages;
   const breadcrumbs = useWorkspaceBreadcrumbs();
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-hidden">
@@ -92,7 +90,7 @@ export function WorkspaceLayout({
               className="workspace-nav-tabs"
             >
               <Link to="/roadmap">Roadmap</Link>
-              {admin && <Link to="/settings">Settings</Link>}
+              <Link to="/settings">Settings</Link>
             </nav>
           </div>
           <div className="workspace-nav-menu">
@@ -130,12 +128,10 @@ export function WorkspaceLayout({
                   <HugeiconsIcon icon={ListViewIcon} aria-hidden="true" />
                   Roadmap
                 </DropdownMenuItem>
-                {admin && (
-                  <DropdownMenuItem render={<Link to="/settings" />}>
-                    <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
-                    Settings
-                  </DropdownMenuItem>
-                )}
+                <DropdownMenuItem render={<Link to="/settings" />}>
+                  <HugeiconsIcon icon={Settings01Icon} aria-hidden="true" />
+                  Settings
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>

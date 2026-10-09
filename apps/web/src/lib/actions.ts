@@ -5,6 +5,29 @@ import { client, unwrap } from "./api.server";
 import { catalogIconInput } from "./catalog-icons";
 import { catalogKind } from "./queries";
 
+export const saveDocumentAccess = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      id: z.string(),
+      revision: z.number().int().min(0),
+      user_ids: z.array(z.string()).max(1000),
+    }),
+  )
+  .handler(async ({ data: { id, revision, user_ids } }) => {
+    const result = await client.PUT("/api/documents/{document_id}/access", {
+      params: { path: { document_id: id } },
+      body: { revision, user_ids },
+    });
+    return unwrap(result);
+  });
+
+export const savePreferences = createServerFn({ method: "POST" })
+  .validator(z.object({ time_format: z.enum(["24h", "12h"]) }))
+  .handler(async ({ data }) => {
+    const result = await client.PUT("/api/workspace", { body: data });
+    return unwrap(result);
+  });
+
 const entryInput = z.object({
   name: z.string().trim().min(1).max(120),
   aliases: z.array(z.string()),

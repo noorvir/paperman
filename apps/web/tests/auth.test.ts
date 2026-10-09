@@ -14,7 +14,7 @@ process.env.PAPERMAN_AUTH_URL = "http://localhost:3199";
 process.env.PAPERMAN_AUTH_SECRET = "test-session-secret-at-least-32-characters";
 process.env.PAPERMAN_API_AUTH_SECRET = "test-api-secret-at-least-32-characters";
 
-await test("real SQLite sessions enforce role, mode, revocation and current owner access", async () => {
+await test("real SQLite sessions enforce role, mode, revocation without owner-based grants", async () => {
   const runtime = await getAuth();
   assert.ok(runtime);
   const { auth, db } = runtime;
@@ -76,7 +76,6 @@ await test("real SQLite sessions enforce role, mode, revocation and current owne
       name: "Admin",
       role: "admin",
       mode: "personal",
-      ownerIds: [],
     });
     await assert.rejects(
       auth.api.listUsers({ headers: adminHeaders, query: {} }),
@@ -107,10 +106,6 @@ await test("real SQLite sessions enforce role, mode, revocation and current owne
       /Admin mode/,
     );
 
-    db.prepare("INSERT INTO user_owner(user_id, owner_id) VALUES (?, ?)").run(
-      user.user.id,
-      "alice",
-    );
     const identity = await identityHeaders(headers);
     assert.ok(identity);
     const token = identity.get("Authorization")?.slice(7);
@@ -120,14 +115,9 @@ await test("real SQLite sessions enforce role, mode, revocation and current owne
       issuer: "paperman-web",
       audience: "paperman-api",
     });
-    assert.deepEqual(signed.payload.owner_ids, ["alice"]);
+    assert.equal(signed.payload.owner_ids, undefined);
     assert.ok(signed.payload.exp && signed.payload.iat);
     assert.equal(signed.payload.exp - signed.payload.iat, 30);
-    db.prepare("DELETE FROM user_owner WHERE user_id = ?").run(user.user.id);
-    const changed = await getAccess(headers);
-    assert.ok(changed.state === "authenticated");
-    assert.deepEqual(changed.ownerIds, []);
-
     await auth.api.banUser({
       headers: adminHeaders,
       body: { userId: user.user.id, banReason: "Test suspension" },

@@ -12,6 +12,7 @@ export function DocumentInformation({
   search,
   allowActions,
   viewControls,
+  accessControls,
 }: {
   document: components["schemas"]["Document"];
   sourceLink: ReactNode;
@@ -19,6 +20,7 @@ export function DocumentInformation({
   search: ComponentProps<typeof DocumentTags>["search"];
   allowActions: boolean;
   viewControls?: ReactNode;
+  accessControls?: ReactNode;
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-4 text-xs">
@@ -58,6 +60,7 @@ export function DocumentInformation({
         )}
       </dl>
       {viewControls}
+      {accessControls}
       <DocumentTags
         document={document}
         catalog={catalog}

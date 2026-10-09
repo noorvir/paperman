@@ -1,4 +1,5 @@
 from datetime import UTC, date, datetime, timedelta
+from hashlib import sha256
 from pathlib import PurePosixPath
 from typing import Literal, Self
 
@@ -22,6 +23,10 @@ def now() -> datetime:
     return datetime.now(UTC)
 
 
+def personal_inbox_id(account_id: str) -> str:
+    return f"personal-{sha256(account_id.encode()).hexdigest()[:24]}"
+
+
 class ModelSettings(InferenceSettings):
     review_before_filing: bool = False
     ocr_languages: str = "eng"
@@ -38,8 +43,39 @@ class ScanUsage(ProcessingUsage):
     processing_run: int = Field(default=1, ge=1)
 
 
+class Inbox(Record):
+    id: Identifier
+    name: Name
+    account_id: Identifier | None = None
+    routing_owner_ids: list[Identifier] = Field(default_factory=list)
+    time_format: Literal["24h", "12h"] | None = None
+
+    @model_validator(mode="after")
+    def check_identity(self) -> Self:
+        expected = (
+            "shared" if self.account_id is None else personal_inbox_id(self.account_id)
+        )
+        if self.id != expected:
+            raise ValueError("An inbox ID must match its account")
+        return self
+
+
+class Inboxes(Record):
+    items: list[Inbox] = Field(
+        default_factory=lambda: [Inbox(id="shared", name="Shared inbox")]
+    )
+
+    @model_validator(mode="after")
+    def check_unique(self) -> Self:
+        ids = [inbox.id for inbox in self.items]
+        if len(ids) != len(set(ids)) or "shared" not in ids:
+            raise ValueError("Use one shared inbox and one inbox per account")
+        return self
+
+
 class Scan(Record):
     id: Identifier
+    inbox_id: Identifier = "shared"
     content_hash: str
     original_name: str
     scanned_at: datetime
@@ -65,6 +101,9 @@ class Verification(Record):
 
 
 class Document(Ownership):
+    inbox_id: Identifier = "shared"
+    access_user_ids: list[Identifier] = Field(default_factory=list)
+    delivery_status: Literal["review", "delivered"] = "review"
     verification: Verification | None = None
     manual_rotations: list[PageRotation] = Field(default_factory=list)
     owner_ids: list[Identifier] = Field(

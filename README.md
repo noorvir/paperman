@@ -50,7 +50,7 @@ To try the interface without an AI service, run `bun run demo` instead. It uses 
 
 ## Optional authentication
 
-PaperMan works without login by default. Enable [authentication and owner access](docs/authentication.md) to use admin-created accounts, personal/admin modes, and per-owner document access. Users can edit metadata and verify permitted documents; only admin mode can change owners or pages, access full scans, or change global settings.
+PaperMan works without login by default. Enable [authentication and inbox access](docs/authentication.md) for admin-created accounts, one personal inbox per account, and a shared inbox. Document access is explicit and separate from owner labels. Users can edit metadata, verify, and follow processing for permitted documents. Full source access is checked separately. Settings and Scans remain visible in both modes; global settings and shared-mail delivery require admin mode.
 
 ## Connect your setup
 

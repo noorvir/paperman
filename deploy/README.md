@@ -11,7 +11,7 @@ PaperMan runs as a web app, a Python API, and one worker. The API and worker sha
 
 Open <http://127.0.0.1:3020>. Choose the model endpoint and model ID in Settings. The endpoint must be reachable from the worker container; `localhost` inside a container refers to that container. The image includes English and German OCR data.
 
-The web port binds to loopback by default. The API has no published host port. For remote access, use an authenticated reverse proxy or a private network. PaperMan also supports optional [application authentication and owner access](../docs/authentication.md). Enable it before public access. The auth SQLite volume is separate from document storage and must be backed up separately.
+The web port binds to loopback by default. The API has no published host port. For remote access, use an authenticated reverse proxy or a private network. PaperMan also supports optional [application authentication and inbox access](../docs/authentication.md). Enable it before public access. The auth SQLite volume is separate from document storage and must be backed up separately.
 
 ## Integration boundaries
 

@@ -1,3 +1,6 @@
+import type { components } from "@/lib/schema";
+import { SelectField } from "./select-field";
+import { useAccess } from "./auth/access-context";
 import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
 import { UnsavedChangesDialog } from "./unsaved-changes-dialog";
 import { useRef, useState, type FormEvent } from "react";
@@ -12,7 +15,25 @@ import {
 import { Button, buttonVariants } from "@/components/ui/button";
 import { ErrorNotice } from "./page";
 
-export function UploadForm() {
+export function UploadForm({
+  inboxes,
+}: {
+  inboxes: components["schemas"]["Inbox"][];
+}) {
+  const access = useAccess();
+  const [inbox, setInbox] = useState(
+    () =>
+      inboxes.find(
+        (item) =>
+          access.state === "authenticated" && item.account_id === access.userId,
+      )?.id ?? "shared",
+  );
+  const destinations = inboxes.filter(
+    (item) =>
+      access.state !== "authenticated" ||
+      item.account_id === access.userId ||
+      item.id === "shared",
+  );
   const [pending, setPending] = useState(false);
   const [scanId, setScanId] = useState<string | null>(null);
   const [file, setFile] = useState<File | null>(null);
@@ -33,7 +54,10 @@ export function UploadForm() {
     const body = new FormData();
     body.set("file", file);
     try {
-      const response = await fetch("/api/uploads", { method: "POST", body });
+      const response = await fetch(
+        `/api/uploads?inbox=${encodeURIComponent(inbox)}`,
+        { method: "POST", body },
+      );
       const result: unknown = await response.json();
       if (!response.ok) {
         const error = z.object({ detail: z.string() }).safeParse(result);
@@ -91,6 +115,28 @@ export function UploadForm() {
       onSubmit={(event) => void upload(event)}
     >
       <UnsavedChangesDialog blocker={unsaved.blocker} />
+      <label className="field-label">
+        Destination
+        <SelectField
+          label="Destination inbox"
+          value={inbox}
+          items={destinations.map((item) => ({
+            value: item.id,
+            label:
+              item.id === "shared"
+                ? "Shared inbox"
+                : `Personal inbox · ${item.name}`,
+          }))}
+          onValueChange={(value) => {
+            if (value) setInbox(value);
+          }}
+        />
+      </label>
+      <p className="workspace-description">
+        {inbox === "shared"
+          ? "An admin will sort and deliver these documents. The full scan stays in the shared inbox."
+          : "You can see the full scan. Detected owner names do not share your documents."}
+      </p>
       <div
         className={`flex flex-col items-center gap-4 rounded-lg border border-dashed px-6 py-14 text-center transition-colors ${dragging ? "border-foreground bg-muted" : "bg-muted/30"}`}
         onDragOver={(event) => {

@@ -1,3 +1,5 @@
+import { canAdmin } from "@/lib/auth/access";
+import { useAccess } from "./auth/access-context";
 import { useState, type ComponentProps } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import type { z } from "zod";
@@ -23,6 +25,9 @@ export function DocumentDetail({
   document,
   text,
   source,
+  sourceReference,
+  can_manage_access,
+  can_edit_pages,
   catalog,
   search,
   view,
@@ -31,6 +36,9 @@ export function DocumentDetail({
 }: {
   document: components["schemas"]["Document"];
   text: string;
+  sourceReference: components["schemas"]["SourceReference"];
+  can_manage_access: boolean;
+  can_edit_pages: boolean;
   source: ComponentProps<typeof DocumentView>["source"];
   catalog: components["schemas"]["Catalog"];
   search: z.output<typeof documentSearch>;
@@ -38,6 +46,7 @@ export function DocumentDetail({
   preview: boolean;
   edit: boolean;
 }) {
+  const admin = canAdmin(useAccess());
   const navigate = useNavigate();
   const [pageDraft, setPageDraft] = useState(() =>
     getPageDraft(
@@ -130,7 +139,7 @@ export function DocumentDetail({
               {date}
             </DocumentFilterLink>
           </span>
-          {edit && source && (
+          {edit && source && can_edit_pages && (
             <span
               className="ml-auto text-right whitespace-normal"
               role="status"
@@ -148,10 +157,10 @@ export function DocumentDetail({
           <DocumentTabs
             documentId={document.id}
             search={search}
-            view={view === "source" && !source ? "pdf" : view}
+            view={view}
             preview={preview}
             edit={edit}
-            showSource={source !== null}
+            showSource
           />
         )
       }
@@ -197,7 +206,7 @@ export function DocumentDetail({
             <PreviewAction icon={Pen01Icon} onClick={() => setEditing(true)}>
               Edit
             </PreviewAction>
-            {source && <ReprocessDocument document={document} />}
+            <ReprocessDocument document={document} />
           </>
         )
       }
@@ -213,9 +222,11 @@ export function DocumentDetail({
         key={document.id}
         document={document}
         pdfRevision={edit ? pageDraft.revision : document.pdf_revision}
-        rotations={edit && source ? pageDraft.rotations : undefined}
+        rotations={
+          edit && source && can_edit_pages ? pageDraft.rotations : undefined
+        }
         onRotatePage={
-          edit && source && !saving
+          edit && source && can_edit_pages && !saving
             ? (page) => {
                 setPageDraft((current) => ({
                   ...current,
@@ -227,7 +238,7 @@ export function DocumentDetail({
             : undefined
         }
         pageSelection={
-          edit && source
+          edit && source && can_edit_pages
             ? {
                 pages: pageDraft.pages,
                 disabled: saving,
@@ -250,9 +261,12 @@ export function DocumentDetail({
             : undefined
         }
         source={source}
+        sourceReference={sourceReference}
+        canManageAccess={can_manage_access}
+        canEditPages={can_edit_pages}
         text={text}
         catalog={catalog}
-        view={view === "source" && !source ? "pdf" : view}
+        view={view}
         allowActions={!preview && !edit}
         preview={preview}
         search={documentSearch.parse(search)}
@@ -261,6 +275,7 @@ export function DocumentDetail({
             <DocumentEditor
               key={document.id}
               document={document}
+              canChangeOwners={admin && can_manage_access}
               text={text}
               pages={pageDraft.pages}
               rotations={pageDraft.rotations.map(

@@ -12,6 +12,7 @@ import { DocumentEditorDetails } from "./document-editor-details";
 
 export function DocumentEditor({
   document,
+  canChangeOwners,
   text,
   catalog,
   initialTab,
@@ -22,6 +23,7 @@ export function DocumentEditor({
 }: {
   document: components["schemas"]["Document"];
   text: string;
+  canChangeOwners: boolean;
   catalog: components["schemas"]["Catalog"];
   initialTab: "details" | "summary" | "text";
   onDone: () => void;
@@ -138,6 +140,7 @@ export function DocumentEditor({
         </Tabs.List>
         <Tabs.Panel value="details" keepMounted className="editor-panel">
           <DocumentEditorDetails
+            canChangeOwners={canChangeOwners}
             catalog={catalog}
             value={draft}
             onChange={setDraft}

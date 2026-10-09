@@ -9,7 +9,6 @@ export const accessSchema = z.discriminatedUnion("state", [
     name: z.string(),
     role: z.enum(["user", "admin"]),
     mode: z.enum(["personal", "admin"]),
-    ownerIds: z.array(z.string()),
   }),
 ]);
 export type Access = z.infer<typeof accessSchema>;

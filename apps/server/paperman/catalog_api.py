@@ -17,10 +17,14 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     def catalog(principal: Annotated[Principal | None, Depends(auth)]) -> Catalog:
         catalog = storage.catalog()
         if principal is not None and not principal.admin:
-            visible_owners = set(principal.owner_ids)
+            visible_owners: set[str] = set()
             for document in storage.list_documents():
                 if principal.can_view(document):
                     visible_owners.update(document.owner_ids)
+            for scan in storage.list_scans():
+                if principal.can_view_source(scan) and scan.proposal:
+                    for proposal in scan.proposal.documents:
+                        visible_owners.update(proposal.owner_ids)
             catalog.owners = [
                 owner for owner in catalog.owners if owner.id in visible_owners
             ]

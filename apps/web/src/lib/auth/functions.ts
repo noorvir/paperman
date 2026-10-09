@@ -42,7 +42,7 @@ export const setMode = createServerFn({ method: "POST" })
       .run(session.session.id, mode);
   });
 
-export const saveOwnerAccess = createServerFn({ method: "POST" })
+export const saveRoutingOwners = createServerFn({ method: "POST" })
   .validator(
     z.object({
       userId: z.string().min(1),
@@ -51,35 +51,47 @@ export const saveOwnerAccess = createServerFn({ method: "POST" })
   )
   .handler(async ({ data: { userId, ownerIds } }) => {
     await requireAdmin(getRequestHeaders());
+    const result = await client.GET("/api/inboxes");
+    const inboxes = unwrap(result);
+    const inbox = inboxes.find((item) => item.account_id === userId);
+    if (!inbox) {
+      throw new Error("Personal inbox not found");
+    }
+    const saved = await client.PUT("/api/inboxes/{inbox_id}/routing", {
+      params: { path: { inbox_id: inbox.id } },
+      body: { owner_ids: ownerIds },
+    });
+    return unwrap(saved);
+  });
+
+export const createAccount = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      name: z.string().trim().min(1).max(120),
+      email: z.email(),
+      password: z.string().min(12),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const headers = getRequestHeaders();
+    await requireAdmin(headers);
     const runtime = await getAuth();
     if (!runtime) {
       throw new Error("Authentication is disabled");
     }
-    const result = await client.GET("/api/catalog");
-    const catalog = unwrap(result);
-    if (
-      !ownerIds.every((id) => catalog.owners.some((owner) => owner.id === id))
-    ) {
-      throw new Error("Select owners from the catalog");
-    }
-    if (!runtime.db.prepare("SELECT id FROM user WHERE id = ?").get(userId)) {
-      throw new Error("User not found");
-    }
-    runtime.db.exec("BEGIN IMMEDIATE");
+    const result = await runtime.auth.api.createUser({
+      headers,
+      body: { ...data, role: "user" },
+    });
     try {
-      runtime.db
-        .prepare("DELETE FROM user_owner WHERE user_id = ?")
-        .run(userId);
-      const insert = runtime.db.prepare(
-        "INSERT INTO user_owner(user_id, owner_id) VALUES (?, ?)",
+      const registered = await client.PUT("/api/inboxes/accounts", {
+        body: [{ account_id: result.user.id, name: result.user.name }],
+      });
+      unwrap(registered);
+    } catch {
+      throw new Error(
+        "The account was created, but its inbox could not be set up. Reload Users to finish setup.",
       );
-      for (const id of new Set(ownerIds)) {
-        insert.run(userId, id);
-      }
-      runtime.db.exec("COMMIT");
-    } catch (error) {
-      runtime.db.exec("ROLLBACK");
-      throw error;
     }
   });
 
@@ -96,24 +108,29 @@ export const getUsers = createServerFn({ method: "GET" })
       headers,
       query: { limit: 25, offset, sortBy: "createdAt", sortDirection: "desc" },
     });
+    const selectedUser = userId
+      ? await runtime.auth.api.getUser({ headers, query: { id: userId } })
+      : null;
+    const accounts = users.users.map((user) => ({
+      account_id: user.id,
+      name: user.name,
+    }));
+    if (selectedUser && !accounts.some((item) => item.account_id === userId)) {
+      accounts.push({ account_id: selectedUser.id, name: selectedUser.name });
+    }
+    const registered = await client.PUT("/api/inboxes/accounts", {
+      body: accounts,
+    });
+    const inboxes = unwrap(registered);
     let selected = null;
-    if (userId) {
-      const user = await runtime.auth.api.getUser({
-        headers,
-        query: { id: userId },
-      });
+    if (selectedUser) {
       const sessions = await runtime.auth.api.listUserSessions({
         headers,
         body: { userId },
       });
-      const rows = runtime.db
-        .prepare("SELECT owner_id FROM user_owner WHERE user_id = ?")
-        .all(userId);
-      const ownerIds = z
-        .array(z.object({ owner_id: z.string() }))
-        .parse(rows)
-        .map(({ owner_id }) => owner_id);
-      selected = { user, sessions: sessions.sessions, ownerIds };
+      const inbox = inboxes.find((item) => item.account_id === userId);
+      const ownerIds = inbox?.routing_owner_ids ?? [];
+      selected = { user: selectedUser, sessions: sessions.sessions, ownerIds };
     }
     return { ...users, selected };
   });

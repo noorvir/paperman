@@ -8,10 +8,14 @@ from paperman_parser.models import Identifier, PageRotation
 from paperman_parser.pdf import rotate_pages
 
 from paperman.api_models import (
+    AccountInbox,
+    DocumentAccess,
+    DocumentDelivery,
     DocumentDetail,
     DocumentEdit,
     DocumentPage,
     DocumentVerify,
+    SourceReference,
     TagSelection,
 )
 from paperman.auth import Auth, Principal, check_document
@@ -30,6 +34,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
         owner: Annotated[list[str] | None, Query()] = None,
         tag: Annotated[list[str] | None, Query()] = None,
         status: str = "",
+        delivery: Literal["", "review", "delivered"] = "",
+        inbox: str = "",
         after: date | None = None,
         before: date | None = None,
         sort: Literal[
@@ -68,6 +74,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             and (not owners or set(doc.owner_ids).intersection(owners))
             and (not tags or not tags.isdisjoint(effective_tags(doc)))
             and (not status or doc.enrichment_status == status)
+            and (not delivery or doc.delivery_status == delivery)
+            and (not inbox or doc.inbox_id == inbox)
             and (not after or doc.document_date >= after)
             and (not before or doc.document_date <= before)
             and all(
@@ -129,7 +137,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     ) -> DocumentDetail:
         doc = storage.get_document(document_id)
         check_document(principal, doc)
-        return DocumentDetail(document=doc, text=storage.document_text(doc))
+        return document_detail(storage, principal, doc)
 
     @router.put("/api/documents/{document_id}", operation_id="edit_document")
     def edit_document(
@@ -146,7 +154,9 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
                     409,
                     "This document changed. Cancel and reopen the editor to load the latest version",
                 )
-            if principal is not None and not principal.admin:
+            if principal is not None and (
+                not principal.admin or not principal.can_manage_document(doc)
+            ):
                 if (
                     value.owner_ids != doc.owner_ids
                     or value.rotations
@@ -154,6 +164,13 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
                 ):
                     raise HTTPException(
                         403, "Admin mode is required to change owners or pages"
+                    )
+            if value.rotations or value.source_pages not in (None, doc.source_pages):
+                if principal is not None and not principal.can_view_source(
+                    storage.get_scan(doc.scan_id)
+                ):
+                    raise HTTPException(
+                        403, "Source access is required to change pages"
                     )
             catalog = storage.catalog()
             if not set(value.owner_ids) <= {owner.id for owner in catalog.owners}:
@@ -211,7 +228,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             }
             changed = [name for name, different in updates.items() if different]
             if not changed:
-                return DocumentDetail(document=doc, text=storage.document_text(doc))
+                return document_detail(storage, principal, doc)
             doc.title = value.title
             doc.owner_ids = value.owner_ids
             doc.document_date = value.document_date or doc.scanned_at.date()
@@ -260,7 +277,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             storage.save_document(doc)
             if pages_changed:
                 storage.rebuild_index()
-            return DocumentDetail(document=doc, text=storage.document_text(doc))
+            return document_detail(storage, principal, doc)
 
     @router.post("/api/documents/{document_id}/verify", operation_id="verify_document")
     def verify_document(
@@ -327,7 +344,6 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     @router.post(
         "/api/documents/{document_id}/enrich",
         operation_id="enrich_document",
-        dependencies=[Depends(auth.require_admin)],
     )
     def enrich(
         document_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
@@ -352,6 +368,76 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             (storage.root / "state" / "wake").touch()
             return doc
 
+    @router.get("/api/documents/{document_id}/access", operation_id="document_access")
+    def document_access(
+        document_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
+    ) -> DocumentAccess:
+        doc = storage.get_document(document_id)
+        check_document(principal, doc)
+        if principal is not None and not principal.can_manage_document(doc):
+            raise HTTPException(
+                403, "Only the source owner or shared-inbox admin can change access"
+            )
+        recipients = [
+            item for item in storage.list_inboxes() if item.account_id is not None
+        ]
+        return DocumentAccess(
+            user_ids=doc.access_user_ids,
+            owner_user_id=storage.get_inbox(doc.inbox_id).account_id,
+            suggested_user_ids=[
+                item.account_id
+                for item in recipients
+                if item.account_id is not None
+                and set(item.routing_owner_ids).intersection(doc.owner_ids)
+            ]
+            if doc.inbox_id == "shared"
+            else [],
+            recipients=[
+                AccountInbox(account_id=item.account_id, name=item.name)
+                for item in recipients
+                if item.account_id is not None
+            ],
+            revision=doc.revision,
+        )
+
+    @router.put("/api/documents/{document_id}/access", operation_id="deliver_document")
+    def deliver_document(
+        document_id: Identifier,
+        value: DocumentDelivery,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> Document:
+        with storage.transaction():
+            doc = storage.get_document(document_id)
+            check_document(principal, doc)
+            if principal is not None and not principal.can_manage_document(doc):
+                raise HTTPException(
+                    403, "Only the source owner or shared-inbox admin can change access"
+                )
+            ensure_filed(storage, doc)
+            if doc.revision != value.revision:
+                raise HTTPException(
+                    409, "This document changed. Reload before changing access"
+                )
+            accounts = {
+                item.account_id
+                for item in storage.list_inboxes()
+                if item.account_id is not None
+            }
+            if not set(value.user_ids) <= accounts:
+                raise HTTPException(422, "Select existing accounts")
+            users = set(value.user_ids)
+            owner = storage.get_inbox(doc.inbox_id).account_id
+            if owner is not None:
+                users.add(owner)
+            doc.access_user_ids = sorted(users)
+            doc.delivery_status = "delivered" if users else "review"
+            doc.revision += 1
+            doc.history.append(
+                Event(stage="delivery", message="Document access updated")
+            )
+            storage.save_document(doc)
+        return doc
+
     return router
 
 
@@ -369,4 +455,25 @@ def ensure_filed(storage: FileStorage, document: Document) -> None:
 def effective_tags(document: Document) -> set[str]:
     return (set(document.generated_tags) - set(document.excluded_tags)) | set(
         document.user_tags
+    )
+
+
+def document_detail(
+    storage: FileStorage, principal: Principal | None, doc: Document
+) -> DocumentDetail:
+    try:
+        scan = storage.get_scan(doc.scan_id)
+        accessible = principal is None or principal.can_view_source(scan)
+    except FileNotFoundError:
+        accessible = False
+    return DocumentDetail(
+        document=doc,
+        text=storage.document_text(doc),
+        source=SourceReference(
+            scan_id=doc.scan_id,
+            inbox="shared" if doc.inbox_id == "shared" else "personal",
+            accessible=accessible,
+        ),
+        can_manage_access=principal is None or principal.can_manage_document(doc),
+        can_edit_pages=accessible and (principal is None or principal.admin),
     )

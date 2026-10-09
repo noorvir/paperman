@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useRouter } from "@tanstack/react-router";
-import { authClient } from "@/lib/auth/client";
+import { createAccount } from "@/lib/auth/functions";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { ErrorNotice } from "../page";
@@ -17,15 +17,7 @@ export function CreateUser() {
     setPending(true);
     setError("");
     try {
-      const result = await authClient.admin.createUser({
-        name,
-        email,
-        password,
-        role: "user",
-      });
-      if (result.error) {
-        throw new Error(result.error.message);
-      }
+      await createAccount({ data: { name, email, password } });
       setName("");
       setEmail("");
       setPassword("");
@@ -73,8 +65,8 @@ export function CreateUser() {
         />
       </label>
       <p className="workspace-description">
-        At least 12 characters. Share the password securely. Assign owners after
-        creating the account.
+        At least 12 characters. Share the password securely. A personal inbox is
+        created for this account.
       </p>
       <ErrorNotice message={error} />
       <Button type="submit" loading={pending}>

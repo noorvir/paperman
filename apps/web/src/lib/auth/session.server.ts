@@ -1,5 +1,4 @@
 import { SignJWT } from "jose";
-import { z } from "zod";
 import { getAuth } from "./auth.server";
 import { canAdmin, type Access } from "./access";
 
@@ -21,22 +20,12 @@ export async function getAccess(headers: Headers): Promise<Access> {
     .get(session.session.id);
   const mode =
     role === "admin" && storedMode?.mode === "admin" ? "admin" : "personal";
-  const owners = runtime.db
-    .prepare(
-      "SELECT owner_id FROM user_owner WHERE user_id = ? ORDER BY owner_id",
-    )
-    .all(session.user.id);
-  const ownerIds = z
-    .array(z.object({ owner_id: z.string() }))
-    .parse(owners)
-    .map(({ owner_id }) => owner_id);
   return {
     state: "authenticated",
     userId: session.user.id,
     name: session.user.name,
     role,
     mode,
-    ownerIds,
   };
 }
 
@@ -57,7 +46,6 @@ export async function identityHeaders(headers: Headers) {
     name: access.name,
     role: access.role,
     mode: access.mode,
-    owner_ids: access.ownerIds,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(access.userId)

@@ -2,10 +2,11 @@ from typing import Annotated, Literal
 
 import jwt
 from fastapi import Header, HTTPException
-from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-from paperman.models import Document
+from paperman.models import Document, Inbox, Scan, personal_inbox_id
+from paperman.storage import FileStorage
 
 
 class AuthSettings(BaseSettings):
@@ -32,7 +33,7 @@ class Principal(BaseModel):
     name: str
     role: Literal["user", "admin"]
     mode: Literal["personal", "admin"]
-    owner_ids: list[str]
+    owner_ids: list[str] = Field(default_factory=list)
     iss: Literal["paperman-web"]
     aud: Literal["paperman-api"]
     iat: int
@@ -43,12 +44,29 @@ class Principal(BaseModel):
         return self.role == "admin" and self.mode == "admin"
 
     def can_view(self, document: Document) -> bool:
-        return self.admin or bool(set(self.owner_ids).intersection(document.owner_ids))
+        return (
+            self.admin and document.inbox_id == "shared"
+        ) or self.sub in document.access_user_ids
+
+    @property
+    def inbox_id(self) -> str:
+        return personal_inbox_id(self.sub)
+
+    def can_view_source(self, scan: Scan) -> bool:
+        return scan.inbox_id == self.inbox_id or (
+            self.admin and scan.inbox_id == "shared"
+        )
+
+    def can_manage_document(self, document: Document) -> bool:
+        return document.inbox_id == self.inbox_id or (
+            self.admin and document.inbox_id == "shared"
+        )
 
 
 class Auth:
-    def __init__(self, settings: AuthSettings) -> None:
+    def __init__(self, settings: AuthSettings, storage: FileStorage) -> None:
         self.settings = settings
+        self.storage = storage
 
     def __call__(
         self, authorization: Annotated[str | None, Header()] = None
@@ -69,9 +87,22 @@ class Auth:
             principal = Principal.model_validate(claims)
             if principal.exp - principal.iat > 30:
                 raise ValueError("Invalid token lifetime")
-            return principal
         except (jwt.InvalidTokenError, ValidationError, ValueError) as error:
             raise HTTPException(401, "Sign in to continue") from error
+        with self.storage.transaction():
+            try:
+                inbox = self.storage.get_inbox(principal.inbox_id)
+            except FileNotFoundError:
+                inbox = Inbox(
+                    id=principal.inbox_id,
+                    name=principal.name,
+                    account_id=principal.sub,
+                )
+                self.storage.save_inbox(inbox)
+            if inbox.name != principal.name:
+                inbox.name = principal.name
+                self.storage.save_inbox(inbox)
+        return principal
 
     def require_admin(
         self, authorization: Annotated[str | None, Header()] = None
@@ -84,4 +115,9 @@ class Auth:
 
 def check_document(principal: Principal | None, document: Document) -> None:
     if principal is not None and not principal.can_view(document):
+        raise HTTPException(404, "Record not found")
+
+
+def check_source(principal: Principal | None, scan: Scan) -> None:
+    if principal is not None and not principal.can_view_source(scan):
         raise HTTPException(404, "Record not found")

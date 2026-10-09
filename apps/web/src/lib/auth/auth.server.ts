@@ -68,11 +68,6 @@ async function initialize() {
   const migrations = await getMigrations(options);
   await migrations.runMigrations();
   db.exec(`
-    CREATE TABLE IF NOT EXISTS user_owner (
-      user_id TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
-      owner_id TEXT NOT NULL,
-      PRIMARY KEY (user_id, owner_id)
-    );
     CREATE TABLE IF NOT EXISTS session_mode (
       session_id TEXT PRIMARY KEY REFERENCES session(id) ON DELETE CASCADE,
       mode TEXT NOT NULL CHECK (mode IN ('personal', 'admin'))

@@ -19,6 +19,8 @@ from pydantic import BaseModel, JsonValue, TypeAdapter
 from paperman.models import (
     Document,
     Event,
+    Inbox,
+    Inboxes,
     LegacyIndex,
     ModelSettings,
     Scan,
@@ -46,6 +48,7 @@ class Storage(Protocol):
     def document_text(self, document: Document) -> str: ...
     def catalog(self) -> Catalog: ...
     def settings(self) -> ModelSettings: ...
+    def get_inbox(self, inbox_id: str) -> Inbox: ...
 
 
 class FileStorage:
@@ -71,6 +74,32 @@ class FileStorage:
 
     def transaction(self) -> FileLock:
         return self._lock
+
+    def inbox_path(self, inbox_id: str) -> Path:
+        self.get_inbox(inbox_id)
+        if inbox_id == "shared":
+            return self.root / "inbox"
+        return safe_path(self.root, f"inbox/{inbox_id}")
+
+    def list_inboxes(self) -> list[Inbox]:
+        path = self.root / "state" / "inboxes.json"
+        if not path.exists():
+            return Inboxes().items
+        return Inboxes.model_validate_json(path.read_bytes()).items
+
+    def get_inbox(self, inbox_id: str) -> Inbox:
+        for inbox in self.list_inboxes():
+            if inbox.id == inbox_id:
+                return inbox
+        raise FileNotFoundError("Inbox not found")
+
+    def save_inbox(self, inbox: Inbox) -> None:
+        with self.transaction():
+            inboxes = self.list_inboxes()
+            items = [item for item in inboxes if item.id != inbox.id]
+            items.append(inbox)
+            write_record(self.root / "state" / "inboxes.json", Inboxes(items=items))
+            self.inbox_path(inbox.id).mkdir(parents=True, exist_ok=True)
 
     def scan_path(self, scan_id: str, name: str) -> Path:
         return safe_path(self.root, f"scans/{scan_id}/{name}")
@@ -180,12 +209,16 @@ class FileStorage:
             return document.text_override
         return safe_path(self.root, document.final_path).with_suffix(".txt").read_text()
 
-    def ingest(self, path: Path) -> Scan:
+    def ingest(self, path: Path, inbox_id: str = "shared") -> Scan:
+        self.get_inbox(inbox_id)
         digest = file_hash(path)
+        identifier = digest
+        if inbox_id != "shared":
+            identifier = hashlib.sha256(f"{inbox_id}:{digest}".encode()).hexdigest()
         with self.transaction():
-            record_path = self.scan_path(digest, "scan.json")
+            record_path = self.scan_path(identifier, "scan.json")
             if record_path.exists():
-                scan = self.get_scan(digest)
+                scan = self.get_scan(identifier)
                 scan.history.append(
                     Event(stage="intake", message=f"Duplicate arrival: {path.name}")
                 )
@@ -197,13 +230,14 @@ class FileStorage:
                 return scan
 
             scan = Scan(
-                id=digest,
+                id=identifier,
+                inbox_id=inbox_id,
                 content_hash=digest,
                 original_name=path.name,
                 scanned_at=datetime.fromtimestamp(path.stat().st_mtime, UTC),
                 arrivals=[path.name],
             )
-            source = self.scan_path(digest, "original.pdf")
+            source = self.scan_path(identifier, "original.pdf")
             with atomic_target(source) as temporary:
                 shutil.copyfile(path, temporary)
                 if file_hash(temporary) != digest or file_hash(path) != digest:
@@ -216,7 +250,7 @@ class FileStorage:
 
     def archive(self, scan: Scan) -> None:
         for name in scan.arrivals:
-            path = safe_path(self.root, f"inbox/{name}")
+            path = safe_path(self.inbox_path(scan.inbox_id), name)
             if path.is_file() and file_hash(path) == scan.content_hash:
                 path.unlink()
         if not scan.filing_revision or scan.status != "complete":

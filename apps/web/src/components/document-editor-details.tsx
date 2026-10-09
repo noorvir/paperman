@@ -1,5 +1,3 @@
-import { canAdmin } from "@/lib/auth/access";
-import { useAccess } from "./auth/access-context";
 import type { components } from "@/lib/schema";
 import { getTagIcon } from "@/lib/catalog-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -13,13 +11,14 @@ export function DocumentEditorDetails({
   value,
   onChange,
   disabled,
+  canChangeOwners,
 }: {
   catalog: components["schemas"]["Catalog"];
   value: components["schemas"]["DocumentEdit"];
   onChange: (value: components["schemas"]["DocumentEdit"]) => void;
   disabled: boolean;
+  canChangeOwners: boolean;
 }) {
-  const admin = canAdmin(useAccess());
   return (
     <>
       <fieldset
@@ -38,7 +37,7 @@ export function DocumentEditorDetails({
             }
           />
         </label>
-        {admin && (
+        {canChangeOwners && (
           <OwnerSelection
             owners={catalog.owners}
             value={value.owner_ids}

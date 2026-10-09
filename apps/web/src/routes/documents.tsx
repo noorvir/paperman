@@ -1,5 +1,3 @@
-import { useAccess } from "@/components/auth/access-context";
-import { canAdmin } from "@/lib/auth/access";
 import { useLiveData } from "@/hooks/use-live-data";
 import { z } from "zod";
 import {
@@ -71,7 +69,7 @@ export const Route = createFileRoute("/documents")({
       });
     }
     let source = null;
-    if (preview) {
+    if (preview?.source.accessible) {
       source = await getScanWithDocuments({ data: preview.document.scan_id });
     }
     return { documents, catalog, preview, source };
@@ -80,7 +78,6 @@ export const Route = createFileRoute("/documents")({
 });
 function Documents() {
   useLiveData();
-  const admin = canAdmin(useAccess());
   const { documents, catalog, preview, source } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -116,15 +113,17 @@ function Documents() {
     >
       <PageHeader
         title="Documents"
-        description="documents/ · All folders"
+        description={
+          search.delivery === "review"
+            ? "Shared documents waiting for delivery"
+            : "Your document library"
+        }
         count={documents.total}
       >
-        {admin && (
-          <Link to="/scans/upload" className={buttonVariants()}>
-            <HugeiconsIcon icon={Upload04Icon} />
-            Upload scan
-          </Link>
-        )}
+        <Link to="/scans/upload" className={buttonVariants()}>
+          <HugeiconsIcon icon={Upload04Icon} />
+          Upload scan
+        </Link>
       </PageHeader>
       <Collection
         preview={
@@ -134,6 +133,7 @@ function Documents() {
             preview && (
               <DocumentDetail
                 {...preview}
+                sourceReference={preview.source}
                 source={source}
                 catalog={catalog}
                 search={documentSearch.parse(search)}

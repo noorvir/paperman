@@ -56,6 +56,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/inboxes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Inboxes */
+        get: operations["inboxes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inboxes/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Register Inboxes */
+        put: operations["register_inboxes"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/inboxes/{inbox_id}/routing": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Inbox Routing */
+        put: operations["inbox_routing"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/scans": {
         parameters: {
             query?: never;
@@ -279,6 +330,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/documents/{document_id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Document Access */
+        get: operations["document_access"];
+        /** Deliver Document */
+        put: operations["deliver_document"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/workspace": {
         parameters: {
             query?: never;
@@ -288,7 +357,8 @@ export interface paths {
         };
         /** Workspace Settings */
         get: operations["workspace_settings"];
-        put?: never;
+        /** Workspace Preferences */
+        put: operations["workspace_preferences"];
         post?: never;
         delete?: never;
         options?: never;
@@ -352,6 +422,13 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccountInbox */
+        AccountInbox: {
+            /** Account Id */
+            account_id: string;
+            /** Name */
+            name: string;
+        };
         /** ActionResult */
         ActionResult: {
             /** Message */
@@ -410,6 +487,10 @@ export interface components {
         };
         /** Dashboard */
         Dashboard: {
+            /** Routing Documents */
+            routing_documents: components["schemas"]["Document"][];
+            /** Routing Total */
+            routing_total: number;
             /** Documents */
             documents: number;
             /** Pending */
@@ -441,6 +522,19 @@ export interface components {
         Document: {
             /** Owner Ids */
             owner_ids: string[];
+            /**
+             * Inbox Id
+             * @default shared
+             */
+            inbox_id: string;
+            /** Access User Ids */
+            access_user_ids: string[];
+            /**
+             * Delivery Status
+             * @default review
+             * @enum {string}
+             */
+            delivery_status: "review" | "delivered";
             verification: components["schemas"]["Verification"] | null;
             /** Manual Rotations */
             manual_rotations: components["schemas"]["PageRotation"][];
@@ -529,11 +623,36 @@ export interface components {
             /** Processing */
             processing: components["schemas"]["UsageAllocation"][];
         };
+        /** DocumentAccess */
+        DocumentAccess: {
+            /** User Ids */
+            user_ids: string[];
+            /** Owner User Id */
+            owner_user_id: string | null;
+            /** Suggested User Ids */
+            suggested_user_ids: string[];
+            /** Recipients */
+            recipients: components["schemas"]["AccountInbox"][];
+            /** Revision */
+            revision: number;
+        };
+        /** DocumentDelivery */
+        DocumentDelivery: {
+            /** User Ids */
+            user_ids: string[];
+            /** Revision */
+            revision: number;
+        };
         /** DocumentDetail */
         DocumentDetail: {
             document: components["schemas"]["Document"];
             /** Text */
             text: string;
+            source: components["schemas"]["SourceReference"];
+            /** Can Manage Access */
+            can_manage_access: boolean;
+            /** Can Edit Pages */
+            can_edit_pages: boolean;
         };
         /** DocumentEdit */
         DocumentEdit: {
@@ -683,6 +802,24 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Inbox */
+        Inbox: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Account Id */
+            account_id: string | null;
+            /** Routing Owner Ids */
+            routing_owner_ids: string[];
+            /** Time Format */
+            time_format: ("24h" | "12h") | null;
+        };
+        /** InboxRouting */
+        InboxRouting: {
+            /** Owner Ids */
+            owner_ids: string[];
         };
         /** ModelPricing */
         "ModelPricing-Input": {
@@ -974,6 +1111,11 @@ export interface components {
         Scan: {
             /** Id */
             id: string;
+            /**
+             * Inbox Id
+             * @default shared
+             */
+            inbox_id: string;
             /** Content Hash */
             content_hash: string;
             /** Original Name */
@@ -1041,6 +1183,11 @@ export interface components {
         ScanDetail: {
             /** Id */
             id: string;
+            /**
+             * Inbox Id
+             * @default shared
+             */
+            inbox_id: string;
             /** Content Hash */
             content_hash: string;
             /** Original Name */
@@ -1204,6 +1351,18 @@ export interface components {
              */
             processing_run: number;
         };
+        /** SourceReference */
+        SourceReference: {
+            /** Scan Id */
+            scan_id: string;
+            /**
+             * Inbox
+             * @enum {string}
+             */
+            inbox: "personal" | "shared";
+            /** Accessible */
+            accessible: boolean;
+        };
         /** TagSelection */
         TagSelection: {
             /** Tag Ids */
@@ -1257,6 +1416,14 @@ export interface components {
              * @default
              */
             message: string;
+        };
+        /** WorkspacePreferences */
+        WorkspacePreferences: {
+            /**
+             * Time Format
+             * @enum {string}
+             */
+            time_format: "24h" | "12h";
         };
         /** WorkspaceSettings */
         WorkspaceSettings: {
@@ -1419,11 +1586,115 @@ export interface operations {
             };
         };
     };
+    inboxes: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inbox"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    register_inboxes: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccountInbox"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inbox"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    inbox_routing: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                inbox_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["InboxRouting"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Inbox"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     scans: {
         parameters: {
             query?: {
                 status?: string;
                 q?: string;
+                inbox?: string;
                 page?: number;
             };
             header?: {
@@ -1668,7 +1939,9 @@ export interface operations {
     };
     upload: {
         parameters: {
-            query?: never;
+            query?: {
+                inbox?: string;
+            };
             header?: {
                 authorization?: string | null;
             };
@@ -1708,6 +1981,8 @@ export interface operations {
                 owner?: string[] | null;
                 tag?: string[] | null;
                 status?: string;
+                delivery?: "" | "review" | "delivered";
+                inbox?: string;
                 after?: string | null;
                 before?: string | null;
                 sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "processed_asc" | "processed_desc";
@@ -1951,6 +2226,76 @@ export interface operations {
             };
         };
     };
+    document_access: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentAccess"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    deliver_document: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentDelivery"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     workspace_settings: {
         parameters: {
             query?: never;
@@ -1961,6 +2306,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["WorkspaceSettings"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    workspace_preferences: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["WorkspacePreferences"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {

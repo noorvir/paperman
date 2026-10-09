@@ -22,6 +22,7 @@ def identity(
     role: Literal["user", "admin"] = "user",
     mode: Literal["personal", "admin"] = "personal",
     *,
+    subject: str = "alice-user",
     expired: bool = False,
     issuer: str = "paperman-web",
     audience: str = "paperman-api",
@@ -30,7 +31,7 @@ def identity(
     issued = int(time.time()) - (60 if expired else 0)
     token = jwt.encode(
         {
-            "sub": "alice-user",
+            "sub": subject,
             "name": "Alice",
             "role": role,
             "mode": mode,
@@ -63,6 +64,7 @@ def protected(tmp_path: Path) -> tuple[TestClient, FileStorage]:
             update={
                 "id": id,
                 "owner_ids": owners,
+                "access_user_ids": ["alice-user"] if id == "shared" else [],
                 "title": id,
                 "final_path": f"documents/{owners[0]}/{id}.pdf",
             }
@@ -107,7 +109,7 @@ def test_direct_api_requires_verified_identity(
             assert client.get(url, headers=headers).status_code == 401
 
 
-def test_owner_access_applies_to_search_counts_details_and_pdf(
+def test_explicit_access_applies_to_search_counts_details_and_pdf(
     protected: tuple[TestClient, FileStorage],
 ) -> None:
     client, _ = protected
@@ -147,9 +149,9 @@ def test_owner_access_applies_to_search_counts_details_and_pdf(
     assert dashboard.inbox_path == ""
     assert dashboard.worker is None
     for headers in [
-        identity([]),
-        identity([], "admin", "personal"),
-        identity([], "user", "admin"),
+        identity(["alice"], subject="unassigned"),
+        identity(["alice"], "admin", "personal", subject="unassigned"),
+        identity(["alice"], "user", "admin", subject="unassigned"),
     ]:
         page = DocumentPage.model_validate_json(
             client.get("/api/documents", headers=headers).content
@@ -161,7 +163,7 @@ def test_owner_access_applies_to_search_counts_details_and_pdf(
     assert page.total == 3
 
 
-def test_personal_edits_cannot_change_owners_pages_or_process(
+def test_recipient_edits_cannot_change_owners_or_pages(
     protected: tuple[TestClient, FileStorage],
 ) -> None:
     client, store = protected
@@ -206,12 +208,7 @@ def test_personal_edits_cannot_change_owners_pages_or_process(
     verified = store.get_document("shared").verification
     assert verified is not None and verified.by == "Alice"
     admin_requests: list[tuple[str, str, dict[str, str | list[str]] | None]] = [
-        ("GET", "/api/scans", None),
-        ("GET", "/api/scans/scan/pdf", None),
         ("GET", "/api/settings", None),
-        ("POST", "/api/scans/scan/reprocess", {}),
-        ("POST", "/api/uploads", None),
-        ("POST", "/api/documents/shared/enrich", None),
         ("POST", "/api/catalog/owners", {"name": "Someone", "aliases": []}),
         ("POST", "/api/search/rebuild", None),
     ]
@@ -219,6 +216,11 @@ def test_personal_edits_cannot_change_owners_pages_or_process(
         assert (
             client.request(method, url, json=data, headers=headers).status_code == 403
         )
+    assert client.get("/api/scans", headers=headers).status_code == 200
+    assert client.get("/api/scans/scan/pdf", headers=headers).status_code == 404
+    assert (
+        client.post("/api/documents/shared/enrich", headers=headers).status_code == 200
+    )
     assert (
         client.get("/api/settings", headers=identity([], "admin", "admin")).status_code
         == 200

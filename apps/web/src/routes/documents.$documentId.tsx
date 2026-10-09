@@ -1,4 +1,3 @@
-import { canAdmin } from "@/lib/auth/access";
 import {
   createFileRoute,
   getRouteApi,
@@ -19,15 +18,7 @@ export const Route = createFileRoute("/documents/$documentId")({
     verify: z.boolean().default(false),
   }),
   search: { middlewares: [stripSearchParams({ edit: false, verify: false })] },
-  beforeLoad: ({ params, search, context }) => {
-    if (search.view === "source" && !canAdmin(context.access)) {
-      throw redirect({
-        to: "/documents/$documentId",
-        params,
-        search: { ...search, view: "pdf" },
-        replace: true,
-      });
-    }
+  beforeLoad: ({ params, search }) => {
     if (search.verify) {
       throw redirect({
         to: "/documents/$documentId",
@@ -54,10 +45,12 @@ export const Route = createFileRoute("/documents/$documentId")({
   },
   loader: async ({ params }) => {
     const detail = await getDocument({ data: params.documentId });
-    const source = await getScanWithDocuments({
-      data: detail.document.scan_id,
-    });
-    return { ...detail, source };
+    const source = detail.source.accessible
+      ? await getScanWithDocuments({
+          data: detail.document.scan_id,
+        })
+      : null;
+    return { ...detail, sourceReference: detail.source, source };
   },
   component: DocumentPage,
 });

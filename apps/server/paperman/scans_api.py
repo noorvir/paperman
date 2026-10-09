@@ -16,7 +16,7 @@ from paperman.api_models import (
     ScanReprocess,
     ScanReview,
 )
-from paperman.auth import Auth
+from paperman.auth import Auth, Principal, check_source
 from paperman.config import Settings
 from paperman.models import Event, Scan, now
 from paperman.pdf import validate_scan
@@ -26,16 +26,22 @@ from paperman.usage import record_scan_usage
 
 
 def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
-    router = APIRouter(dependencies=[Depends(auth.require_admin)])
+    router = APIRouter()
 
     @router.get("/api/scans", operation_id="scans")
     def scans(
-        status: str = "", q: str = "", page: Annotated[int, Query(ge=1)] = 1
+        principal: Annotated[Principal | None, Depends(auth)],
+        status: str = "",
+        q: str = "",
+        inbox: str = "",
+        page: Annotated[int, Query(ge=1)] = 1,
     ) -> ScanPage:
         items = [
             scan
             for scan in storage.list_scans()
-            if (not status or scan.status == status)
+            if (principal is None or principal.can_view_source(scan))
+            and (not inbox or scan.inbox_id == inbox)
+            and (not status or scan.status == status)
             and q.casefold() in scan.original_name.casefold()
         ]
         return ScanPage(
@@ -46,9 +52,12 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         )
 
     @router.get("/api/scans/{scan_id}", operation_id="scan")
-    def scan(scan_id: Identifier) -> ScanDetail:
+    def scan(
+        scan_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
+    ) -> ScanDetail:
         with storage.transaction():
             scan = storage.get_scan(scan_id)
+            check_source(principal, scan)
             documents = [
                 doc for doc in storage.list_documents() if doc.id in scan.document_ids
             ]
@@ -58,9 +67,12 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
 
     @router.get("/api/scans/{scan_id}/pdf", operation_id="scan_pdf")
     def scan_pdf(
-        scan_id: Identifier, variant: Literal["original", "searchable"] = "original"
+        scan_id: Identifier,
+        principal: Annotated[Principal | None, Depends(auth)],
+        variant: Literal["original", "searchable"] = "original",
     ) -> FileResponse:
         scan = storage.get_scan(scan_id)
+        check_source(principal, scan)
         path = storage.scan_path(scan_id, variant + ".pdf")
         if not path.exists():
             raise FileNotFoundError()
@@ -72,9 +84,12 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         )
 
     @router.post("/api/scans/{scan_id}/retry", operation_id="retry_scan")
-    def retry_scan(scan_id: Identifier) -> Scan:
+    def retry_scan(
+        scan_id: Identifier, principal: Annotated[Principal | None, Depends(auth)]
+    ) -> Scan:
         with storage.transaction():
             scan = storage.get_scan(scan_id)
+            check_source(principal, scan)
             if scan.status != "failed":
                 raise HTTPException(409, "Only failed scans can be retried")
             scan.status = "queued"
@@ -84,9 +99,14 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         return scan
 
     @router.post("/api/scans/{scan_id}/reprocess", operation_id="reprocess_scan")
-    def reprocess_scan(scan_id: Identifier, value: ScanReprocess) -> Scan:
+    def reprocess_scan(
+        scan_id: Identifier,
+        value: ScanReprocess,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> Scan:
         with storage.transaction():
             scan = storage.get_scan(scan_id)
+            check_source(principal, scan)
             if scan.status != "complete":
                 raise HTTPException(
                     409, "Wait for this scan to finish before starting a new run"
@@ -135,9 +155,14 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         return scan
 
     @router.put("/api/scans/{scan_id}/review", operation_id="approve_scan")
-    def approve_scan(scan_id: Identifier, value: ScanReview) -> Scan:
+    def approve_scan(
+        scan_id: Identifier,
+        value: ScanReview,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> Scan:
         with storage.transaction():
             scan = storage.get_scan(scan_id)
+            check_source(principal, scan)
             if scan.status not in ("review", "complete"):
                 raise HTTPException(
                     409, "Wait for this scan to finish before editing its groups"
@@ -183,9 +208,14 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         return scan
 
     @router.post("/api/scans/{scan_id}/review", operation_id="revise_scan")
-    async def revise_scan(scan_id: Identifier, value: ScanFeedback) -> Analysis:
+    async def revise_scan(
+        scan_id: Identifier,
+        value: ScanFeedback,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> Analysis:
         with storage.transaction():
             scan = storage.get_scan(scan_id)
+            check_source(principal, scan)
             if scan.status not in ("review", "complete"):
                 raise HTTPException(
                     409, "Wait for processing to finish before changing the proposal"
@@ -226,11 +256,23 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         return result
 
     @router.post("/api/uploads", operation_id="upload")
-    def upload(file: UploadFile) -> Scan:
+    def upload(
+        file: UploadFile,
+        principal: Annotated[Principal | None, Depends(auth)],
+        inbox: str = "",
+    ) -> Scan:
+        inbox_id = inbox or (principal.inbox_id if principal else "shared")
+        if (
+            principal is not None
+            and inbox_id != principal.inbox_id
+            and not (principal.admin and inbox_id == "shared")
+        ):
+            raise HTTPException(403, "You cannot upload to this inbox")
+        storage.get_inbox(inbox_id)
         if not file.filename or Path(file.filename).suffix.lower() != ".pdf":
             raise HTTPException(422, "Select a PDF file")
         filename = f"{now().strftime('%Y%m%dT%H%M%S')}-{uuid4().hex[:12]}-{Path(file.filename).name}"
-        target = storage.root / "inbox" / filename
+        target = storage.inbox_path(inbox_id) / filename
         size = 0
         with storage.transaction():
             with atomic_target(target) as temporary:
@@ -244,7 +286,7 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
                     if source.read(5) != b"%PDF-":
                         raise HTTPException(422, "This file is not a PDF")
                 validate_scan(temporary)
-            scan = storage.ingest(target)
+            scan = storage.ingest(target, inbox_id)
             if scan.original_name == filename:
                 scan.timestamp_source = "upload"
                 storage.save_scan(scan)

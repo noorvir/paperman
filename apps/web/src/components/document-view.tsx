@@ -1,3 +1,5 @@
+import { DocumentAccess } from "./document-access";
+import { useAccess } from "./auth/access-context";
 import { useState, type ComponentProps, type ReactNode } from "react";
 import { linkOptions } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
@@ -19,6 +21,9 @@ import type { z } from "zod";
 export function DocumentView({
   document,
   source,
+  sourceReference,
+  canManageAccess,
+  canEditPages,
   text,
   catalog,
   view,
@@ -33,6 +38,9 @@ export function DocumentView({
 }: {
   document: components["schemas"]["Document"];
   source: ComponentProps<typeof ScanInformation> | null;
+  sourceReference: components["schemas"]["SourceReference"];
+  canManageAccess: boolean;
+  canEditPages: boolean;
   text: string;
   catalog: components["schemas"]["Catalog"];
   view: z.output<typeof documentView>;
@@ -45,6 +53,7 @@ export function DocumentView({
   onRotatePage?: (page: number) => void;
   pageSelection?: ComponentProps<typeof PdfPreview>["pageSelection"];
 }) {
+  const access = useAccess();
   const sidebar = !preview;
   const [showContext, setShowContext] = useState(false);
   const contextControls = source && (
@@ -64,13 +73,18 @@ export function DocumentView({
         params: { documentId: document.id },
         search: { ...search, view: "source" },
       });
-  const sourceLink = source && (
+  const sourceLink = source ? (
     <FileLink
       {...sourceDestination}
       replace
       resetScroll={false}
       filename={source.scan.original_name}
     />
+  ) : (
+    <span className="text-muted-foreground">
+      {sourceReference.inbox === "shared" ? "Shared inbox" : "Personal inbox"} ·
+      Source access restricted
+    </span>
   );
   return (
     <DetailViewLayout
@@ -82,6 +96,11 @@ export function DocumentView({
         ) : (
           <DocumentInformation
             viewControls={view === "pdf" && contextControls}
+            accessControls={
+              canManageAccess &&
+              access.state === "authenticated" &&
+              allowActions && <DocumentAccess document={document} />
+            }
             document={document}
             sourceLink={sourceLink}
             catalog={catalog}
@@ -112,7 +131,7 @@ export function DocumentView({
           aria-hidden={!editor && view !== "pdf"}
           inert={!editor && view !== "pdf"}
         >
-          {editor && source ? (
+          {editor && source && canEditPages ? (
             <PdfPreview
               url={`/api/scans/${source.scan.id}/pdf?variant=searchable`}
               title={`Select pages from ${source.scan.original_name}`}
@@ -193,6 +212,11 @@ export function DocumentView({
           >
             <DocumentInformation
               document={document}
+              accessControls={
+                canManageAccess &&
+                access.state === "authenticated" &&
+                allowActions && <DocumentAccess document={document} />
+              }
               sourceLink={sourceLink}
               catalog={catalog}
               search={search}
@@ -242,6 +266,22 @@ export function DocumentView({
           inert={Boolean(editor) || view !== "source"}
           aria-label="Source scan"
         >
+          {openedSource && !source && (
+            <div className="space-y-3 p-4">
+              <h2 className="workspace-title">Source access restricted</h2>
+              <p className="workspace-description">
+                This document came from{" "}
+                {sourceReference.inbox === "shared"
+                  ? "the shared inbox"
+                  : "another personal inbox"}
+                . You can read this document, but you do not have access to the
+                full source scan.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Source pages: {document.source_pages.join(", ")}
+              </p>
+            </div>
+          )}
           {openedSource && source && (
             <DocumentSource
               source={source}

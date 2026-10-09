@@ -15,6 +15,12 @@ export function ScanInformation({
       <h2 className="workspace-title break-words">{scan.original_name}</h2>
       <dl className="space-y-4">
         <div className="space-y-1.5">
+          <dt className="text-muted-foreground">Inbox</dt>
+          <dd>
+            {scan.inbox_id === "shared" ? "Shared inbox" : "Personal inbox"}
+          </dd>
+        </div>
+        <div className="space-y-1.5">
           <dt className="text-muted-foreground">Status</dt>
           <dd>
             <ScanStatus status={scan.status} />

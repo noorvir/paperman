@@ -86,30 +86,39 @@ async def run_cycle(
         state.status = "working"
         state.message = "Checking inbox"
         known = {
-            name: scan.content_hash
+            (scan.inbox_id, name): scan.content_hash
             for scan in storage.list_scans()
             for name in scan.arrivals
             if scan.status != "complete"
         }
-        for path in (storage.root / "inbox").iterdir():
-            if not path.is_file() or path.suffix.lower() != ".pdf" or path.is_symlink():
-                continue
-            stat = path.stat()
-            previous = observed.get(path)
-            if previous is None or previous[:2] != (stat.st_size, stat.st_mtime_ns):
-                observed[path] = (stat.st_size, stat.st_mtime_ns, time.monotonic())
-                continue
-            if time.monotonic() - previous[2] < settings.settle_seconds:
-                continue
-            if path.name in known and file_hash(path) == known[path.name]:
-                continue
-            try:
-                await asyncio.to_thread(validate_scan, path)
-                storage.ingest(path)
-            except (OSError, ValueError):
-                logger.exception("Intake failed for %s", path.name)
-                state.message = f"Could not ingest {path.name}. Check the worker log"
-                state.status = "error"
+        for inbox in storage.list_inboxes():
+            for path in storage.inbox_path(inbox.id).iterdir():
+                if (
+                    not path.is_file()
+                    or path.suffix.lower() != ".pdf"
+                    or path.is_symlink()
+                ):
+                    continue
+                stat = path.stat()
+                previous = observed.get(path)
+                if previous is None or previous[:2] != (stat.st_size, stat.st_mtime_ns):
+                    observed[path] = (stat.st_size, stat.st_mtime_ns, time.monotonic())
+                    continue
+                if time.monotonic() - previous[2] < settings.settle_seconds:
+                    continue
+                if (inbox.id, path.name) in known and file_hash(path) == known[
+                    (inbox.id, path.name)
+                ]:
+                    continue
+                try:
+                    await asyncio.to_thread(validate_scan, path)
+                    storage.ingest(path, inbox.id)
+                except (OSError, ValueError):
+                    logger.exception("Intake failed for %s", path.name)
+                    state.message = (
+                        f"Could not ingest {path.name}. Check the worker log"
+                    )
+                    state.status = "error"
         observed_keys = list(observed)
         for path in observed_keys:
             if not path.exists():

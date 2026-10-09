@@ -6,6 +6,7 @@ from paperman.api_models import (
     ActionResult,
     Dashboard,
     DashboardStatus,
+    WorkspacePreferences,
     WorkspaceSettings,
 )
 from paperman.auth import Auth, Principal
@@ -21,13 +22,35 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     @router.get(
         "/api/workspace",
         operation_id="workspace_settings",
-        dependencies=[Depends(auth)],
     )
-    def workspace_settings() -> WorkspaceSettings:
+    def workspace_settings(
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> WorkspaceSettings:
         settings = storage.settings()
+        time_format = settings.time_format
+        if principal is not None:
+            time_format = (
+                storage.get_inbox(principal.inbox_id).time_format or time_format
+            )
         return WorkspaceSettings(
-            time_format=settings.time_format, demo=settings.provider == "demo"
+            time_format=time_format, demo=settings.provider == "demo"
         )
+
+    @router.put("/api/workspace", operation_id="workspace_preferences")
+    def workspace_preferences(
+        value: WorkspacePreferences,
+        principal: Annotated[Principal | None, Depends(auth)],
+    ) -> WorkspaceSettings:
+        with storage.transaction():
+            if principal is None:
+                settings = storage.settings()
+                settings.time_format = value.time_format
+                write_record(storage.root / "settings.toml", settings)
+            else:
+                inbox = storage.get_inbox(principal.inbox_id)
+                inbox.time_format = value.time_format
+                storage.save_inbox(inbox)
+        return workspace_settings(principal)
 
     @router.get("/api/dashboard", operation_id="dashboard")
     def dashboard(
@@ -38,14 +61,32 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
         with storage.transaction():
             scans = storage.list_scans()
             documents = storage.list_documents()
-        if principal is not None and not principal.admin:
-            scans = []
+        if principal is not None:
+            scans = [scan for scan in scans if principal.can_view_source(scan)]
             documents = [doc for doc in documents if principal.can_view(doc)]
         counts, items, unverified = pipeline_overview(scans, documents, status, page)
         is_admin = principal is None or principal.admin
         worker = storage.worker_state() if is_admin else None
+        if worker is not None and principal is not None:
+            worker.message = {
+                "idle": "Waiting for scans",
+                "working": "Processing documents",
+                "error": "Check the worker log",
+                "stopped": "Worker stopped",
+            }[worker.status]
         model = storage.settings()
+        routing = (
+            [
+                doc
+                for doc in documents
+                if doc.inbox_id == "shared" and doc.delivery_status == "review"
+            ]
+            if auth.settings.auth_enabled and is_admin
+            else []
+        )
         return Dashboard(
+            routing_documents=routing[:5],
+            routing_total=len(routing),
             documents=len(documents),
             pending=sum(scan.status in ("queued", "running") for scan in scans),
             review=sum(scan.status == "review" for scan in scans),

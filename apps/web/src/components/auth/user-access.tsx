@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth/client";
-import { saveOwnerAccess, type getUsers } from "@/lib/auth/functions";
+import { saveRoutingOwners, type getUsers } from "@/lib/auth/functions";
 import type { components } from "@/lib/schema";
 import { Button } from "../ui/button";
 import { Checkbox } from "../ui/checkbox";
@@ -77,31 +77,35 @@ export function UserAccess({
         </Select>
       </label>
       <fieldset disabled={Boolean(pending)} className="space-y-2 border-t pt-4">
-        <legend className="text-xs font-medium">Allowed owners</legend>
+        <legend className="text-xs font-medium">Shared-mail routing</legend>
         <p className="workspace-description">
-          No owners means no documents in personal mode.
+          These owners suggest this account as a recipient for shared mail. An
+          admin must confirm delivery. These settings do not change access to
+          existing documents.
         </p>
-        {owners.map((owner) => (
-          <label key={owner.id} className="flex items-center gap-2 text-xs">
-            <Checkbox
-              checked={draft.includes(owner.id)}
-              onCheckedChange={(checked) =>
-                setDraft(
-                  checked
-                    ? [...draft, owner.id]
-                    : draft.filter((id) => id !== owner.id),
-                )
-              }
-            />
-            {owner.name}
-          </label>
-        ))}
+        {owners
+          .filter((owner) => owner.id !== "unknown")
+          .map((owner) => (
+            <label key={owner.id} className="flex items-center gap-2 text-xs">
+              <Checkbox
+                checked={draft.includes(owner.id)}
+                onCheckedChange={(checked) =>
+                  setDraft(
+                    checked
+                      ? [...draft, owner.id]
+                      : draft.filter((id) => id !== owner.id),
+                  )
+                }
+              />
+              {owner.name}
+            </label>
+          ))}
         <Button
           loading={pending === "owners"}
           disabled={Boolean(pending) || !unsaved.isDirty}
           onClick={() =>
             void run("owners", async () => {
-              await saveOwnerAccess({
+              await saveRoutingOwners({
                 data: { userId: user.id, ownerIds: draft },
               });
               if ((role === "admin" || role === "user") && role !== user.role) {
@@ -117,7 +121,7 @@ export function UserAccess({
             })
           }
         >
-          Save access
+          Save routing and role
         </Button>
       </fieldset>
       <section className="workspace-section border-t pt-4">

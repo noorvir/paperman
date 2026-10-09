@@ -1,6 +1,3 @@
-import { getSessionAccess } from "@/lib/auth/functions";
-import { canAdmin } from "@/lib/auth/access";
-import { useAccess } from "@/components/auth/access-context";
 import { useState } from "react";
 import { Tabs } from "@base-ui/react/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -32,13 +29,11 @@ export const Route = createFileRoute("/")({
   search: { middlewares: [stripSearchParams({ page: 1 })] },
   loaderDeps: ({ search: { status, page } }) => ({ status, page }),
   loader: async ({ deps }) => {
-    const access = await getSessionAccess();
-    const admin = canAdmin(access);
     const [state, documents, review, failed, catalog] = await Promise.all([
       getDashboard({ data: deps }),
       getDocuments({ data: documentSearch.parse({}) }),
-      admin ? getScans({ data: scanSearch.parse({ status: "review" }) }) : null,
-      admin ? getScans({ data: scanSearch.parse({ status: "failed" }) }) : null,
+      getScans({ data: scanSearch.parse({ status: "review" }) }),
+      getScans({ data: scanSearch.parse({ status: "failed" }) }),
       getCatalog(),
     ]);
     return {
@@ -59,7 +54,6 @@ export const Route = createFileRoute("/")({
 
 function Overview() {
   useLiveData();
-  const admin = canAdmin(useAccess());
   const { state, documents, attention, catalog, selectedStatus } =
     Route.useLoaderData();
   const search = Route.useSearch();
@@ -100,29 +94,25 @@ function Overview() {
           title="Overview"
           description="A clear view of your paperwork."
         >
-          {admin && (
-            <Link to="/scans/upload" className={buttonVariants()}>
-              <HugeiconsIcon icon={Upload04Icon} /> Upload scan
-            </Link>
-          )}
+          <Link to="/scans/upload" className={buttonVariants()}>
+            <HugeiconsIcon icon={Upload04Icon} /> Upload scan
+          </Link>
         </PageHeader>
-        {admin && (
-          <OverviewSummary
-            counts={state.counts}
-            status={search.status}
-            onSelect={(status) => {
-              setPanel("documents");
-              void navigate({
-                search: {
-                  ...search,
-                  status: status === search.status ? undefined : status,
-                  page: 1,
-                },
-                resetScroll: false,
-              });
-            }}
-          />
-        )}
+        <OverviewSummary
+          counts={state.counts}
+          status={search.status}
+          onSelect={(status) => {
+            setPanel("documents");
+            void navigate({
+              search: {
+                ...search,
+                status: status === search.status ? undefined : status,
+                page: 1,
+              },
+              resetScroll: false,
+            });
+          }}
+        />
       </div>
       {mobile ? (
         <Tabs.Root

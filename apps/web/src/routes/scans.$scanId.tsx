@@ -30,7 +30,7 @@ export const Route = createFileRoute("/scans/$scanId")({
       getCatalog(),
     ]);
     if (!source) {
-      throw new Error("Admin mode is required");
+      throw new Error("This source is not available to your account");
     }
     return { ...source, catalog };
   },

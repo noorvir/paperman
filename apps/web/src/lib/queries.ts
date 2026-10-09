@@ -1,6 +1,3 @@
-import { getRequestHeaders } from "@tanstack/react-start/server";
-import { getAccess } from "./auth/session.server";
-import { canAdmin } from "./auth/access";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { client, unwrap } from "./api.server";
@@ -13,6 +10,8 @@ const filterValues = z
   .default([]);
 
 export const documentSearch = z.object({
+  delivery: z.enum(["", "review", "delivered"]).default(""),
+  inbox: z.string().default(""),
   q: z.string().default(""),
   owner: filterValues,
   tag: filterValues,
@@ -46,6 +45,7 @@ export const documentView = z.enum([
   "source",
 ]);
 export const scanSearch = z.object({
+  inbox: z.string().default(""),
   q: z.string().default(""),
   status: z
     .enum(["", "queued", "running", "review", "failed", "complete"])
@@ -124,13 +124,12 @@ export const getScan = createServerFn({ method: "GET" })
 export const getScanWithDocuments = createServerFn({ method: "GET" })
   .validator(z.string())
   .handler(async ({ data }) => {
-    const access = await getAccess(getRequestHeaders());
-    if (!canAdmin(access)) {
-      return null;
-    }
     const result = await client.GET("/api/scans/{scan_id}", {
       params: { path: { scan_id: data } },
     });
+    if (result.response.status === 404) {
+      return null;
+    }
     const scan = unwrap(result);
     const documents = await Promise.all(
       scan.document_ids.map(async (id) => {
@@ -142,4 +141,20 @@ export const getScanWithDocuments = createServerFn({ method: "GET" })
       }),
     );
     return { scan, documents };
+  });
+
+export const getInboxes = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const result = await client.GET("/api/inboxes");
+    return unwrap(result);
+  },
+);
+
+export const getDocumentAccess = createServerFn({ method: "GET" })
+  .validator(z.string())
+  .handler(async ({ data }) => {
+    const result = await client.GET("/api/documents/{document_id}/access", {
+      params: { path: { document_id: data } },
+    });
+    return unwrap(result);
   });

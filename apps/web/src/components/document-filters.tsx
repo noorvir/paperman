@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useAccess } from "./auth/access-context";
+import { canAdmin } from "@/lib/auth/access";
 import type { z } from "zod";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FilterHorizontalIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
@@ -26,18 +28,29 @@ export function DocumentFilters({
   catalog: components["schemas"]["Catalog"];
   onChange: (search: Search) => void;
 }) {
+  const access = useAccess();
   const [open, setOpen] = useState(false);
   const count = [
     search.owner.length,
     search.tag.length,
     search.after || search.before,
     search.status,
+    search.delivery,
+    search.inbox,
   ].filter(Boolean).length;
   function change(filter: Partial<Search>) {
     onChange({ ...search, ...filter, page: 1 });
   }
   function reset() {
-    change({ owner: [], tag: [], after: "", before: "", status: "" });
+    change({
+      owner: [],
+      tag: [],
+      after: "",
+      before: "",
+      status: "",
+      delivery: "",
+      inbox: "",
+    });
   }
   const fields = (
     <>
@@ -69,6 +82,22 @@ export function DocumentFilters({
         before={search.before}
         onChange={change}
       />
+      {access.state === "authenticated" && canAdmin(access) && (
+        <div className="w-full shrink-0 @min-[74rem]/library:w-32">
+          <SelectField
+            label="Delivery status"
+            value={search.delivery}
+            items={[
+              { value: "", label: "Any delivery" },
+              { value: "review", label: "Needs delivery" },
+              { value: "delivered", label: "Delivered" },
+            ]}
+            onValueChange={(value) =>
+              change({ delivery: documentSearch.shape.delivery.parse(value) })
+            }
+          />
+        </div>
+      )}
       <div className="w-full shrink-0 @min-[74rem]/library:w-28">
         <SelectField
           label="Tagging status"

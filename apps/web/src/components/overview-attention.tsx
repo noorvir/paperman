@@ -20,6 +20,7 @@ export function OverviewAttention({
   const unverifiedCount = state.counts.unverified ?? 0;
   const needsAttention =
     attention.length > 0 ||
+    state.routing_total > 0 ||
     unverifiedCount > 0 ||
     (admin &&
       (!state.worker_online ||
@@ -114,6 +115,37 @@ export function OverviewAttention({
             </Link>
           ))}
         </div>
+        {state.routing_total > 0 && (
+          <section className="space-y-2 border-t py-4">
+            <h3 className="text-xs font-medium">
+              Needs delivery ({state.routing_total})
+            </h3>
+            <ul className="divide-y">
+              {state.routing_documents.map((document) => (
+                <li key={document.id}>
+                  <Link
+                    to="/documents/$documentId"
+                    params={{ documentId: document.id }}
+                    className="block truncate rounded py-2 text-xs hover:bg-accent"
+                  >
+                    {document.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <Link
+              to="/documents"
+              search={{ delivery: "review", inbox: "shared" }}
+              className={buttonVariants({
+                variant: "link",
+                size: "sm",
+                className: "w-full",
+              })}
+            >
+              View all
+            </Link>
+          </section>
+        )}
         {unverifiedCount > 0 && (
           <section
             className="space-y-2 border-t py-4"
