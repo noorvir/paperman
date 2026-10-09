@@ -1,5 +1,6 @@
 import { AccountMenu } from "./auth/account-menu";
 import { useAccess } from "./auth/access-context";
+import { canSuperAdmin } from "@/lib/auth/access";
 import type { ComponentProps, ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -10,6 +11,7 @@ import {
   ScanIcon,
   ListViewIcon,
   Settings01Icon,
+  UserGroupIcon,
 } from "@hugeicons/core-free-icons";
 import { useWorkspaceBreadcrumbs } from "@/hooks/use-workspace-breadcrumbs";
 import { NavigationBreadcrumbs } from "./navigation-breadcrumbs";
@@ -23,7 +25,7 @@ import {
 } from "./ui/dropdown-menu";
 
 const pages: {
-  to: "/" | "/documents" | "/scans";
+  to: "/" | "/documents" | "/scans" | "/users";
   label: string;
   icon: ComponentProps<typeof HugeiconsIcon>["icon"];
 }[] = [
@@ -40,7 +42,9 @@ export function WorkspaceLayout({
   demo: boolean;
 }) {
   const access = useAccess();
-  const visiblePages = pages;
+  const visiblePages = canSuperAdmin(access)
+    ? [...pages, { to: "/users" as const, label: "Users", icon: UserGroupIcon }]
+    : pages;
   const breadcrumbs = useWorkspaceBreadcrumbs();
   return (
     <div className="flex h-dvh min-w-0 flex-col overflow-hidden">
@@ -90,7 +94,9 @@ export function WorkspaceLayout({
               className="workspace-nav-tabs"
             >
               <Link to="/roadmap">Roadmap</Link>
-              {access.state !== "authenticated" && <Link to="/settings">Settings</Link>}
+              {access.state !== "authenticated" && (
+                <Link to="/settings">Settings</Link>
+              )}
             </nav>
           </div>
           <div className="workspace-nav-menu">

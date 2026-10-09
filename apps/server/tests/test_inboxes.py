@@ -37,7 +37,7 @@ def test_personal_and_shared_delivery_keep_sources_and_metadata_separate(
     )
     alice = identity(["alice"])
     bob = identity(["alice"], subject="bob-user")
-    admin = identity([], "admin", "admin", subject="admin-user")
+    admin = identity([], "admin", subject="admin-user")
 
     for headers in [alice, bob, admin]:
         assert client.get("/api/workspace", headers=headers).status_code == 200
@@ -274,7 +274,7 @@ def test_account_registry_and_routing_require_admin(tmp_path: Path) -> None:
         ).status_code
         == 403
     )
-    admin = identity([], "admin", "admin")
+    admin = identity([], "admin")
     assert (
         client.put("/api/inboxes/accounts", json=[account], headers=admin).status_code
         == 200

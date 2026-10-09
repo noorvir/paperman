@@ -45,7 +45,7 @@ def test_confirmed_owners_control_delivery_without_sharing_the_scan(
             AuthSettings(auth_enabled=True, api_auth_secret=SECRET),
         )
     )
-    admin = identity([], "admin", "admin", subject="admin")
+    admin = identity([], "admin", subject="admin")
     alice = identity(["alice"], subject="alice-user")
     bob = identity(["alice"], subject="bob-user")
     for account in [alice, bob]:

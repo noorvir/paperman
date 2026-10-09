@@ -12,7 +12,7 @@ import { cn } from "cn";
 import { WorkspaceLayout } from "@/components/workspace-layout";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { getWorkspace, getSessionAccess } from "@/lib/auth/functions";
-import { canAdmin } from "@/lib/auth/access";
+import { canAdmin, canSuperAdmin } from "@/lib/auth/access";
 import { AccessContext } from "@/components/auth/access-context";
 import "@/style.css";
 import interFont from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
@@ -27,15 +27,18 @@ export const Route = createRootRoute({
       throw redirect({ to: "/" });
     }
     const adminPage =
-      /^\/users(\/|$)/.test(location.pathname) ||
+      /^\/members(\/|$)/.test(location.pathname) ||
       /^\/settings\/.+\/(new|edit)$/.test(location.pathname) ||
       /^\/settings\/[^/]+\/new$/.test(location.pathname);
     if (adminPage && !canAdmin(access)) {
       throw redirect({ to: "/documents" });
     }
+    if (/^\/users(\/|$)/.test(location.pathname) && !canSuperAdmin(access)) {
+      throw redirect({ to: "/documents" });
+    }
     if (
       access.state === "disabled" &&
-      ["/users", "/account"].includes(location.pathname)
+      ["/users", "/members", "/account"].includes(location.pathname)
     ) {
       throw redirect({ to: "/" });
     }

@@ -5,7 +5,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { getAuth } from "../src/lib/auth/auth.server";
 import { authConfig } from "../src/lib/auth/config.server";
-import { getAccess, identityHeaders } from "../src/lib/auth/session.server";
+import {
+  getAccess,
+  identityHeaders,
+  setGodMode,
+} from "../src/lib/auth/session.server";
 
 await test("disabled mode needs neither a database nor secrets, while enabled mode fails closed", async () => {
   const directory = mkdtempSync(join(tmpdir(), "paperman-no-auth-"));
@@ -17,6 +21,7 @@ await test("disabled mode needs neither a database nor secrets, while enabled mo
   try {
     assert.equal(await getAuth(), null);
     assert.deepEqual(await getAccess(new Headers()), { state: "disabled" });
+    await assert.rejects(setGodMode(new Headers(), true), /disabled/);
     const headers = await identityHeaders(
       new Headers({ authorization: "Bearer untrusted" }),
     );

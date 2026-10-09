@@ -14,6 +14,7 @@ import { Route as AccountRouteImport } from './routes/account'
 import { Route as DocumentsRouteImport } from './routes/documents'
 import { Route as DocumentsTestRouteImport } from './routes/documents-test'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as MembersRouteImport } from './routes/members'
 import { Route as NavigationPreviewRouteImport } from './routes/navigation-preview'
 import { Route as PipelinePreviewRouteImport } from './routes/pipeline-preview'
 import { Route as RoadmapRouteImport } from './routes/roadmap'
@@ -54,6 +55,11 @@ const DocumentsTestRoute = DocumentsTestRouteImport.update({
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersRoute = MembersRouteImport.update({
+  id: '/members',
+  path: '/members',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NavigationPreviewRoute = NavigationPreviewRouteImport.update({
@@ -144,6 +150,7 @@ export interface FileRoutesByFullPath {
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
   '/login': typeof LoginRoute
+  '/members': typeof MembersRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/roadmap': typeof RoadmapRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
   '/login': typeof LoginRoute
+  '/members': typeof MembersRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/roadmap': typeof RoadmapRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/documents': typeof DocumentsRouteWithChildren
   '/documents-test': typeof DocumentsTestRoute
   '/login': typeof LoginRoute
+  '/members': typeof MembersRoute
   '/navigation-preview': typeof NavigationPreviewRoute
   '/pipeline-preview': typeof PipelinePreviewRoute
   '/roadmap': typeof RoadmapRoute
@@ -215,6 +224,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/documents-test'
     | '/login'
+    | '/members'
     | '/navigation-preview'
     | '/pipeline-preview'
     | '/roadmap'
@@ -238,6 +248,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/documents-test'
     | '/login'
+    | '/members'
     | '/navigation-preview'
     | '/pipeline-preview'
     | '/roadmap'
@@ -260,6 +271,7 @@ export interface FileRouteTypes {
     | '/documents'
     | '/documents-test'
     | '/login'
+    | '/members'
     | '/navigation-preview'
     | '/pipeline-preview'
     | '/roadmap'
@@ -284,6 +296,7 @@ export interface RootRouteChildren {
   DocumentsRoute: typeof DocumentsRouteWithChildren
   DocumentsTestRoute: typeof DocumentsTestRoute
   LoginRoute: typeof LoginRoute
+  MembersRoute: typeof MembersRoute
   NavigationPreviewRoute: typeof NavigationPreviewRoute
   PipelinePreviewRoute: typeof PipelinePreviewRoute
   RoadmapRoute: typeof RoadmapRoute
@@ -331,6 +344,13 @@ declare module '@tanstack/react-router' {
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members': {
+      id: '/members'
+      path: '/members'
+      fullPath: '/members'
+      preLoaderRoute: typeof MembersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/navigation-preview': {
@@ -494,6 +514,7 @@ const rootRouteChildren: RootRouteChildren = {
   DocumentsRoute: DocumentsRouteWithChildren,
   DocumentsTestRoute: DocumentsTestRoute,
   LoginRoute: LoginRoute,
+  MembersRoute: MembersRoute,
   NavigationPreviewRoute: NavigationPreviewRoute,
   PipelinePreviewRoute: PipelinePreviewRoute,
   RoadmapRoute: RoadmapRoute,

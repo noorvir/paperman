@@ -1,41 +1,21 @@
 import { useState } from "react";
 import { useRouter } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth/client";
-import { saveRoutingOwners, type getUsers } from "@/lib/auth/functions";
-import type { components } from "@/lib/schema";
+import { type getUsers } from "@/lib/auth/functions";
 import { Button } from "../ui/button";
-import { Checkbox } from "../ui/checkbox";
-import {
-  Select,
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-} from "../ui/select";
 import { Input } from "../ui/input";
 import { ErrorNotice } from "../page";
-import { useUnsavedChanges } from "@/hooks/use-unsaved-changes";
-import { UnsavedChangesDialog } from "../unsaved-changes-dialog";
 
 export function UserAccess({
   selected,
-  owners,
 }: {
   selected: NonNullable<Awaited<ReturnType<typeof getUsers>>["selected"]>;
-  owners: components["schemas"]["Catalog"]["owners"];
 }) {
-  const { user, sessions, ownerIds } = selected;
-  const [draft, setDraft] = useState(() =>
-    ownerIds.filter((id) => owners.some((owner) => owner.id === id)),
-  );
-  const [role, setRole] = useState(user.role === "admin" ? "admin" : "user");
+  const { user, sessions } = selected;
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
-  const unsaved = useUnsavedChanges(
-    JSON.stringify({ owners: [...draft].sort(), role }),
-  );
   async function run(label: string, action: () => Promise<unknown>) {
     setPending(label);
     setError("");
@@ -52,84 +32,34 @@ export function UserAccess({
   }
   return (
     <div className="workspace-section min-w-0">
-      <UnsavedChangesDialog blocker={unsaved.blocker} />
-      <h2 className="workspace-title">{user.name}</h2>
-      <p className="workspace-description break-words">{user.email}</p>
       <ErrorNotice message={error} />
-      <label className="field-label">
-        Role
-        <Select
-          value={role}
-          disabled={Boolean(pending)}
-          onValueChange={(value) => {
-            if (value === "user" || value === "admin") {
-              setRole(value);
-            }
-          }}
-        >
-          <SelectTrigger>
-            <SelectValue>{role === "admin" ? "Admin" : "User"}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="user">User</SelectItem>
-            <SelectItem value="admin">Admin</SelectItem>
-          </SelectContent>
-        </Select>
-      </label>
-      <fieldset disabled={Boolean(pending)} className="space-y-2 border-t pt-4">
-        <legend className="text-xs font-medium">Linked owners</legend>
-        <p className="workspace-description">
-          This account receives shared documents for these owners after an admin
-          confirms delivery. Changes also apply to documents already confirmed.
-          Personal inboxes and separate sharing permissions are unchanged.
-        </p>
-        {owners
-          .filter((owner) => owner.id !== "unknown")
-          .map((owner) => (
-            <label key={owner.id} className="flex items-center gap-2 text-xs">
-              <Checkbox
-                checked={draft.includes(owner.id)}
-                onCheckedChange={(checked) =>
-                  setDraft(
-                    checked
-                      ? [...draft, owner.id]
-                      : draft.filter((id) => id !== owner.id),
-                  )
-                }
-              />
-              {owner.name}
-            </label>
-          ))}
+      <p className="workspace-description">
+        {user.role === "superadmin" ? "Superadmin" : "User"}
+      </p>
+      {user.role !== "superadmin" && (
         <Button
-          loading={pending === "owners"}
-          disabled={Boolean(pending) || !unsaved.isDirty}
+          variant="outline"
+          loading={pending === "impersonate"}
+          disabled={Boolean(pending)}
           onClick={() =>
-            void run("owners", async () => {
-              await saveRoutingOwners({
-                data: { userId: user.id, ownerIds: draft },
+            void run("impersonate", async () => {
+              const result = await authClient.admin.impersonateUser({
+                userId: user.id,
               });
-              if ((role === "admin" || role === "user") && role !== user.role) {
-                const result = await authClient.admin.setRole({
-                  userId: user.id,
-                  role,
-                });
-                if (result.error) {
-                  throw new Error(result.error.message);
-                }
-              }
-              unsaved.markSaved();
+              if (result.error) throw new Error(result.error.message);
+              window.location.assign("/");
             })
           }
         >
-          Save owners and role
+          Impersonate user
         </Button>
-      </fieldset>
+      )}
       <section className="workspace-section border-t pt-4">
-        <h3 className="text-xs font-medium">Account access</h3>
+        <h3 className="text-xs font-medium">User access</h3>
         <Button
           variant="outline"
           loading={pending === "suspend"}
-          disabled={Boolean(pending)}
+          disabled={Boolean(pending) || user.role === "superadmin"}
           onClick={() =>
             void run("suspend", async () => {
               const result = user.banned
@@ -144,7 +74,7 @@ export function UserAccess({
             })
           }
         >
-          {user.banned ? "Restore account" : "Suspend account"}
+          {user.banned ? "Restore user" : "Suspend user"}
         </Button>
         <form
           className="flex flex-col gap-2"

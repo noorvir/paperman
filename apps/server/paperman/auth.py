@@ -31,19 +31,28 @@ class Principal(BaseModel):
 
     sub: str
     name: str
-    role: Literal["user", "admin"]
-    mode: Literal["personal", "admin"]
+    application_role: Literal["user", "superadmin"]
+    organization_id: Literal["paperman"] | None
+    organization_role: Literal["member", "admin"] | None
     owner_ids: list[str] = Field(default_factory=list)
     iss: Literal["paperman-web"]
     aud: Literal["paperman-api"]
     iat: int
     exp: int
 
+    @model_validator(mode="after")
+    def check_membership(self) -> "Principal":
+        if (self.organization_id is None) != (self.organization_role is None):
+            raise ValueError("Invalid organization membership")
+        return self
+
     @property
     def admin(self) -> bool:
-        return self.role == "admin" and self.mode == "admin"
+        return self.organization_role == "admin"
 
     def can_view(self, document: Document) -> bool:
+        if self.organization_role is None:
+            return False
         confirmed_owner = (
             document.inbox_id == "shared"
             and document.delivery_confirmation is not None
@@ -60,13 +69,14 @@ class Principal(BaseModel):
         return personal_inbox_id(self.sub)
 
     def can_view_source(self, scan: Scan) -> bool:
-        return scan.inbox_id == self.inbox_id or (
-            self.admin and scan.inbox_id == "shared"
+        return self.organization_role is not None and (
+            scan.inbox_id == self.inbox_id or (self.admin and scan.inbox_id == "shared")
         )
 
     def can_manage_document(self, document: Document) -> bool:
-        return document.inbox_id == self.inbox_id or (
-            self.admin and document.inbox_id == "shared"
+        return self.organization_role is not None and (
+            document.inbox_id == self.inbox_id
+            or (self.admin and document.inbox_id == "shared")
         )
 
 
@@ -117,7 +127,17 @@ class Auth:
     ) -> Principal | None:
         principal = self(authorization)
         if principal is not None and not principal.admin:
-            raise HTTPException(403, "Admin mode is required")
+            raise HTTPException(403, "Organization admin access is required")
+        return principal
+
+    def require_account_admin(
+        self, authorization: Annotated[str | None, Header()] = None
+    ) -> Principal | None:
+        principal = self(authorization)
+        if principal is not None and not (
+            principal.admin or principal.application_role == "superadmin"
+        ):
+            raise HTTPException(403, "Account administration access is required")
         return principal
 
 

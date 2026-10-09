@@ -58,7 +58,7 @@ export function DocumentDelivery({
     );
   }
 
-  if (direct || access.role !== "admin" || access.mode !== "admin") return null;
+  if (direct || access.organizationRole !== "admin") return null;
 
   async function route() {
     if (pending || confirmation || unknown) return;

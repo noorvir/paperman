@@ -8,10 +8,10 @@ import {
   Settings01Icon,
   LogoutSquare01Icon,
 } from "@hugeicons/core-free-icons";
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import { authClient } from "@/lib/auth/client";
-import { setMode } from "@/lib/auth/functions";
-import { canAdmin } from "@/lib/auth/access";
+import { changeGodMode } from "@/lib/auth/functions";
+import { canAdmin, canSuperAdmin } from "@/lib/auth/access";
 import { useAccess } from "./access-context";
 import { Button } from "../ui/button";
 import { OwnerAvatar } from "../collection";
@@ -20,30 +20,51 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuCheckboxItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "../ui/dropdown-menu";
 
 export function AccountMenu() {
   const access = useAccess();
+  const router = useRouter();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   if (access.state !== "authenticated") {
     return null;
   }
-  async function change(action: () => Promise<unknown>, location: string) {
+  const roleLabel = [
+    access.godMode
+      ? "God mode"
+      : access.applicationRole === "superadmin"
+        ? "Superadmin"
+        : null,
+    access.organizationRole === "admin"
+      ? "Organization admin"
+      : access.organizationRole === "member"
+        ? "Member"
+        : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
+  async function change(action: () => Promise<unknown>, location?: string) {
     setPending(true);
     setError("");
     try {
       await action();
-      window.location.assign(location);
+      if (location) window.location.assign(location);
+      else await router.invalidate();
     } catch {
       setError("Could not update your session. Try again.");
+    } finally {
       setPending(false);
     }
   }
   return (
-    <div className="min-w-0 shrink-0">
+    <div className="flex min-w-0 shrink-0 items-center gap-2">
+      {canSuperAdmin(access) && (
+        <span className="text-xs text-destructive">God mode</span>
+      )}
       <DropdownMenu>
         <Tooltip>
           <TooltipTrigger
@@ -55,7 +76,7 @@ export function AccountMenu() {
                     size="icon-lg"
                     loading={pending}
                     className="rounded-full"
-                    aria-label={`Account menu — ${access.mode === "admin" ? "Admin mode" : "Personal mode"}`}
+                    aria-label={`Account menu — ${roleLabel}`}
                   />
                 }
               />
@@ -64,46 +85,52 @@ export function AccountMenu() {
             <OwnerAvatar
               name={access.name}
               className={
-                access.mode === "admin"
+                canSuperAdmin(access)
                   ? "ring-[1.5px] ring-destructive"
                   : undefined
               }
             />
           </TooltipTrigger>
-          <TooltipContent side="bottom">
-            {access.mode === "admin" ? "Admin mode" : "Personal mode"}
-          </TooltipContent>
+          <TooltipContent side="bottom">{roleLabel}</TooltipContent>
         </Tooltip>
-        <DropdownMenuContent align="end" className="w-64 [&_[role=menuitem]]:whitespace-nowrap">
+        <DropdownMenuContent
+          align="end"
+          className="w-64 [&_[role=menuitem]]:whitespace-nowrap"
+        >
           <div className="px-2 py-2">
             <p className="truncate text-xs font-medium">{access.name}</p>
-            <p className="text-xs text-muted-foreground">
-              {access.mode === "admin" ? "Admin mode" : "Personal mode"}
-            </p>
+            <p className="text-xs text-muted-foreground">{roleLabel}</p>
           </div>
           <DropdownMenuSeparator />
-          {access.role === "admin" && (
-            <DropdownMenuItem
-              onClick={() =>
-                void change(
-                  () =>
-                    setMode({
-                      data: access.mode === "admin" ? "personal" : "admin",
-                    }),
-                  "/",
-                )
+          {access.applicationRole === "superadmin" && !access.impersonating && (
+            <DropdownMenuCheckboxItem
+              checked={access.godMode}
+              disabled={pending}
+              onCheckedChange={(checked) =>
+                void change(() => changeGodMode({ data: checked }))
               }
             >
-              <HugeiconsIcon icon={access.mode === "admin" ? UserCircleIcon : UserShield01Icon} aria-hidden="true" />
-              {access.mode === "admin"
-                ? "Switch to personal mode"
-                : "Switch to admin mode"}
+              <HugeiconsIcon icon={UserShield01Icon} aria-hidden="true" />
+              God mode
+            </DropdownMenuCheckboxItem>
+          )}
+          {access.impersonating && (
+            <DropdownMenuItem
+              onClick={() =>
+                void change(async () => {
+                  const result = await authClient.admin.stopImpersonating();
+                  if (result.error) throw new Error(result.error.message);
+                }, "/users")
+              }
+            >
+              <HugeiconsIcon icon={UserCircleIcon} aria-hidden="true" />
+              Stop impersonating
             </DropdownMenuItem>
           )}
           {canAdmin(access) && (
-            <DropdownMenuItem render={<Link to="/users" />}>
+            <DropdownMenuItem render={<Link to="/members" />}>
               <HugeiconsIcon icon={UserGroupIcon} aria-hidden="true" />
-              Manage users
+              Manage members
             </DropdownMenuItem>
           )}
           <DropdownMenuItem render={<Link to="/account" />}>

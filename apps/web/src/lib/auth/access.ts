@@ -7,8 +7,10 @@ export const accessSchema = z.discriminatedUnion("state", [
     state: z.literal("authenticated"),
     userId: z.string(),
     name: z.string(),
-    role: z.enum(["user", "admin"]),
-    mode: z.enum(["personal", "admin"]),
+    applicationRole: z.enum(["user", "superadmin"]),
+    organizationRole: z.enum(["member", "admin"]).nullable(),
+    impersonating: z.boolean(),
+    godMode: z.boolean(),
   }),
 ]);
 export type Access = z.infer<typeof accessSchema>;
@@ -16,8 +18,15 @@ export type Access = z.infer<typeof accessSchema>;
 export function canAdmin(access: Access) {
   return (
     access.state === "disabled" ||
-    (access.state === "authenticated" &&
-      access.role === "admin" &&
-      access.mode === "admin")
+    (access.state === "authenticated" && access.organizationRole === "admin")
+  );
+}
+
+export function canSuperAdmin(access: Access) {
+  return (
+    access.state === "authenticated" &&
+    access.applicationRole === "superadmin" &&
+    access.godMode &&
+    !access.impersonating
   );
 }

@@ -23,7 +23,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     @router.put(
         "/api/inboxes/accounts",
         operation_id="register_inboxes",
-        dependencies=[Depends(auth.require_admin)],
+        dependencies=[Depends(auth.require_account_admin)],
     )
     def register_inboxes(accounts: list[AccountInbox]) -> list[Inbox]:
         with storage.transaction():

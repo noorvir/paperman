@@ -33,7 +33,7 @@ export function SourceAccessHelp({
           <li>You can read this document without access to the full scan.</li>
           <li>
             {inbox === "shared"
-              ? "Admins can view the full shared scan in admin mode."
+              ? "Organization admins can view the full shared scan."
               : "Sharing a document does not share its original scan."}
           </li>
           <li>Scans sent directly to your inbox are available to you.</li>

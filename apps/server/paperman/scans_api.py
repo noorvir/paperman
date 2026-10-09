@@ -262,10 +262,12 @@ def routes(storage: FileStorage, config: Settings, auth: Auth) -> APIRouter:
         inbox: str = "",
     ) -> Scan:
         inbox_id = inbox or (principal.inbox_id if principal else "shared")
-        if (
-            principal is not None
-            and inbox_id != principal.inbox_id
-            and not (principal.admin and inbox_id == "shared")
+        if principal is not None and (
+            principal.organization_role is None
+            or (
+                inbox_id != principal.inbox_id
+                and not (principal.admin and inbox_id == "shared")
+            )
         ):
             raise HTTPException(403, "You cannot upload to this inbox")
         storage.get_inbox(inbox_id)

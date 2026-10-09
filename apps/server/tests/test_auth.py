@@ -19,10 +19,10 @@ SECRET = "auth-test-secret-not-for-production-123456"
 
 def identity(
     owners: list[str],
-    role: Literal["user", "admin"] = "user",
-    mode: Literal["personal", "admin"] = "personal",
+    organization_role: Literal["member", "admin"] | None = "member",
     *,
     subject: str = "alice-user",
+    application_role: Literal["user", "superadmin"] = "user",
     expired: bool = False,
     issuer: str = "paperman-web",
     audience: str = "paperman-api",
@@ -33,8 +33,9 @@ def identity(
         {
             "sub": subject,
             "name": "Alice",
-            "role": role,
-            "mode": mode,
+            "application_role": application_role,
+            "organization_id": "paperman" if organization_role else None,
+            "organization_role": organization_role,
             "owner_ids": owners,
             "iss": issuer,
             "aud": audience,
@@ -150,15 +151,15 @@ def test_explicit_access_applies_to_search_counts_details_and_pdf(
     assert dashboard.worker is None
     for headers in [
         identity(["alice"], subject="unassigned"),
-        identity(["alice"], "admin", "personal", subject="unassigned"),
-        identity(["alice"], "user", "admin", subject="unassigned"),
+        identity(["alice"], application_role="superadmin", subject="unassigned"),
+        identity(["alice"], None, application_role="superadmin", subject="unassigned"),
     ]:
         page = DocumentPage.model_validate_json(
             client.get("/api/documents", headers=headers).content
         )
         assert page.total == 0
     page = DocumentPage.model_validate_json(
-        client.get("/api/documents", headers=identity([], "admin", "admin")).content
+        client.get("/api/documents", headers=identity([], "admin")).content
     )
     assert page.total == 3
 
@@ -221,10 +222,7 @@ def test_recipient_edits_cannot_change_owners_or_pages(
     assert (
         client.post("/api/documents/shared/enrich", headers=headers).status_code == 200
     )
-    assert (
-        client.get("/api/settings", headers=identity([], "admin", "admin")).status_code
-        == 200
-    )
+    assert client.get("/api/settings", headers=identity([], "admin")).status_code == 200
 
 
 def test_disabled_mode_needs_no_auth_and_enabled_configuration_fails_closed(
@@ -247,3 +245,41 @@ def test_disabled_mode_needs_no_auth_and_enabled_configuration_fails_closed(
             Settings(data_dir=tmp_path),
             AuthSettings(auth_enabled=True, api_auth_secret=""),
         )
+
+
+@pytest.mark.parametrize("application_role", ["user", "superadmin"])
+def test_organization_membership_controls_data_not_application_role(
+    protected: tuple[TestClient, FileStorage],
+    application_role: Literal["user", "superadmin"],
+) -> None:
+    client, store = protected
+    member = identity([], application_role=application_role)
+    admin = identity([], "admin", application_role=application_role)
+    nonmember = identity([], None, application_role=application_role)
+    assert client.get("/api/settings", headers=member).status_code == 403
+    assert client.get("/api/settings", headers=admin).status_code == 200
+    assert client.get("/api/documents/private", headers=admin).status_code == 200
+    for headers in [member, nonmember]:
+        assert client.get("/api/documents/private", headers=headers).status_code == 404
+        assert (
+            client.post(
+                "/api/documents/shared/confirm-delivery",
+                headers=headers,
+                json={"revision": store.get_document("shared").revision},
+            ).status_code
+            == 403
+        )
+    assert client.get("/api/documents/shared", headers=nonmember).status_code == 404
+    assert (
+        client.post(
+            "/api/uploads",
+            headers=nonmember,
+            files={"file": ("scan.pdf", b"not processed", "application/pdf")},
+        ).status_code
+        == 403
+    )
+    assert client.put(
+        "/api/inboxes/accounts",
+        headers=nonmember,
+        json=[{"account_id": "new-user", "name": "New User"}],
+    ).status_code == (200 if application_role == "superadmin" else 403)

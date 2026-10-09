@@ -170,7 +170,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
                     or value.source_pages not in (None, doc.source_pages)
                 ):
                     raise HTTPException(
-                        403, "Admin mode is required to change owners or pages"
+                        403,
+                        "Organization admin access is required to change owners or pages",
                     )
             if value.rotations or value.source_pages not in (None, doc.source_pages):
                 if principal is not None and not principal.can_view_source(

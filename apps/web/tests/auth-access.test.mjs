@@ -48,26 +48,26 @@ test(
         (await adminContext.request.get(base + "/api/scans")).status(),
         200,
       );
+      await admin.getByRole("button", { name: /Account menu/ }).click();
       await admin
-        .getByRole("button", { name: "Administrator", exact: true })
+        .getByRole("menuitemcheckbox", { name: "God mode", exact: true })
         .click();
+      await admin.getByRole("link", { name: "Users", exact: true }).waitFor();
+      assert.equal(admin.url(), base + "/");
+      await admin.getByRole("button", { name: /Account menu/ }).click();
+      await admin.getByRole("link", { name: "Users", exact: true }).click();
       await admin
-        .getByRole("menuitem", { name: "Switch to admin mode" })
+        .getByRole("button", { name: "Create user", exact: true })
         .click();
-      await admin
-        .getByRole("button", { name: "Admin mode", exact: true })
-        .waitFor();
-      assert.equal(
-        (await adminContext.request.get(base + "/api/scans")).status(),
-        200,
-      );
-      await admin.goto(base + "/users");
       await admin.getByLabel("Name", { exact: true }).fill("Access Test User");
       await admin.getByLabel("Email", { exact: true }).fill(email);
       await admin.getByLabel("Initial password").fill(password);
       await admin
+        .getByRole("dialog")
         .getByRole("button", { name: "Create user", exact: true })
         .click();
+      await admin.getByRole("row").filter({ hasText: email }).waitFor();
+      await admin.goto(base + "/members");
       await admin.getByRole("link", { name: new RegExp(email) }).click();
       await admin.getByText("Linked owners", { exact: true }).waitFor();
       const accountUrl = admin.url();
@@ -92,7 +92,7 @@ test(
       const target = all.items.find((doc) => doc.owner_ids.includes("alex"));
       assert.ok(target);
       await admin.goto(`${base}/documents/${target.id}`);
-      await admin.getByRole("button", { name: "Deliver", exact: true }).click();
+      await admin.getByRole("button", { name: "Route", exact: true }).click();
       await admin
         .getByRole("img", { name: `Delivered: ${target.title}`, exact: true })
         .waitFor();
@@ -202,12 +202,16 @@ test(
         404,
       );
       await admin.goto(base + "/users");
-      await admin.getByRole("link", { name: new RegExp(email) }).click();
       await admin
-        .getByRole("button", { name: "Suspend account", exact: true })
+        .getByRole("row")
+        .filter({ hasText: email })
+        .getByRole("link", { name: "Manage Access Test User", exact: true })
         .click();
       await admin
-        .getByRole("button", { name: "Restore account", exact: true })
+        .getByRole("button", { name: "Suspend user", exact: true })
+        .click();
+      await admin
+        .getByRole("button", { name: "Restore user", exact: true })
         .waitFor();
       assert.equal(
         (await userContext.request.get(base + "/api/documents")).status(),

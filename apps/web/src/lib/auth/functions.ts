@@ -1,13 +1,23 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { getAccess, requireAdmin } from "./session.server";
+import {
+  getAccess,
+  requireAdmin,
+  requireSuperAdmin,
+  setGodMode,
+} from "./session.server";
 import { getAuth } from "./auth.server";
+import { installationId } from "./permissions";
 import { client, unwrap } from "../api.server";
 
 export const getSessionAccess = createServerFn({ method: "GET" }).handler(() =>
   getAccess(getRequestHeaders()),
 );
+
+export const changeGodMode = createServerFn({ method: "POST" })
+  .validator(z.boolean())
+  .handler(({ data }) => setGodMode(getRequestHeaders(), data));
 
 export const getWorkspace = createServerFn({ method: "GET" }).handler(
   async () => {
@@ -19,28 +29,6 @@ export const getWorkspace = createServerFn({ method: "GET" }).handler(
     return { access, ...unwrap(result) };
   },
 );
-
-export const setMode = createServerFn({ method: "POST" })
-  .validator(z.enum(["personal", "admin"]))
-  .handler(async ({ data: mode }) => {
-    const headers = getRequestHeaders();
-    const runtime = await getAuth();
-    if (!runtime) {
-      throw new Error("Authentication is disabled");
-    }
-    const session = await runtime.auth.api.getSession({
-      headers,
-      query: { disableCookieCache: true },
-    });
-    if (!session || session.user.banned || session.user.role !== "admin") {
-      throw new Error("An admin account is required");
-    }
-    runtime.db
-      .prepare(
-        "INSERT INTO session_mode(session_id, mode) VALUES (?, ?) ON CONFLICT(session_id) DO UPDATE SET mode=excluded.mode",
-      )
-      .run(session.session.id, mode);
-  });
 
 export const saveRoutingOwners = createServerFn({ method: "POST" })
   .validator(
@@ -74,7 +62,7 @@ export const createAccount = createServerFn({ method: "POST" })
   )
   .handler(async ({ data }) => {
     const headers = getRequestHeaders();
-    await requireAdmin(headers);
+    await requireSuperAdmin(headers);
     const runtime = await getAuth();
     if (!runtime) {
       throw new Error("Authentication is disabled");
@@ -90,7 +78,7 @@ export const createAccount = createServerFn({ method: "POST" })
       unwrap(registered);
     } catch {
       throw new Error(
-        "The account was created, but its inbox could not be set up. Reload Users to finish setup.",
+        "The account was created, but its inbox could not be set up. Open Members to finish setup.",
       );
     }
   });
@@ -99,7 +87,7 @@ export const getUsers = createServerFn({ method: "GET" })
   .validator(z.object({ offset: z.number().int().min(0), userId: z.string() }))
   .handler(async ({ data: { offset, userId } }) => {
     const headers = getRequestHeaders();
-    await requireAdmin(headers);
+    await requireSuperAdmin(headers);
     const runtime = await getAuth();
     if (!runtime) {
       throw new Error("Authentication is disabled");
@@ -111,26 +99,100 @@ export const getUsers = createServerFn({ method: "GET" })
     const selectedUser = userId
       ? await runtime.auth.api.getUser({ headers, query: { id: userId } })
       : null;
-    const accounts = users.users.map((user) => ({
-      account_id: user.id,
-      name: user.name,
-    }));
-    if (selectedUser && !accounts.some((item) => item.account_id === userId)) {
-      accounts.push({ account_id: selectedUser.id, name: selectedUser.name });
-    }
-    const registered = await client.PUT("/api/inboxes/accounts", {
-      body: accounts,
-    });
-    const inboxes = unwrap(registered);
     let selected = null;
     if (selectedUser) {
       const sessions = await runtime.auth.api.listUserSessions({
         headers,
         body: { userId },
       });
-      const inbox = inboxes.find((item) => item.account_id === userId);
-      const ownerIds = inbox?.routing_owner_ids ?? [];
-      selected = { user: selectedUser, sessions: sessions.sessions, ownerIds };
+      selected = { user: selectedUser, sessions: sessions.sessions };
     }
     return { ...users, selected };
+  });
+
+export const getMembers = createServerFn({ method: "GET" })
+  .validator(z.object({ offset: z.number().int().min(0), userId: z.string() }))
+  .handler(async ({ data: { offset, userId } }) => {
+    const headers = getRequestHeaders();
+    await requireAdmin(headers);
+    const runtime = await getAuth();
+    if (!runtime) throw new Error("Authentication is disabled");
+    const members = await runtime.auth.api.listMembers({
+      headers,
+      query: {
+        organizationId: installationId,
+        limit: 25,
+        offset,
+      },
+    });
+    const selected = userId
+      ? await runtime.auth.api.listMembers({
+          headers,
+          query: {
+            organizationId: installationId,
+            filterField: "userId",
+            filterValue: userId,
+            limit: 1,
+          },
+        })
+      : null;
+    const member = selected?.members[0] ?? null;
+    const accounts = members.members.map((item) => ({
+      account_id: item.userId,
+      name: item.user.name,
+    }));
+    if (member && !accounts.some((item) => item.account_id === member.userId)) {
+      accounts.push({ account_id: member.userId, name: member.user.name });
+    }
+    const registered = unwrap(
+      await client.PUT("/api/inboxes/accounts", { body: accounts }),
+    );
+    return {
+      ...members,
+      selected: member
+        ? {
+            member,
+            ownerIds:
+              registered.find((item) => item.account_id === member.userId)
+                ?.routing_owner_ids ?? [],
+          }
+        : null,
+    };
+  });
+
+export const saveMember = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      memberId: z.string().min(1),
+      role: z.enum(["member", "admin"]),
+      ownerIds: z.array(z.string()),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const headers = getRequestHeaders();
+    await requireAdmin(headers);
+    const runtime = await getAuth();
+    if (!runtime) throw new Error("Authentication is disabled");
+    const found = await runtime.auth.api.listMembers({
+      headers,
+      query: {
+        organizationId: installationId,
+        filterField: "id",
+        filterValue: data.memberId,
+        limit: 1,
+      },
+    });
+    const member = found.members[0];
+    if (!member) throw new Error("Organization member not found");
+    await saveRoutingOwners({
+      data: { userId: member.userId, ownerIds: data.ownerIds },
+    });
+    await runtime.auth.api.updateMemberRole({
+      headers,
+      body: {
+        organizationId: installationId,
+        memberId: member.id,
+        role: data.role,
+      },
+    });
   });

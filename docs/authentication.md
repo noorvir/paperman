@@ -20,9 +20,9 @@ Use HTTPS for the browser. Keep Python on loopback or a private container networ
 
 Compose applies the same mode and API secret to both services. The persistent `auth` volume is mounted only in the web container. Do not remove it during deployment. Without Docker, use an absolute persistent path writable by the web service account.
 
-Better Auth migrations run before auth requests are served. Session mode is stored in the auth database. Inboxes, owner links, delivery confirmations, and explicit sharing permissions are stored with the documents. Detected owner names alone never grant access. Shared documents need admin confirmation before linked accounts can read them. Back up the database and auth secret separately from documents. Use SQLite's backup facility or stop the web service before copying the database and its WAL files.
+Better Auth migrations run before auth requests are served. Accounts, sessions, the installation organization, and memberships are stored in the auth database. Inboxes, owner links, delivery confirmations, and explicit sharing permissions are stored with the documents. Detected owner names alone never grant access. Shared documents need admin confirmation before linked accounts can read them. Back up the database and auth secret separately from documents. Use SQLite's backup facility or stop the web service before copying the database and its WAL files.
 
-## First administrator
+## First superadmin
 
 Public signup is disabled. Bootstrap refuses to run after any account exists. Load the auth settings above, then set temporary bootstrap values:
 
@@ -46,7 +46,25 @@ docker compose exec \
 unset PAPERMAN_BOOTSTRAP_PASSWORD
 ```
 
-Sign in, select **Switch to admin mode**, then **Manage users**. Create accounts, change roles, link owners to accounts, suspend accounts, reset passwords, and end sessions there. Each account has one personal inbox. Creating accounts through Manage users provisions it immediately; existing and bootstrapped accounts are provisioned on first use. The user list also registers existing accounts as it loads them. Users can change their password through the account menu.
+The first account receives the application role **superadmin** and the organization role **admin**. These are independent roles. There is one organization, named PaperMan, for the installation. Organization permissions apply without a mode switch. Superadmin actions require **God mode**.
+
+- In the account menu, select the **God mode** checkbox to enable superadmin actions. God mode is off for existing sessions after this upgrade and for every new sign-in. It applies only to the current session. The red avatar border and **God mode** label show when it is on. Clear the **God mode** checkbox to exit.
+- The **Users** tab appears while God mode is on. Turning on God mode keeps the current page open. The Users table has a **Create user** header button that opens a modal. Each row has **Manage** to suspend or restore a user, reset passwords, end sessions, or impersonate the user. New users become organization members automatically.
+- **Manage members** is available to organization admins. Change organization roles and link one or more document owners to each member.
+- Impersonation uses the target account's membership and document permissions. The account menu shows **Stop impersonating** to return to the original session. God mode is off while impersonating; returning restores the original session and its mode.
+- Every account has one personal inbox, provisioned on creation through the Users page or on first use. Members can change their own password.
+
+## Upgrade existing accounts
+
+Back up the auth database, stop the web service, load its auth environment, and run:
+
+```sh
+bun --filter @paperman/web migrate:organization you@example.com
+```
+
+For the container image, run `node migrate-organization.mjs you@example.com` with the web service environment. The email must belong to an existing account. The selected account becomes the single superadmin and an organization admin. Existing application admins become organization admins; other accounts become members. Existing memberships are preserved on retries. Passwords, sessions, account IDs, owner links, and document data are preserved.
+
+Restart the web and Python services together: internal identity claims have changed. Existing sessions load the new roles on the next request. The old `session_mode` table, if present, is unused. The migration uses Better Auth's adapter and membership API, without application SQL strings.
 
 ## Inboxes and delivery
 
@@ -56,30 +74,28 @@ There is one **shared inbox** per installation and one **personal inbox** per ac
 - The root `inbox/` folder receives shared scans. Each personal inbox has its own `inbox/personal-<id>/` folder. The worker watches all registered inbox folders without using authentication or account credentials.
 - Identical PDFs in different inboxes remain separate sources. Repeated arrivals within one inbox use the same source.
 - Personal documents are delivered to the submitting account. Detected owner names do not share them.
-- Shared documents enter **Needs delivery** after filing. Admins open the full document page, check the owners, and click **Deliver**. The signpost badge changes from **Not delivered** to **Delivered**. Badges in tables and previews show status only; clicking them does not deliver a document. No recipient selection is required. Unknown owners must be corrected first.
-- In **Manage users → Linked owners**, select the owners represented by each account. These links give access only to confirmed shared documents. Owners can have no account. Linking an account later makes its confirmed documents available; removing a link removes that route of access. Personal inbox and separate sharing access stay unchanged.
+- Shared documents enter **Needs routing** after filing. Admins open the full document page, check the owners, and click **Route**. The signpost badge changes from **Not routed** to **Routed**. Badges in tables and previews show status only; clicking them does not deliver a document. No recipient selection is required. Unknown owners must be corrected first.
+- In **Manage members → Linked owners**, select the owners represented by each account. These links give access only to confirmed shared documents. Owners can have no account. Linking an account later makes its confirmed documents available; removing a link removes that route of access. Personal inbox and separate sharing access stay unchanged.
 - Changing document owners or pages clears delivery confirmation. Title, tags, summaries, and verification do not clear it. An admin can still verify any document they can access.
 - Tags and summaries run per document after filing. Delivery does not wait for enrichment. Recipients can see processing progress, correct metadata, verify, and retry document processing.
 - Source grouping/OCR review is still scan-wide. Early publication before filing is not part of this flow.
 
 ## Permissions
 
-| Operation                                                    | Personal mode                              | Admin mode                                                  |
-| ------------------------------------------------------------ | ------------------------------------------ | ----------------------------------------------------------- |
-| Settings and Scans navigation                                | Visible                                    | Visible                                                     |
-| Read documents, search, counts, PDF                          | Confirmed linked-owner or shared documents | Same, plus all shared-inbox documents                       |
-| Read full sources                                            | Own personal sources                       | Own personal sources and shared sources                     |
-| Edit metadata, tags, summary, text; verify; retry enrichment | Visible documents                          | Visible documents                                           |
-| Change document owners or pages                              | No                                         | Own/shared sources; page changes also require source access |
-| Upload, review source groups, retry/reprocess source         | Own personal inbox                         | Own personal inbox and shared inbox                         |
-| Confirm shared delivery                                      | No                                         | Yes                                                         |
-| Display preference and password                              | Own account                                | Own account                                                 |
-| Catalog, global processing settings, search rebuild          | Read relevant catalog only                 | Manage installation                                         |
-| Users, roles, owner links, account sessions                  | No                                         | Yes                                                         |
+| Operation                                                              | Member                                              | Organization admin                      | Superadmin in God mode      |
+| ---------------------------------------------------------------------- | --------------------------------------------------- | --------------------------------------- | --------------------------- |
+| Read documents                                                         | Personal, routed linked-owner, or explicitly shared | Same, plus all shared-inbox documents   | Membership permissions only |
+| Read full source scans                                                 | Own personal scans                                  | Own personal scans and shared scans     | Membership permissions only |
+| Edit metadata, tags, summary, text; verify; retry enrichment           | Visible documents                                   | Visible documents                       | Membership permissions only |
+| Change document owners/pages, route shared mail                        | No                                                  | Yes; page changes require source access | No                          |
+| Upload and process scans                                               | Own inbox                                           | Own inbox and shared inbox              | Membership permissions only |
+| Manage catalog and processing settings                                 | No                                                  | Yes                                     | No                          |
+| Manage member roles and linked owners                                  | No                                                  | Yes                                     | No                          |
+| Create/suspend accounts, reset passwords, manage sessions, impersonate | No                                                  | No                                      | Yes                         |
 
-Sharing a document never grants access to its original scan or other documents from that scan. The source tab remains visible and explains when source access is restricted. An admin who receives a document from another personal inbox has the same source restriction. Admin status does not grant access to other personal inboxes.
+A user may hold both superadmin and organization admin roles. Global account powers do not grant document access. Sharing a document never grants access to its original scan. Other people's personal sources remain private, including from organization admins.
 
-Each admin session starts in personal mode. Switch to Admin mode to manage the shared inbox and installation. Disabling authentication restores full access to all inboxes and files.
+Settings and Scans remain visible to members. Disabling authentication restores the existing unrestricted local behavior.
 
 ## Storage and existing data
 
@@ -90,13 +106,13 @@ The data directory contains:
 - Document TOML metadata: `inbox_id`, explicit sharing `access_user_ids`, `delivery_confirmation` (who and when), and `delivery_status` (`review` or `delivered`). Confirmed `owner_ids` are matched against the account’s stored owner links on each request. Links supplied in identity tokens are not used.
 - The existing PDFs, text files, catalog, and processing settings remain in their existing filesystem storage.
 
-Older scans and documents without these fields are treated as shared. With auth enabled, shared documents without a delivery confirmation appear in Needs delivery. Existing explicit sharing grants remain valid. An admin must confirm the owners before linked-owner access begins. With auth disabled, all existing documents remain accessible; no account migration is required.
+Older scans and documents without these fields are treated as shared. With auth enabled, shared documents without a delivery confirmation appear in Needs routing. Existing explicit sharing grants remain valid. An admin must confirm the owners before linked-owner access begins. With auth disabled, all existing documents remain accessible; no account migration is required.
 
 The application enforces these permissions. A person with direct server/filesystem access can still read unencrypted files and backups.
 
 ## Session and API boundary
 
-Every web request checks the database session, current role, and mode. Each API request checks the current document/source permissions in storage. Cookie session caching is disabled. The web server removes incoming authorization and sends Python its own HS256 identity, with issuer `paperman-web`, audience `paperman-api`, and a 30-second lifetime. Python checks the signature, required claims, issuer, audience, issued time, and expiry. No browser endpoint issues these internal tokens.
+Every web request checks the database session, current application role, God mode, and installation membership. God mode is stored as a Better Auth session field. Only the protected superadmin action can change it; ordinary session updates cannot set it. The Admin plugin endpoints and PaperMan account actions require God mode. Organization endpoints do not. The internal API identity grants the superadmin role only while God mode is on. Each API request checks the current document/source permissions in storage. Cookie session caching is disabled. The web server removes incoming authorization and sends Python its own HS256 identity, with issuer `paperman-web`, audience `paperman-api`, and a 30-second lifetime. Python checks the signature, required claims, issuer, audience, issued time, and expiry. No browser endpoint issues these internal tokens.
 
 Logout, revocation, suspension, and role changes affect the next web request. Explicit document access changes affect the next API request. Owner-link changes take effect on the next API request. Changing a document’s owners or pages clears confirmation and requires a new delivery approval. A request already sent to Python may finish within its 30-second token lifetime. Displayed or downloaded content cannot be recalled. Password changes end other sessions; an admin password reset also ends the user's sessions.
 
@@ -113,6 +129,6 @@ uv --directory apps/server run pytest tests/test_auth.py tests/test_inboxes.py t
 bun --filter @paperman/web test:auth
 ```
 
-These checks use isolated data and cover direct API access, personal/shared inbox boundaries, source isolation, explicit delivery, personal/admin modes, edit limits, token expiry, real SQLite sessions, public signup denial, logout, suspension, role changes, and session revocation.
+These checks use isolated data and cover direct API access, personal/shared inbox boundaries, source isolation, explicit delivery, independent organization/application roles and impersonation, edit limits, token expiry, real SQLite sessions, public signup denial, logout, suspension, role changes, and session revocation.
 
 For a live HTTP check, start the web server, API, and demo worker against isolated data. Create two test accounts, then run `node --test apps/web/tests/inbox-http.test.mjs` with `PAPERMAN_INBOX_TEST_URL`, `PAPERMAN_INBOX_TEST_EMAIL`, `PAPERMAN_INBOX_TEST_OTHER_EMAIL`, `PAPERMAN_INBOX_TEST_PASSWORD`, and `PAPERMAN_INBOX_TEST_PDF` set. The check uploads a test PDF, approves its groups, shares one document, checks source restrictions, and revokes access. It also checks server-rendered navigation and preferences. This does not replace a visual UI review.
