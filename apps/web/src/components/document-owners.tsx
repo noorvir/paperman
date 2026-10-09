@@ -26,7 +26,7 @@ export function DocumentOwners({
             search={search}
             filter={{ owner: [id] }}
             aria-label={`Filter by owner: ${name}`}
-            className="-ml-1"
+            className="-ml-1 h-8 py-1 pr-2"
           >
             <OwnerLabel name={name} />
           </DocumentFilterLink>

@@ -133,7 +133,7 @@ export function OwnerAvatar({ name }: { name: string }) {
   return (
     <span
       aria-hidden="true"
-      className="flex size-4 shrink-0 items-center justify-center rounded-full bg-secondary text-[8px] font-medium text-secondary-foreground ring-1 ring-inset ring-border"
+      className="flex size-6 shrink-0 items-center justify-center rounded-full bg-secondary text-[10px] font-medium text-secondary-foreground ring-1 ring-inset ring-border"
     >
       {initials}
     </span>

@@ -47,7 +47,7 @@ export function AccountMenu() {
           render={
             <Button
               variant="ghost"
-              size="icon"
+              size="icon-lg"
               loading={pending}
               className="rounded-full"
               aria-label="Account menu"
