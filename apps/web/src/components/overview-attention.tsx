@@ -5,7 +5,7 @@ import type { components } from "@/lib/schema";
 import { ScanStatus } from "./collection";
 import { buttonVariants } from "./ui/button";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
-import { DocumentVerificationBadge } from "./document-verification-badge";
+import { Separator } from "./ui/separator";
 import { DocumentIdentity } from "./document-identity";
 
 export function OverviewAttention({
@@ -117,29 +117,12 @@ export function OverviewAttention({
           ))}
         </div>
         {state.routing_total > 0 && (
-          <section className="space-y-2 border-t py-4">
+          <section className="space-y-2 pt-4">
+            <Separator className="mb-4" />
             <h3 className="text-xs font-medium">
               Needs routing ({state.routing_total})
             </h3>
-            <ul className="divide-y">
-              {state.routing_documents.map((document) => (
-                <li
-                  key={document.id}
-                  className="relative rounded py-2 hover:bg-accent has-[a:focus-visible]:bg-accent/50"
-                >
-                  <DocumentIdentity document={document}>
-                    <Link
-                      to="/documents/$documentId"
-                      params={{ documentId: document.id }}
-                      title={document.title}
-                      className="document-link outline-none hover:no-underline after:absolute after:inset-0 after:rounded"
-                    >
-                      {document.title}
-                    </Link>
-                  </DocumentIdentity>
-                </li>
-              ))}
-            </ul>
+            <AttentionDocuments documents={state.routing_documents} />
             <Link
               to="/documents"
               search={{ delivery: "review", inbox: "shared" }}
@@ -155,32 +138,14 @@ export function OverviewAttention({
         )}
         {unverifiedCount > 0 && (
           <section
-            className="space-y-2 border-t py-4"
+            className="space-y-2 pt-4"
             aria-labelledby="verification-heading"
           >
+            <Separator className="mb-4" />
             <h3 id="verification-heading" className="text-xs font-medium">
               Needs verification ({unverifiedCount})
             </h3>
-            <ul className="divide-y">
-              {state.unverified_documents.map((document) => (
-                <li
-                  key={document.id}
-                  className="relative flex items-start gap-2 rounded py-2 hover:bg-accent has-[a:focus-visible]:bg-accent/50"
-                >
-                  <DocumentIdentity document={document}>
-                    <Link
-                      to="/documents/$documentId"
-                      params={{ documentId: document.id }}
-                      title={document.title}
-                      className="document-link outline-none hover:no-underline after:absolute after:inset-0 after:rounded"
-                    >
-                      {document.title}
-                    </Link>
-                  </DocumentIdentity>
-                  <DocumentVerificationBadge verification={null} />
-                </li>
-              ))}
-            </ul>
+            <AttentionDocuments documents={state.unverified_documents} />
             <Link
               to="/"
               onClick={onViewAll}
@@ -200,5 +165,33 @@ export function OverviewAttention({
         )}
       </div>
     </aside>
+  );
+}
+
+function AttentionDocuments({
+  documents,
+}: {
+  documents: components["schemas"]["Document"][];
+}) {
+  return (
+    <ul>
+      {documents.map((document, index) => (
+        <li key={document.id}>
+          {index > 0 && <Separator className="my-2" />}
+          <div className="relative rounded-lg py-2 hover:bg-accent has-[a:focus-visible]:bg-accent/50">
+            <DocumentIdentity document={document}>
+              <Link
+                to="/documents/$documentId"
+                params={{ documentId: document.id }}
+                title={document.title}
+                className="document-link outline-none hover:no-underline after:absolute after:inset-0 after:rounded-lg"
+              >
+                {document.title}
+              </Link>
+            </DocumentIdentity>
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

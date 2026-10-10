@@ -86,8 +86,8 @@ export const features: {
     description:
       "Download filed documents directly from PaperMan for offline use or sharing.",
     category: "User facing",
-    done: false,
-    date: "2026-10-10",
+    done: true,
+    date: "2026-10-09",
   },
   {
     id: "authentication",
@@ -95,7 +95,7 @@ export const features: {
     description:
       "Sign in securely and access PaperMan over the internet. Keep documents limited to authorized users.",
     category: "User facing",
-    done: false,
+    done: true,
     date: "2026-10-09",
   },
   {
