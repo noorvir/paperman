@@ -569,5 +569,6 @@ def document_detail(
             accessible=accessible,
         ),
         can_manage_access=principal is None or principal.can_manage_document(doc),
+        can_delete=principal is None or principal.can_manage_document(doc),
         can_edit_pages=accessible and (principal is None or principal.admin),
     )

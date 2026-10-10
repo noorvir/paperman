@@ -4,7 +4,14 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse, Response
 from starlette.middleware.base import RequestResponseEndpoint
 
-from paperman import catalog_api, documents_api, inboxes_api, scans_api, settings_api
+from paperman import (
+    catalog_api,
+    document_management,
+    documents_api,
+    inboxes_api,
+    scans_api,
+    settings_api,
+)
 from paperman.auth import Auth, AuthSettings
 from paperman.config import Settings
 from paperman.storage import FileStorage
@@ -52,5 +59,6 @@ def create_app(
     app.include_router(inboxes_api.routes(storage, auth))
     app.include_router(scans_api.routes(storage, config, auth))
     app.include_router(documents_api.routes(storage, auth))
+    app.include_router(document_management.routes(storage, auth))
     app.include_router(settings_api.routes(storage, auth))
     return app

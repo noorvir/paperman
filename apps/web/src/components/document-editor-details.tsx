@@ -7,7 +7,12 @@ import { OwnerSelection } from "./owner-selection";
 import { getDirectory } from "@/lib/directory";
 import { DatePicker } from "./date-picker";
 
-export function DocumentEditorDetails({
+type DocumentFields = Pick<
+  components["schemas"]["DocumentEdit"],
+  "title" | "owner_ids" | "creator_ids" | "document_date" | "tag_ids"
+>;
+
+export function DocumentEditorDetails<T extends DocumentFields>({
   catalog,
   value,
   onChange,
@@ -15,8 +20,8 @@ export function DocumentEditorDetails({
   canChangeOwners,
 }: {
   catalog: components["schemas"]["Catalog"];
-  value: components["schemas"]["DocumentEdit"];
-  onChange: (value: components["schemas"]["DocumentEdit"]) => void;
+  value: T;
+  onChange: (value: T) => void;
   disabled: boolean;
   canChangeOwners: boolean;
 }) {

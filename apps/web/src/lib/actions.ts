@@ -246,3 +246,37 @@ export const editDocument = createServerFn({ method: "POST" })
     });
     return unwrap(result);
   });
+
+export const deleteDocument = createServerFn({ method: "POST" })
+  .validator(z.object({ id: z.string(), revision: z.number().int().min(0) }))
+  .handler(async ({ data }) => {
+    const result = await client.DELETE("/api/documents/{document_id}", {
+      params: {
+        path: { document_id: data.id },
+        query: { revision: data.revision },
+      },
+    });
+    return unwrap(result);
+  });
+export const createDocument = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      scanId: z.string(),
+      value: z.object({
+        title: z.string().trim().min(1).max(120),
+        source_pages: z.array(z.number().int().min(1)).min(1),
+        owner_ids: z.array(z.string()).min(1),
+        creator_ids: z.array(z.string()).default([]),
+        tag_ids: z.array(z.string()).default([]),
+        document_date: z.string().nullable(),
+        filing_revision: z.number().int().min(0),
+      }),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const result = await client.POST("/api/scans/{scan_id}/documents", {
+      params: { path: { scan_id: data.scanId } },
+      body: data.value,
+    });
+    return unwrap(result);
+  });

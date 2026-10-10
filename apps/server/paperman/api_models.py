@@ -120,6 +120,7 @@ class DocumentDetail(Record):
     text: str
     source: SourceReference
     can_manage_access: bool
+    can_delete: bool
     can_edit_pages: bool
 
 
@@ -160,6 +161,16 @@ class DocumentEdit(Ownership):
     summary: str = Field(max_length=10000)
     tag_ids: list[Identifier]
     text: str = Field(max_length=1_000_000)
+
+
+class DocumentCreate(Ownership):
+    owner_ids: list[Identifier] = Field(min_length=1)
+    source_pages: list[Annotated[int, Field(ge=1)]] = Field(min_length=1)
+    filing_revision: int = Field(ge=0)
+    title: Name
+    document_date: date | None
+    creator_ids: list[Identifier]
+    tag_ids: list[Identifier]
 
 
 class DocumentVerify(Record):

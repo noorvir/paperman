@@ -28,6 +28,7 @@ import { Route as ScansUploadRouteImport } from './routes/scans_.upload'
 import { Route as SettingsIndexRouteImport } from './routes/settings.index'
 import { Route as SettingsCatalogRouteImport } from './routes/settings.$catalog'
 import { Route as ApiAuthSplatRouteImport } from './routes/api.auth.$'
+import { Route as ScansScanIdCreateRouteImport } from './routes/scans_.$scanId.create'
 import { Route as ScansScanIdReviewRouteImport } from './routes/scans_.$scanId.review'
 import { Route as SettingsCatalogNewRouteImport } from './routes/settings.$catalog_.new'
 import { Route as SettingsCatalogEntryIdEditRouteImport } from './routes/settings.$catalog_.$entryId.edit'
@@ -127,6 +128,11 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScansScanIdCreateRoute = ScansScanIdCreateRouteImport.update({
+  id: '/scans_/$scanId/create',
+  path: '/scans/$scanId/create',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ScansScanIdReviewRoute = ScansScanIdReviewRouteImport.update({
   id: '/scans_/$scanId/review',
   path: '/scans/$scanId/review',
@@ -164,6 +170,7 @@ export interface FileRoutesByFullPath {
   '/settings/$catalog': typeof SettingsCatalogRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/scans/$scanId/create': typeof ScansScanIdCreateRoute
   '/scans/$scanId/review': typeof ScansScanIdReviewRoute
   '/settings/$catalog/new': typeof SettingsCatalogNewRoute
   '/settings/$catalog/$entryId/edit': typeof SettingsCatalogEntryIdEditRoute
@@ -187,6 +194,7 @@ export interface FileRoutesByTo {
   '/settings/$catalog': typeof SettingsCatalogRoute
   '/settings': typeof SettingsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/scans/$scanId/create': typeof ScansScanIdCreateRoute
   '/scans/$scanId/review': typeof ScansScanIdReviewRoute
   '/settings/$catalog/new': typeof SettingsCatalogNewRoute
   '/settings/$catalog/$entryId/edit': typeof SettingsCatalogEntryIdEditRoute
@@ -212,6 +220,7 @@ export interface FileRoutesById {
   '/settings/$catalog': typeof SettingsCatalogRoute
   '/settings/': typeof SettingsIndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/scans_/$scanId/create': typeof ScansScanIdCreateRoute
   '/scans_/$scanId/review': typeof ScansScanIdReviewRoute
   '/settings/$catalog_/new': typeof SettingsCatalogNewRoute
   '/settings/$catalog_/$entryId/edit': typeof SettingsCatalogEntryIdEditRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/settings/$catalog'
     | '/settings/'
     | '/api/auth/$'
+    | '/scans/$scanId/create'
     | '/scans/$scanId/review'
     | '/settings/$catalog/new'
     | '/settings/$catalog/$entryId/edit'
@@ -261,6 +271,7 @@ export interface FileRouteTypes {
     | '/settings/$catalog'
     | '/settings'
     | '/api/auth/$'
+    | '/scans/$scanId/create'
     | '/scans/$scanId/review'
     | '/settings/$catalog/new'
     | '/settings/$catalog/$entryId/edit'
@@ -285,6 +296,7 @@ export interface FileRouteTypes {
     | '/settings/$catalog'
     | '/settings/'
     | '/api/auth/$'
+    | '/scans_/$scanId/create'
     | '/scans_/$scanId/review'
     | '/settings/$catalog_/new'
     | '/settings/$catalog_/$entryId/edit'
@@ -306,6 +318,7 @@ export interface RootRouteChildren {
   ApiSplatRoute: typeof ApiSplatRoute
   ScansUploadRoute: typeof ScansUploadRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
+  ScansScanIdCreateRoute: typeof ScansScanIdCreateRoute
   ScansScanIdReviewRoute: typeof ScansScanIdReviewRoute
 }
 
@@ -444,6 +457,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scans_/$scanId/create': {
+      id: '/scans_/$scanId/create'
+      path: '/scans/$scanId/create'
+      fullPath: '/scans/$scanId/create'
+      preLoaderRoute: typeof ScansScanIdCreateRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/scans_/$scanId/review': {
       id: '/scans_/$scanId/review'
       path: '/scans/$scanId/review'
@@ -524,6 +544,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiSplatRoute: ApiSplatRoute,
   ScansUploadRoute: ScansUploadRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
+  ScansScanIdCreateRoute: ScansScanIdCreateRoute,
   ScansScanIdReviewRoute: ScansScanIdReviewRoute,
 }
 export const routeTree = rootRouteImport

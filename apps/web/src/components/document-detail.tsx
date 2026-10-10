@@ -1,3 +1,4 @@
+import { DeleteDocument } from "./delete-document";
 import { canAdmin } from "@/lib/auth/access";
 import { useAccess } from "./auth/access-context";
 import { useState, type ComponentProps } from "react";
@@ -31,6 +32,7 @@ export function DocumentDetail({
   sourceReference,
   can_manage_access,
   can_edit_pages,
+  can_delete,
   catalog,
   search,
   view,
@@ -42,6 +44,7 @@ export function DocumentDetail({
   sourceReference: components["schemas"]["SourceReference"];
   can_manage_access: boolean;
   can_edit_pages: boolean;
+  can_delete: boolean;
   source: ComponentProps<typeof DocumentView>["source"];
   catalog: components["schemas"]["Catalog"];
   search: z.output<typeof documentSearch>;
@@ -215,6 +218,7 @@ export function DocumentDetail({
               Edit
             </PreviewAction>
             <ReprocessDocument document={document} />
+            {!preview && can_delete && <DeleteDocument document={document} />}
           </>
         )
       }

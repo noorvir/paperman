@@ -4,7 +4,7 @@ import {
   stripSearchParams,
 } from "@tanstack/react-router";
 import { z } from "zod";
-import { Pen01Icon } from "@hugeicons/core-free-icons";
+import { Add01Icon, Pen01Icon } from "@hugeicons/core-free-icons";
 import { getScanWithDocuments, getCatalog, scanSearch } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
 import { LocalTime } from "@/components/local-time";
@@ -67,6 +67,17 @@ function ScanDetail() {
       }
       actions={
         <>
+          {scan.status === "complete" && (
+            <PreviewAction
+              icon={Add01Icon}
+              nativeButton={false}
+              render={
+                <Link to="/scans/$scanId/create" params={{ scanId: scan.id }} />
+              }
+            >
+              Create document
+            </PreviewAction>
+          )}
           {scan.status === "complete" && (
             <PreviewAction
               icon={Pen01Icon}

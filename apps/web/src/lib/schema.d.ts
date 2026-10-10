@@ -256,7 +256,8 @@ export interface paths {
         /** Edit Document */
         put: operations["edit_document"];
         post?: never;
-        delete?: never;
+        /** Delete Document */
+        delete: operations["delete_document"];
         options?: never;
         head?: never;
         patch?: never;
@@ -359,6 +360,23 @@ export interface paths {
         /** Deliver Document */
         put: operations["deliver_document"];
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/scans/{scan_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create Document */
+        post: operations["create_document"];
         delete?: never;
         options?: never;
         head?: never;
@@ -692,6 +710,23 @@ export interface components {
             /** Revision */
             revision: number;
         };
+        /** DocumentCreate */
+        DocumentCreate: {
+            /** Owner Ids */
+            owner_ids: string[];
+            /** Source Pages */
+            source_pages: number[];
+            /** Filing Revision */
+            filing_revision: number;
+            /** Title */
+            title: string;
+            /** Document Date */
+            document_date: string | null;
+            /** Creator Ids */
+            creator_ids: string[];
+            /** Tag Ids */
+            tag_ids: string[];
+        };
         /** DocumentDelivery */
         DocumentDelivery: {
             /** User Ids */
@@ -707,6 +742,8 @@ export interface components {
             source: components["schemas"]["SourceReference"];
             /** Can Manage Access */
             can_manage_access: boolean;
+            /** Can Delete */
+            can_delete: boolean;
             /** Can Edit Pages */
             can_edit_pages: boolean;
         };
@@ -2155,6 +2192,41 @@ export interface operations {
             };
         };
     };
+    delete_document: {
+        parameters: {
+            query: {
+                revision: number;
+            };
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ActionResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     confirm_delivery: {
         parameters: {
             query?: never;
@@ -2384,6 +2456,43 @@ export interface operations {
         responses: {
             /** @description Successful Response */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_document: {
+        parameters: {
+            query?: never;
+            header?: {
+                authorization?: string | null;
+            };
+            path: {
+                scan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
                 headers: {
                     [name: string]: unknown;
                 };
