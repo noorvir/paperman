@@ -27,7 +27,7 @@ export function DocumentFilters({
 }: {
   search: Search;
   catalog: components["schemas"]["Catalog"];
-  onChange: (search: Search) => void;
+  onChange: (search: Partial<Search>) => void;
 }) {
   const access = useAccess();
   const [open, setOpen] = useState(false);
@@ -41,7 +41,7 @@ export function DocumentFilters({
     search.inbox,
   ].filter(Boolean).length;
   function change(filter: Partial<Search>) {
-    onChange({ ...search, ...filter, page: 1 });
+    onChange({ ...filter, page: 1 });
   }
   function reset() {
     change({
@@ -82,7 +82,7 @@ export function DocumentFilters({
       </div>
       <div className="w-full min-w-0 shrink-0 @min-[74rem]/library:w-32">
         <MultiSelectFilter
-          label="Creator"
+          label="Created by"
           value={search.creator}
           items={getDirectory(catalog).map((entry) => ({
             value: entry.id,

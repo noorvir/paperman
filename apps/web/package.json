@@ -13,6 +13,7 @@
     "build:auth": "bun build scripts/bootstrap-admin.ts scripts/migrate-organization.ts --target=node --outdir=.output --entry-naming=\"[name].mjs\"",
     "bootstrap:admin": "bun run build:auth && node .output/bootstrap-admin.mjs",
     "test:auth": "bun build tests/auth.test.ts tests/auth-disabled.test.ts --target=node --outdir=.cache/auth-tests && node --test .cache/auth-tests/*.js",
+    "test:preferences": "bun build tests/search-preferences.test.ts --target=node --outdir=.cache/preference-tests && node --test --test-force-exit .cache/preference-tests/search-preferences.test.js tests/view-preferences.test.mjs",
     "migrate:organization": "bun run build:auth && node .output/migrate-organization.mjs"
   },
   "dependencies": {

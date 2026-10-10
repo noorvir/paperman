@@ -11,11 +11,9 @@ import { DocumentIdentity } from "./document-identity";
 export function OverviewAttention({
   state,
   attention,
-  onViewAll,
 }: {
   state: components["schemas"]["Dashboard"];
   attention: components["schemas"]["Scan"][];
-  onViewAll: () => void;
 }) {
   const admin = canAdmin(useAccess());
   const unverifiedCount = state.counts.unverified ?? 0;
@@ -148,8 +146,7 @@ export function OverviewAttention({
             <AttentionDocuments documents={state.unverified_documents} />
             <Link
               to="/"
-              onClick={onViewAll}
-              search={{ status: "unverified" }}
+              search={{ status: "unverified", panel: "documents" }}
               className={buttonVariants({
                 variant: "link",
                 size: "sm",

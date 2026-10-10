@@ -53,7 +53,12 @@ export function CatalogForm({
     }
   }
   const name =
-    kind === "owners" ? "owner" : kind === "creators" ? "creator" : "tag";
+    kind === "owners"
+      ? "owner"
+      : kind === "creators"
+        ? "person or organization"
+        : "tag";
+  const catalogName = kind === "creators" ? "Created by" : kind;
   return (
     <>
       <UnsavedChangesDialog blocker={unsaved.blocker} />
@@ -62,8 +67,8 @@ export function CatalogForm({
           <BackLink
             to="/settings/$catalog"
             params={{ catalog: kind }}
-            aria-label={`Back to ${kind}`}
-            title={`Back to ${kind}`}
+            aria-label={`Back to ${catalogName}`}
+            title={`Back to ${catalogName}`}
           />
         }
         title={`${entry ? "Edit" : "Add"} ${name}`}

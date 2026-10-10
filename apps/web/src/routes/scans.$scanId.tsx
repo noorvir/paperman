@@ -1,9 +1,7 @@
-import {
-  Link,
-  createFileRoute,
-  stripSearchParams,
-} from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
+import { persistedSearch } from "@/lib/search-preferences";
+import { pdfSearch, scanViewSearch } from "@/lib/search";
 import { Add01Icon, Pen01Icon } from "@hugeicons/core-free-icons";
 import { getScanWithDocuments, getCatalog, scanSearch } from "@/lib/queries";
 import { BackLink } from "@/components/back-link";
@@ -18,12 +16,15 @@ import { ScanNavigation } from "@/components/scan-navigation";
 import { ReprocessScan } from "@/components/reprocess-scan";
 import { PreviewAction } from "@/components/preview-action";
 
+const searchSchema = scanViewSearch.extend(pdfSearch.shape).extend({
+  preview: z.boolean().default(false),
+});
 export const Route = createFileRoute("/scans/$scanId")({
-  validateSearch: z.object({
-    preview: z.boolean().default(false),
-    view: z.enum(["pdf", "documents", "activity", "details"]).default("pdf"),
-  }),
-  search: { middlewares: [stripSearchParams({ view: "pdf", preview: false })] },
+  ...persistedSearch(
+    searchSchema,
+    { name: "scan-view", schema: scanViewSearch },
+    { name: "pdf", schema: pdfSearch, retain: true },
+  ),
   loader: async ({ params }) => {
     const [source, catalog] = await Promise.all([
       getScanWithDocuments({ data: params.scanId }),
@@ -38,7 +39,8 @@ export const Route = createFileRoute("/scans/$scanId")({
 });
 function ScanDetail() {
   const { scan, catalog, documents } = Route.useLoaderData();
-  const search = Route.useSearch();
+  const rawSearch = Route.useSearch();
+  const search = { ...rawSearch, ...searchSchema.parse(rawSearch) };
   const navigate = Route.useNavigate();
   return (
     <CollectionPreview
@@ -124,6 +126,13 @@ function ScanDetail() {
         catalog={catalog}
         documents={documents}
         view={search.view}
+        layout={search.layout}
+        onLayoutChange={(layout) =>
+          void navigate({
+            search: (previous) => ({ ...previous, layout }),
+            resetScroll: false,
+          })
+        }
         sidebar={!search.preview}
       />
     </CollectionPreview>

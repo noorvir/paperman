@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { useRouter } from "@tanstack/react-router";
+import { getRouteApi, useRouter } from "@tanstack/react-router";
 import { Tabs } from "@base-ui/react/tabs";
 import type { components } from "@/lib/schema";
 import { editDocument } from "@/lib/actions";
@@ -15,7 +15,6 @@ export function DocumentEditor({
   canChangeOwners,
   text,
   catalog,
-  initialTab,
   rotations,
   pages,
   onSaving,
@@ -25,7 +24,6 @@ export function DocumentEditor({
   text: string;
   canChangeOwners: boolean;
   catalog: components["schemas"]["Catalog"];
-  initialTab: "details" | "summary" | "text";
   onDone: () => void;
   rotations: number[];
   pages: number[];
@@ -51,7 +49,15 @@ export function DocumentEditor({
       ],
     }),
   );
-  const [tab, setTab] = useState(initialTab);
+  const route = getRouteApi("/documents/$documentId");
+  const { editorTab: tab = "details" } = route.useSearch();
+  const navigate = route.useNavigate();
+  const setTab = (editorTab: "details" | "summary" | "text") =>
+    void navigate({
+      search: (previous) => ({ ...previous, editorTab }),
+      replace: true,
+      resetScroll: false,
+    });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -63,6 +69,7 @@ export function DocumentEditor({
       owner_ids: [...draft.owner_ids].sort(),
       tag_ids: [...draft.tag_ids].sort(),
     }),
+    ["editorTab", "zoom"],
   );
 
   useEffect(() => {

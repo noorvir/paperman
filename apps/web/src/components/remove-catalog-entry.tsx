@@ -93,7 +93,7 @@ export function RemoveCatalogEntry({
           <DialogDescription>
             {usage
               ? `${usage.documents} filed documents and ${usage.scans} scan batches use this entry. Select its replacement before removal.`
-              : `Remove this ${kind === "owners" ? "owner" : kind === "creators" ? "creator" : "tag"} from the catalog? This action cannot be undone.`}
+              : `Remove this ${kind === "owners" ? "owner" : kind === "creators" ? "entry" : "tag"} from the catalog? This action cannot be undone.`}
           </DialogDescription>
         </DialogHeader>
         {usage && (

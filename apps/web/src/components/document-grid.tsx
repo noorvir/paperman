@@ -4,15 +4,15 @@ import {
   CollectionLink,
   CollectionSelectionContext,
 } from "./collection-workspace";
-import { FileIcon } from "./file-icon";
+import { DocumentIdentity } from "./document-identity";
 import { DocumentTagPopover } from "./document-tag-popover";
 import type { DocumentTable } from "./document-table";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import wasmUrl from "@embedpdf/pdfium/pdfium.wasm?url";
 import { DocumentCreators } from "./document-creators";
 import { DocumentOwners } from "./document-owners";
-import { DocumentDelivery } from "./document-delivery";
 import { DocumentVerificationBadge } from "./document-verification-badge";
+import { getDocumentTags } from "@/lib/catalog-icons";
 
 export default function DocumentGrid({
   documents,
@@ -29,91 +29,70 @@ export default function DocumentGrid({
   return (
     <div className="grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-4 py-4">
       {documents.map((doc) => {
-        const filename = doc.final_path.slice(
-          doc.final_path.lastIndexOf("/") + 1,
-        );
         return (
           <div
             key={doc.id}
             data-collection-row
             data-state={activeId === doc.id ? "selected" : undefined}
-            className="group relative min-w-0 rounded-xl bg-muted/60 p-3 hover:bg-accent/30 data-[state=selected]:bg-accent/50 has-[[data-collection-link]:focus-visible]:bg-accent/50"
+            className="group relative flex min-w-0 flex-col gap-3 rounded-xl bg-muted/60 p-3 hover:bg-accent/30 data-[state=selected]:bg-accent/50 has-[[data-collection-link]:focus-visible]:bg-accent/50"
           >
-            <CollectionLink
-              itemId={doc.id}
-              selected={selectedId === doc.id}
-              preview={preview}
-              {...(preview
-                ? {
-                    to: "/documents",
-                    search: { ...search, preview: doc.id, view: "pdf" },
-                  }
-                : {
-                    to: "/documents/$documentId",
-                    params: { documentId: doc.id },
-                    search: { ...search, view: "pdf" },
-                  })}
-              resetScroll={false}
-              aria-label={`${preview ? "Preview" : "Open"} ${doc.title}`}
-              title={doc.final_path}
-              className="whitespace-normal! no-underline! after:absolute after:inset-0 after:rounded-xl"
-            >
-              <div className="mb-3 flex min-w-0 items-center gap-2">
-                <FileIcon filename={filename} />
-                <span className="truncate text-xs font-medium">{filename}</span>
-              </div>
-              <DocumentThumbnail
-                engine={engine}
-                failed={Boolean(error)}
-                documentId={doc.id}
-                title={doc.title}
-              />
-            </CollectionLink>
-            <div className="mt-3 flex items-center gap-2">
-              <p
-                className="line-clamp-2 min-w-0 text-xs font-medium"
-                title={doc.title}
-              >
-                {doc.title}
-              </p>
-              <span className="relative z-10 inline-flex shrink-0 items-center gap-2">
+            <div className="flex min-w-0 items-start gap-2">
+              <DocumentIdentity document={doc} search={search}>
+                <CollectionLink
+                  itemId={doc.id}
+                  selected={selectedId === doc.id}
+                  preview={preview}
+                  {...(preview
+                    ? {
+                        to: "/documents",
+                        search: { ...search, preview: doc.id },
+                      }
+                    : {
+                        to: "/documents/$documentId",
+                        params: { documentId: doc.id },
+                        search: { ...search },
+                      })}
+                  resetScroll={false}
+                  aria-label={`${preview ? "Preview" : "Open"} ${doc.title}`}
+                  title={doc.title}
+                  className="after:absolute after:inset-0 after:rounded-xl"
+                >
+                  {doc.title}
+                </CollectionLink>
+              </DocumentIdentity>
+              <span className="relative z-10 inline-flex shrink-0">
                 <DocumentVerificationBadge
                   verification={doc.verification}
                   render={
                     <Link
                       to="/documents/$documentId"
                       params={{ documentId: doc.id }}
-                      search={{ ...search, view: "pdf" }}
-                    />
-                  }
-                />
-                <DocumentDelivery
-                  document={doc}
-                  render={
-                    <Link
-                      to="/documents/$documentId"
-                      params={{ documentId: doc.id }}
-                      search={{ ...search, view: "pdf" }}
+                      search={{ ...search }}
                     />
                   }
                 />
               </span>
             </div>
-            <div className="mt-3 flex items-center justify-between gap-2 text-xs">
+            <div className="pointer-events-none">
+              <DocumentThumbnail
+                engine={engine}
+                failed={Boolean(error)}
+                documentId={doc.id}
+                title={doc.title}
+              />
+            </div>
+            <div className="relative z-10 min-w-0 text-xs">
               <DocumentOwners
+                compact
+                maxVisible={2}
                 ownerIds={doc.owner_ids}
                 owners={catalog.owners}
                 search={search}
               />
-              <DocumentTagPopover
-                document={doc}
-                catalog={catalog}
-                search={search}
-              />
             </div>
             {doc.creator_ids.length > 0 && (
-              <div className="relative mt-2 min-w-0 text-xs">
-                <span className="text-muted-foreground">Creator</span>
+              <div className="relative z-10 min-w-0 text-xs">
+                <span className="text-muted-foreground">Created by</span>
                 <DocumentCreators
                   compact
                   document={doc}
@@ -122,9 +101,16 @@ export default function DocumentGrid({
                 />
               </div>
             )}
-            <p className="mt-2 truncate text-[11px] text-muted-foreground">
-              {doc.final_path.slice(0, doc.final_path.lastIndexOf("/"))}/
-            </p>
+            {getDocumentTags(doc, catalog).length > 0 && (
+              <div className="relative z-10 mt-auto min-w-0">
+                <DocumentTagPopover
+                  compact
+                  document={doc}
+                  catalog={catalog}
+                  search={search}
+                />
+              </div>
+            )}
           </div>
         );
       })}

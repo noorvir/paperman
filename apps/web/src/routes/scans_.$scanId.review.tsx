@@ -1,12 +1,19 @@
 import { getDirectory } from "@/lib/directory";
 import { BackLink } from "@/components/back-link";
 import { createFileRoute } from "@tanstack/react-router";
+import { persistedSearch } from "@/lib/search-preferences";
+import { pdfSearch } from "@/lib/search";
 import { getCatalog, getDocument, getScan } from "@/lib/queries";
 import { PdfPreview } from "@/components/pdf-preview";
 import { ReviewForm } from "@/components/review-form";
 import { PageHeader, DetailLayout } from "@/components/page";
 
 export const Route = createFileRoute("/scans_/$scanId/review")({
+  ...persistedSearch(pdfSearch, {
+    name: "pdf",
+    schema: pdfSearch,
+    retain: true,
+  }),
   loader: async ({ params }) => {
     const [scan, catalog] = await Promise.all([
       getScan({ data: params.scanId }),
@@ -71,7 +78,7 @@ function Review() {
           />
         }
         title={scan.status === "complete" ? "Edit pages" : "Review documents"}
-        description="Check each source page, document group, owner, creator, title, and date."
+        description="Check each source page, document group, owner, Created by field, title, and date."
       />
       {!["review", "complete"].includes(scan.status) || !proposal ? (
         <p>Wait for this scan to finish before editing its groups.</p>

@@ -73,7 +73,7 @@ export function useWorkspaceBreadcrumbs() {
         link: (
           <Link
             to="/scans"
-            search={scanSearch.parse(scans?.search ?? {})}
+            search={scans ? scanSearch.parse(scans.search) : {}}
             resetScroll={false}
           />
         ),

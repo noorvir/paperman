@@ -2,78 +2,20 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { client, unwrap } from "./api.server";
 
-const filterValues = z
-  .union([z.string(), z.array(z.string())])
-  .transform((value) => [
-    ...new Set((typeof value === "string" ? [value] : value).filter(Boolean)),
-  ])
-  .default([]);
-
-export const documentSearch = z.object({
-  delivery: z.enum(["", "review", "delivered"]).default(""),
-  inbox: z.string().default(""),
-  q: z.string().default(""),
-  owner: filterValues,
-  creator: filterValues,
-  tag: filterValues,
-  status: z.enum(["", "pending", "running", "complete", "failed"]).default(""),
-  after: z.union([z.literal(""), z.iso.date()]).default(""),
-  before: z.union([z.literal(""), z.iso.date()]).default(""),
-  sort: z
-    .enum([
-      "date_desc",
-      "date_asc",
-      "title",
-      "title_desc",
-      "creators_asc",
-      "creators_desc",
-      "owners_asc",
-      "owners_desc",
-      "tags_asc",
-      "tags_desc",
-      "verification_asc",
-      "verification_desc",
-      "delivery_asc",
-      "delivery_desc",
-      "processed_asc",
-      "processed_desc",
-    ])
-    .default("date_desc"),
-  layout: z.enum(["list", "grid"]).default("list"),
-  page: z.coerce.number().int().min(1).default(1),
-});
-export const documentView = z.enum([
-  "pdf",
-  "text",
-  "summary",
-  "details",
-  "source",
-]);
-export const scanSearch = z.object({
-  inbox: z.string().default(""),
-  q: z.string().default(""),
-  status: z
-    .enum(["", "queued", "running", "review", "failed", "complete"])
-    .default(""),
-  page: z.coerce.number().int().min(1).default(1),
-});
-export const catalogKind = z.enum(["owners", "tags", "creators"]);
-
-export const dashboardSearch = z.object({
-  status: z
-    .union([
-      scanSearch.shape.status.unwrap().exclude([""]),
-      z.literal("unverified"),
-    ])
-    .optional(),
-  page: z.coerce.number().int().min(1).default(1),
-});
+import { documentSearch, scanSearch, dashboardSearch } from "./search";
+export {
+  documentSearch,
+  documentView,
+  scanSearch,
+  catalogKind,
+  dashboardSearch,
+} from "./search";
 
 export const getDashboard = createServerFn({ method: "GET" })
-  .validator(dashboardSearch)
+  .validator(dashboardSearch.omit({ panel: true }))
   .handler(async ({ data }) => {
     const result = await client.GET("/api/dashboard", {
-      params: { query: { ...data, status: data.status ?? "complete" } },
+      params: { query: { ...data, status: data.status || "complete" } },
     });
     return unwrap(result);
   });
@@ -90,7 +32,9 @@ export const getSettings = createServerFn({ method: "GET" }).handler(
   },
 );
 export const getDocuments = createServerFn({ method: "GET" })
-  .validator(documentSearch.omit({ layout: true }))
+  .validator(
+    documentSearch.omit({ layout: true, columns: true, context: true }),
+  )
   .handler(async ({ data }) => {
     const result = await client.GET("/api/documents", {
       params: {

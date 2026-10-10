@@ -64,7 +64,8 @@ export function DocumentProcessingHistory({
       )}
       {document.enrichment_status === "running" && (
         <p className="text-muted-foreground">
-          Updating creators, tags, and summary. Your document remains available.
+          Updating the Created by field, tags, and summary. Your document
+          remains available.
         </p>
       )}
       {document.enrichment_status === "failed" && (

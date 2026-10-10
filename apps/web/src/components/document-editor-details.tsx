@@ -51,7 +51,7 @@ export function DocumentEditorDetails<T extends DocumentFields>({
           />
         )}
         <fieldset className="space-y-2">
-          <legend className="mb-2 text-xs font-medium">Creator</legend>
+          <legend className="mb-2 text-xs font-medium">Created by</legend>
           <p className="text-xs text-muted-foreground">
             People or organizations that produced this document. Leave empty
             when this does not apply.

@@ -68,7 +68,7 @@ export function ReprocessDocument({
         <DialogHeader>
           <DialogTitle>Reprocess this document?</DialogTitle>
           <DialogDescription>
-            Update the generated creators, tags, and summary with the current
+            Update the Created by field, tags, and summary with the current
             model.
           </DialogDescription>
         </DialogHeader>

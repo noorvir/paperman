@@ -2,7 +2,7 @@ import type { ComponentProps } from "react";
 import { Link } from "@tanstack/react-router";
 import { cn } from "cn";
 import type { z } from "zod";
-import { documentSearch } from "@/lib/queries";
+import type { documentSearch } from "@/lib/queries";
 import { buttonVariants } from "./ui/button";
 
 export function DocumentFilterLink({
@@ -13,7 +13,7 @@ export function DocumentFilterLink({
   variant = "ghost",
   ...props
 }: Omit<ComponentProps<"a">, "href"> & {
-  search: z.output<typeof documentSearch>;
+  search: Partial<z.output<typeof documentSearch>>;
   size?: "sm" | "xs";
   variant?: "ghost" | "secondary";
   filter: Partial<
@@ -23,18 +23,22 @@ export function DocumentFilterLink({
     >
   >;
 }) {
+  const next = { ...search, ...filter, page: 1 };
+  if (filter.owner) {
+    next.owner = [...(search.owner ?? []), ...filter.owner];
+  }
+  if (filter.creator) {
+    next.creator = [...(search.creator ?? []), ...filter.creator];
+  }
+  if (filter.tag) {
+    next.tag = [...(search.tag ?? []), ...filter.tag];
+  }
+
   return (
     <Link
       {...props}
       to="/documents"
-      search={documentSearch.parse({
-        ...search,
-        ...filter,
-        owner: [...search.owner, ...(filter.owner ?? [])],
-        creator: [...search.creator, ...(filter.creator ?? [])],
-        tag: [...search.tag, ...(filter.tag ?? [])],
-        page: 1,
-      })}
+      search={next}
       className={cn(
         buttonVariants({ variant, size }),
         "relative justify-start font-normal",

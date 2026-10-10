@@ -1,7 +1,5 @@
 import { useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
 import type { components } from "@/lib/schema";
-import { documentSearch } from "@/lib/queries";
 import { EmptyState } from "./page";
 import { LocalTime } from "./local-time";
 import { PdfPreview } from "./pdf-preview";
@@ -17,16 +15,19 @@ export function ScanView({
   documents,
   catalog,
   view,
+  layout,
+  onLayoutChange,
   sidebar,
 }: {
   scan: components["schemas"]["ScanDetail"];
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
   view: "pdf" | "documents" | "activity" | "details";
+  layout: "list" | "grid";
+  onLayoutChange: (layout: "list" | "grid") => void;
   sidebar: boolean;
 }) {
   const navigate = useNavigate();
-  const [layout, setLayout] = useState<"list" | "grid">("list");
   return (
     <DetailViewLayout
       sidebar={sidebar && <ScanInformation scan={scan} documents={documents} />}
@@ -60,7 +61,6 @@ export function ScanView({
                 navigate({
                   to: "/documents/$documentId",
                   params: { documentId },
-                  search: { layout },
                   resetScroll: false,
                 })
               }
@@ -69,7 +69,10 @@ export function ScanView({
                 <p className="text-xs text-muted-foreground">
                   {documents.length} filed documents
                 </p>
-                <DocumentLayoutToggle value={layout} onChange={setLayout} />
+                <DocumentLayoutToggle
+                  value={layout}
+                  onChange={onLayoutChange}
+                />
               </div>
               <div className="collection-content">
                 <div className="collection-body">
@@ -78,7 +81,7 @@ export function ScanView({
                     layout={layout}
                     documents={documents}
                     catalog={catalog}
-                    search={documentSearch.parse({ layout })}
+                    search={{}}
                     selectedId={undefined}
                   />
                 </div>

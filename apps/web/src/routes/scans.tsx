@@ -1,8 +1,8 @@
 import { useLiveData } from "@/hooks/use-live-data";
+import { persistedSearch } from "@/lib/search-preferences";
 import {
   createFileRoute,
   redirect,
-  stripSearchParams,
   Link,
   Outlet,
   useMatch,
@@ -40,13 +40,18 @@ import {
 } from "@/components/ui/table";
 
 export const Route = createFileRoute("/scans")({
-  validateSearch: scanSearch,
-  search: { middlewares: [stripSearchParams(scanSearch.parse({}))] },
-  loaderDeps: ({ search }) => search,
-  loader: async ({ deps }) => {
+  ...persistedSearch(scanSearch, {
+    name: "scans",
+    schema: scanSearch.omit({ page: true }),
+  }),
+  loaderDeps: ({ search }) => scanSearch.parse(search),
+  loader: async ({ deps, location }) => {
     const scans = await getScans({ data: deps });
     if (deps.page > scans.pages) {
-      throw redirect({ to: "/scans", search: { ...deps, page: scans.pages } });
+      throw redirect({
+        to: "/scans",
+        search: { ...location.search, ...deps, page: scans.pages },
+      });
     }
     return scans;
   },
@@ -55,7 +60,7 @@ export const Route = createFileRoute("/scans")({
 function Scans() {
   useLiveData();
   const scans = Route.useLoaderData();
-  const search = Route.useSearch();
+  const search = scanSearch.parse(Route.useSearch());
   const navigate = Route.useNavigate();
   const detail = useMatch({ from: "/scans/$scanId", shouldThrow: false });
   const full = detail !== undefined && !detail.search.preview;
@@ -76,7 +81,7 @@ function Scans() {
         navigate({
           to: "/scans/$scanId",
           params: { scanId },
-          search: { ...search, preview, view: detail?.search.view ?? "pdf" },
+          search: { ...search, ...detail?.search, preview },
           resetScroll: false,
           replace: preview && detail !== undefined,
         })
@@ -100,7 +105,9 @@ function Scans() {
               value={search.q}
               placeholder="Search scans"
               onSearch={(q) =>
-                void navigate({ search: { ...search, q, page: 1 } })
+                void navigate({
+                  search: (previous) => ({ ...previous, q, page: 1 }),
+                })
               }
             />
             <SelectField
@@ -114,11 +121,11 @@ function Scans() {
               onValueChange={(status) =>
                 void navigate({
                   to: "/scans",
-                  search: {
-                    ...search,
+                  search: (previous) => ({
+                    ...previous,
                     status: scanSearch.shape.status.parse(status),
                     page: 1,
-                  },
+                  }),
                 })
               }
             />
@@ -184,7 +191,7 @@ function Scans() {
                           aria-label={`Preview ${scan.original_name}`}
                           to="/scans/$scanId"
                           params={{ scanId: scan.id }}
-                          search={{ ...search, preview: true, view: "pdf" }}
+                          search={{ ...search, preview: true }}
                           resetScroll={false}
                         >
                           {scan.original_name}

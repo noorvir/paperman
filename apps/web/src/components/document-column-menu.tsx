@@ -1,9 +1,6 @@
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
-import {
-  defaultDocumentColumns,
-  type DocumentColumns,
-} from "@/hooks/use-document-columns";
+import { defaultDocumentColumns, type DocumentColumns } from "@/lib/search";
 import { Button } from "./ui/button";
 import {
   DropdownMenu,
@@ -19,7 +16,7 @@ import {
 const options: { key: keyof DocumentColumns; label: string }[] = [
   { key: "date", label: "Date" },
   { key: "owners", label: "Owners" },
-  { key: "creators", label: "Creator" },
+  { key: "creators", label: "Created by" },
   { key: "tags", label: "Tags" },
   { key: "verification", label: "Verification" },
   { key: "processed", label: "Processed at" },
@@ -30,7 +27,7 @@ export function DocumentColumnMenu({
   onChange,
 }: {
   columns: DocumentColumns;
-  onChange: (columns: DocumentColumns) => void;
+  onChange: (columns: Partial<DocumentColumns>) => void;
 }) {
   return (
     <DropdownMenu>
@@ -49,9 +46,7 @@ export function DocumentColumnMenu({
               key={key}
               checked={columns[key]}
               closeOnClick={false}
-              onCheckedChange={(checked) =>
-                onChange({ ...columns, [key]: checked })
-              }
+              onCheckedChange={(checked) => onChange({ [key]: checked })}
             >
               {label}
             </DropdownMenuCheckboxItem>

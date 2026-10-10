@@ -1,8 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { persistedSearch } from "@/lib/search-preferences";
+import { pdfSearch } from "@/lib/search";
 import { getCatalog, getScanWithDocuments } from "@/lib/queries";
 import { CreateDocument } from "@/components/create-document";
 
 export const Route = createFileRoute("/scans_/$scanId/create")({
+  ...persistedSearch(pdfSearch, {
+    name: "pdf",
+    schema: pdfSearch,
+    retain: true,
+  }),
   loader: async ({ params }) => {
     const [source, catalog] = await Promise.all([
       getScanWithDocuments({ data: params.scanId }),

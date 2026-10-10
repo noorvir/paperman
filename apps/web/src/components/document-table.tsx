@@ -1,12 +1,9 @@
-import {
-  defaultDocumentColumns,
-  type DocumentColumns,
-} from "@/hooks/use-document-columns";
+import { defaultDocumentColumns, type DocumentColumns } from "@/lib/search";
 import { LocalTime } from "./local-time";
 import { Link } from "@tanstack/react-router";
 import { CollectionLink, CollectionRow } from "./collection-workspace";
 import type { components } from "@/lib/schema";
-import type { documentSearch } from "@/lib/queries";
+import { documentSearch } from "@/lib/search";
 import type { z } from "zod";
 import { DocumentIdentity } from "./document-identity";
 import { DocumentTagPopover } from "./document-tag-popover";
@@ -62,7 +59,7 @@ const columns: {
   },
   {
     key: "creators",
-    label: "Creator",
+    label: "Created by",
     asc: "creators_asc",
     desc: "creators_desc",
     className: "min-w-80",
@@ -101,18 +98,19 @@ export function DocumentTable({
 }: {
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
-  search: z.output<typeof documentSearch>;
+  search: Partial<z.output<typeof documentSearch>>;
   selectedId: string | undefined;
   preview?: boolean;
   visibleColumns?: DocumentColumns;
   onSort?: (sort: z.output<typeof documentSearch>["sort"]) => void;
 }) {
+  const filters = documentSearch.parse(search);
   const filteredColumns: Partial<Record<Sort, boolean>> = {
-    date_asc: Boolean(search.after || search.before),
-    title: Boolean(search.q.trim()),
-    owners_asc: search.owner.length > 0,
-    creators_asc: search.creator.length > 0,
-    tags_asc: search.tag.length > 0 || Boolean(search.status),
+    date_asc: Boolean(filters.after || filters.before),
+    title: Boolean(filters.q.trim()),
+    owners_asc: filters.owner.length > 0,
+    creators_asc: filters.creator.length > 0,
+    tags_asc: filters.tag.length > 0 || Boolean(filters.status),
   };
   return (
     <Table className="w-max min-w-full table-auto [&_td]:py-2.5">
@@ -192,12 +190,12 @@ export function DocumentTable({
                   {...(preview
                     ? {
                         to: "/documents",
-                        search: { ...search, preview: doc.id, view: "pdf" },
+                        search: { ...search, preview: doc.id },
                       }
                     : {
                         to: "/documents/$documentId",
                         params: { documentId: doc.id },
-                        search: { ...search, view: "pdf" },
+                        search: { ...search },
                       })}
                   resetScroll={false}
                   title={doc.final_path.slice(
@@ -247,7 +245,7 @@ export function DocumentTable({
                     <Link
                       to="/documents/$documentId"
                       params={{ documentId: doc.id }}
-                      search={{ ...search, view: "pdf" }}
+                      search={{ ...search }}
                     />
                   }
                 />

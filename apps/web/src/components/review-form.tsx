@@ -41,6 +41,7 @@ export function ReviewForm({
   const [instructions, setInstructions] = useState("");
   const unsaved = useUnsavedChanges(
     JSON.stringify({ drafts, blankPages, rotations, instructions }),
+    ["zoom"],
   );
   const [previous, setPrevious] = useState<{
     drafts: Draft[];

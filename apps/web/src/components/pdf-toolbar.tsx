@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { usePdfZoom } from "@/hooks/use-pdf-zoom";
 import { cn } from "cn";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
@@ -52,6 +53,20 @@ export function PdfToolbar({
     });
   }, [documentId, initialPage, scrollCapability]);
   const { state: zoom, provides: magnification } = useZoom(documentId);
+  const { zoom: preferredZoom, setZoom: changeZoom } = usePdfZoom();
+  const zoomLevel =
+    typeof preferredZoom === "number"
+      ? preferredZoom
+      : {
+          automatic: ZoomMode.Automatic,
+          "fit-page": ZoomMode.FitPage,
+          "fit-width": ZoomMode.FitWidth,
+        }[preferredZoom];
+  useEffect(() => {
+    if (magnification && magnification.getState().zoomLevel !== zoomLevel) {
+      magnification.requestZoom(zoomLevel);
+    }
+  }, [magnification, zoomLevel, zoom.zoomLevel]);
   const { provides: rotation } = useRotate(documentId);
   const { state: search, provides: searchActions } = useSearch(documentId);
   useEffect(() => {
@@ -153,26 +168,23 @@ export function PdfToolbar({
               aria-label="Zoom out"
               title="Zoom out"
               disabled={zoom.currentZoomLevel <= 0.25}
-              onClick={() => magnification?.zoomOut()}
+              onClick={() =>
+                changeZoom(
+                  Math.max(
+                    0.25,
+                    Math.round((zoom.currentZoomLevel - 0.1) * 100) / 100,
+                  ),
+                )
+              }
             >
               <HugeiconsIcon icon={Remove01Icon} />
             </Button>
             <SelectField
               label="PDF zoom"
               className="w-20 @min-[24rem]:w-25"
-              value={String(zoom.zoomLevel)}
+              value={String(preferredZoom)}
               items={zoomItems}
-              onValueChange={(value) => {
-                if (
-                  value === ZoomMode.Automatic ||
-                  value === ZoomMode.FitPage ||
-                  value === ZoomMode.FitWidth
-                ) {
-                  magnification?.requestZoom(value);
-                } else {
-                  magnification?.requestZoom(Number(value));
-                }
-              }}
+              onValueChange={changeZoom}
             />
             <Button
               variant="ghost"
@@ -181,7 +193,14 @@ export function PdfToolbar({
               aria-label="Zoom in"
               title="Zoom in"
               disabled={zoom.currentZoomLevel >= 3}
-              onClick={() => magnification?.zoomIn()}
+              onClick={() =>
+                changeZoom(
+                  Math.min(
+                    3,
+                    Math.round((zoom.currentZoomLevel + 0.1) * 100) / 100,
+                  ),
+                )
+              }
             >
               <HugeiconsIcon icon={Add01Icon} />
             </Button>

@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { persistedSearch } from "@/lib/search-preferences";
+import { roadmapSearch } from "@/lib/search";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { FeatureCategory } from "@/components/roadmap/features";
@@ -9,10 +10,19 @@ import { cn } from "cn";
 import { features } from "@/components/roadmap/features";
 import { formatDate } from "@/components/page";
 
-export const Route = createFileRoute("/roadmap")({ component: Roadmap });
+export const Route = createFileRoute("/roadmap")({
+  ...persistedSearch(roadmapSearch, { name: "roadmap", schema: roadmapSearch }),
+  component: Roadmap,
+});
 
 function Roadmap() {
-  const [category, setCategory] = useState<FeatureCategory | "All">("All");
+  const { category } = roadmapSearch.parse(Route.useSearch());
+  const navigate = Route.useNavigate();
+  const setCategory = (category: FeatureCategory | "All") =>
+    void navigate({
+      search: { category },
+      resetScroll: false,
+    });
   const ordered = features
     .filter((feature) => category === "All" || feature.category === category)
     .sort((a, b) => Number(a.done) - Number(b.done));

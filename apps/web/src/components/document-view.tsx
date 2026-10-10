@@ -1,5 +1,5 @@
 import { useState, type ComponentProps, type ReactNode } from "react";
-import { linkOptions } from "@tanstack/react-router";
+import { linkOptions, useNavigate } from "@tanstack/react-router";
 import type { components } from "@/lib/schema";
 import { DocumentContextControls } from "./document-context-controls";
 import { DocumentPdf } from "./document-pdf";
@@ -51,9 +51,20 @@ export function DocumentView({
   pageSelection?: ComponentProps<typeof PdfPreview>["pageSelection"];
 }) {
   const sidebar = !preview;
-  const [showContext, setShowContext] = useState(false);
+  const navigate = useNavigate({ from: "/documents" });
+  const showContext = search.context ?? false;
   const contextControls = source && (
-    <DocumentContextControls checked={showContext} onChange={setShowContext} />
+    <DocumentContextControls
+      checked={showContext}
+      onChange={(context) =>
+        void navigate({
+          to: preview ? "/documents" : "/documents/$documentId",
+          params: { documentId: document.id },
+          search: (previous) => ({ ...previous, context }),
+          resetScroll: false,
+        })
+      }
+    />
   );
   const [openedSource, setOpenedSource] = useState(view === "source");
   if (view === "source" && !openedSource) {

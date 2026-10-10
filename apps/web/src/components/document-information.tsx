@@ -36,7 +36,7 @@ export function DocumentInformation({
           </dd>
         </div>
         <div className="space-y-1.5">
-          <dt className="text-muted-foreground">Creator</dt>
+          <dt className="text-muted-foreground">Created by</dt>
           <dd>
             <DocumentCreators
               document={document}

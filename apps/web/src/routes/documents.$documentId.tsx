@@ -65,7 +65,7 @@ function DocumentPage() {
       {...detail}
       catalog={catalog}
       search={documentSearch.parse(search)}
-      view={search.view}
+      view={search.view ?? "pdf"}
       edit={search.edit}
       preview={false}
     />

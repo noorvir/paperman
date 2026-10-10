@@ -1,7 +1,6 @@
 import type { ComponentProps } from "react";
 import type { components } from "@/lib/schema";
 import { getDirectory } from "@/lib/directory";
-import { OwnerAvatar } from "./collection";
 import { Button } from "./ui/button";
 import {
   Popover,
@@ -33,11 +32,10 @@ export function DocumentCreators({
         key={id}
         search={search}
         filter={{ creator: [id] }}
-        aria-label={`Filter by creator: ${name}`}
+        aria-label={`Filter documents created by ${name}`}
         title={name}
-        className="-ml-1 h-8 min-w-0 max-w-full py-1 pr-2"
+        className="-ml-1 min-w-0 max-w-full pr-2"
       >
-        <OwnerAvatar name={name} />
         <span className="truncate">{name}</span>
       </DocumentFilterLink>
     );
@@ -55,7 +53,7 @@ export function DocumentCreators({
             closeDelay={100}
             render={<Button variant="ghost" size="sm" />}
             className="px-1 font-normal text-muted-foreground"
-            aria-label={`All ${links.length} creators for ${document.title}`}
+            aria-label={`Created by: show all ${links.length} names for ${document.title}`}
           >
             +{links.length - 1}
           </PopoverTrigger>
@@ -65,7 +63,7 @@ export function DocumentCreators({
             onClick={(event) => event.stopPropagation()}
           >
             <PopoverTitle className="px-1 pb-1 text-xs text-muted-foreground">
-              Creator
+              Created by
             </PopoverTitle>
             {links}
           </PopoverContent>

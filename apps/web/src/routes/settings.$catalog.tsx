@@ -41,7 +41,7 @@ function Catalog() {
   const admin = canAdmin(useAccess());
   const { kind, entries, directory } = Route.useLoaderData();
   const title =
-    kind === "owners" ? "Owners" : kind === "creators" ? "Creators" : "Tags";
+    kind === "owners" ? "Owners" : kind === "creators" ? "Created by" : "Tags";
   return (
     <>
       <PageHeader
@@ -51,7 +51,7 @@ function Catalog() {
           kind === "owners"
             ? "People and companies that receive documents. Unknown is used when no owner matches."
             : kind === "creators"
-              ? "People and organizations that produce documents. Existing owners are also available as creators."
+              ? "People and organizations that produce documents. You can also select existing owners in the Created by field."
               : "Labels available for document classification."
         }
       >
@@ -65,7 +65,7 @@ function Catalog() {
             {kind === "owners"
               ? "owner"
               : kind === "creators"
-                ? "creator"
+                ? "person or organization"
                 : "tag"}
           </Link>
         )}
@@ -74,7 +74,11 @@ function Catalog() {
       <div className="w-full">
         {entries.length === 0 ? (
           <EmptyState
-            title={`No ${kind} yet`}
+            title={
+              kind === "creators"
+                ? "No people or organizations yet"
+                : `No ${kind} yet`
+            }
             description="Add an entry to the catalog."
           />
         ) : (
@@ -90,8 +94,10 @@ function Catalog() {
               {entries.map((entry) => (
                 <TableRow key={entry.id}>
                   <TableCell>
-                    {kind !== "tags" ? (
+                    {kind === "owners" ? (
                       <OwnerLabel name={entry.name} />
+                    ) : kind === "creators" ? (
+                      entry.name
                     ) : (
                       <span className="inline-flex min-h-6 items-center gap-2 text-xs">
                         <HugeiconsIcon

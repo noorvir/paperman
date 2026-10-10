@@ -1,13 +1,9 @@
-import { useState } from "react";
+import { persistedSearch } from "@/lib/search-preferences";
 import { Tabs } from "@base-ui/react/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { OverviewAttention } from "@/components/overview-attention";
 import { useLiveData } from "@/hooks/use-live-data";
-import {
-  createFileRoute,
-  Link,
-  stripSearchParams,
-} from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Upload04Icon } from "@hugeicons/core-free-icons";
 import {
@@ -25,9 +21,12 @@ import { OverviewSummary } from "@/components/overview-summary";
 import { OverviewWork } from "@/components/overview-work";
 
 export const Route = createFileRoute("/")({
-  validateSearch: dashboardSearch,
-  search: { middlewares: [stripSearchParams({ page: 1 })] },
-  loaderDeps: ({ search: { status, page } }) => ({ status, page }),
+  ...persistedSearch(dashboardSearch, {
+    name: "overview",
+    schema: dashboardSearch.omit({ page: true }),
+  }),
+  loaderDeps: ({ search }) =>
+    dashboardSearch.omit({ panel: true }).parse(search),
   loader: async ({ deps }) => {
     const [state, documents, review, failed, catalog] = await Promise.all([
       getDashboard({ data: deps }),
@@ -56,19 +55,27 @@ function Overview() {
   useLiveData();
   const { state, documents, attention, catalog, selectedStatus } =
     Route.useLoaderData();
-  const search = Route.useSearch();
+  const search = dashboardSearch.parse(Route.useSearch());
   const navigate = Route.useNavigate();
   const mobile = useIsMobile();
-  const [panel, setPanel] = useState("documents");
+  const panel = search.panel;
+  const setPanel = (panel: string) =>
+    void navigate({
+      search: (previous) => ({
+        ...previous,
+        panel: dashboardSearch.shape.panel.parse(panel),
+      }),
+      resetScroll: false,
+    });
   const work = (
     <OverviewWork
       work={state.pipeline_items}
       recent={documents.items.slice(0, 8)}
       catalog={catalog}
-      filtered={selectedStatus !== undefined}
+      filtered={selectedStatus !== ""}
       onReset={() => {
         void navigate({
-          search: { ...search, status: undefined, page: 1 },
+          search: (previous) => ({ ...previous, status: "", page: 1 }),
           resetScroll: false,
         });
       }}
@@ -77,13 +84,7 @@ function Overview() {
       }
     />
   );
-  const sidebar = (
-    <OverviewAttention
-      state={state}
-      attention={attention}
-      onViewAll={() => setPanel("documents")}
-    />
-  );
+  const sidebar = <OverviewAttention state={state} attention={attention} />;
   return (
     <div className="workspace-page min-h-0 max-w-6xl flex-1 shrink overflow-hidden">
       <div
@@ -100,15 +101,15 @@ function Overview() {
         </PageHeader>
         <OverviewSummary
           counts={state.counts}
-          status={search.status}
+          status={search.status || undefined}
           onSelect={(status) => {
-            setPanel("documents");
             void navigate({
-              search: {
-                ...search,
-                status: status === search.status ? undefined : status,
+              search: (previous) => ({
+                ...previous,
+                status: status === previous.status ? "" : status,
+                panel: "documents",
                 page: 1,
-              },
+              }),
               resetScroll: false,
             });
           }}

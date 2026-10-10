@@ -16,7 +16,7 @@ export function DocumentProcessingStatus({
   }[status];
   const description = {
     pending: "Waiting for document processing",
-    running: "Updating creators, tags, and summary",
+    running: "Updating the Created by field, tags, and summary",
     failed: "Document processing stopped",
     complete: "Document processing complete",
   }[status];

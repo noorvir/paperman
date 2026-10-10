@@ -1,8 +1,8 @@
 export const processingLabels = {
   ocr: "Text recognition",
   split: "Document separation",
-  details: "Owners, creators, date and title",
-  tagging: "Creators, tags and summary",
+  details: "Owners, Created by, date and title",
+  tagging: "Created by, tags and summary",
   review: "Review",
   transcription: "Transcription",
 };

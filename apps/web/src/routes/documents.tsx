@@ -1,11 +1,16 @@
-import { useDocumentColumns } from "@/hooks/use-document-columns";
+import { persistedSearch } from "@/lib/search-preferences";
+import {
+  documentColumns,
+  documentPreferences,
+  editorSearch,
+  pdfSearch,
+} from "@/lib/search";
 import { DocumentColumnMenu } from "@/components/document-column-menu";
 import { useLiveData } from "@/hooks/use-live-data";
 import { z } from "zod";
 import {
   createFileRoute,
   redirect,
-  stripSearchParams,
   Link,
   Outlet,
   useMatch,
@@ -37,28 +42,35 @@ import { CollectionWorkspace } from "@/components/collection-workspace";
 import { DocumentCollection } from "@/components/document-collection";
 import { DocumentLayoutToggle } from "@/components/document-layout-toggle";
 
-export const Route = createFileRoute("/documents")({
-  validateSearch: documentSearch.extend({
+const searchSchema = documentSearch
+  .extend(pdfSearch.shape)
+  .extend(editorSearch.shape)
+  .extend({
     preview: z
       .union([z.string(), z.literal(true)])
       .catch("")
       .default(""),
     view: documentView.default("pdf"),
-  }),
-  search: {
-    middlewares: [
-      stripSearchParams({
-        ...documentSearch.parse({}),
-        preview: "",
-        view: "pdf",
-      }),
-    ],
-  },
+  });
+
+export const Route = createFileRoute("/documents")({
+  ...persistedSearch(
+    searchSchema,
+    {
+      name: "documents",
+      schema: documentPreferences,
+      legacy: { key: "paperman.document-columns", field: "columns" },
+    },
+    { name: "pdf", schema: pdfSearch, retain: true },
+    { name: "document-editor", schema: editorSearch, retain: true },
+  ),
   loaderDeps: ({ search }) => ({
-    ...documentSearch.parse(search),
+    ...documentSearch
+      .omit({ layout: true, columns: true, context: true })
+      .parse(search),
     preview: typeof search.preview === "string" ? search.preview : "",
   }),
-  loader: async ({ deps }) => {
+  loader: async ({ deps, location }) => {
     const [documents, catalog, preview] = await Promise.all([
       getDocuments({ data: deps }),
       getCatalog(),
@@ -67,7 +79,7 @@ export const Route = createFileRoute("/documents")({
     if (deps.page > documents.pages) {
       throw redirect({
         to: "/documents",
-        search: { ...deps, page: documents.pages },
+        search: { ...location.search, ...deps, page: documents.pages },
       });
     }
     let source = null;
@@ -80,17 +92,19 @@ export const Route = createFileRoute("/documents")({
 });
 function Documents() {
   useLiveData();
-  const { columns, setColumns } = useDocumentColumns();
   const { documents, catalog, preview, source } = Route.useLoaderData();
-  const search = Route.useSearch();
+  const search = searchSchema.parse(Route.useSearch());
   const navigate = Route.useNavigate();
   const detail = useMatch({
     from: "/documents/$documentId",
     shouldThrow: false,
   });
   const full = detail !== undefined;
-  const change = (next: z.output<typeof documentSearch>) => {
-    void navigate({ to: "/documents", search: documentSearch.parse(next) });
+  const change = (next: Partial<z.output<typeof documentSearch>>) => {
+    void navigate({
+      to: "/documents",
+      search: (previous) => ({ ...previous, ...next, preview: "" }),
+    });
   };
   return (
     <CollectionWorkspace
@@ -152,7 +166,7 @@ function Documents() {
             <SearchField
               value={search.q}
               placeholder="Search documents"
-              onSearch={(q) => change({ ...search, q, page: 1 })}
+              onSearch={(q) => change({ q, page: 1 })}
             />
             <DocumentFilters
               search={search}
@@ -161,7 +175,21 @@ function Documents() {
             />
             <div className="ml-auto flex items-center gap-3">
               {search.layout === "list" && (
-                <DocumentColumnMenu columns={columns} onChange={setColumns} />
+                <DocumentColumnMenu
+                  columns={search.columns}
+                  onChange={(columns) =>
+                    void navigate({
+                      search: (previous) => ({
+                        ...previous,
+                        columns: documentColumns.parse({
+                          ...previous.columns,
+                          ...columns,
+                        }),
+                      }),
+                      resetScroll: false,
+                    })
+                  }
+                />
               )}
               <DocumentLayoutToggle
                 value={search.layout}
@@ -186,7 +214,7 @@ function Documents() {
               size="icon"
               aria-label="Previous page"
               disabled={search.page <= 1}
-              onClick={() => change({ ...search, page: search.page - 1 })}
+              onClick={() => change({ page: search.page - 1 })}
             >
               <HugeiconsIcon icon={ArrowLeft01Icon} />
             </Button>
@@ -195,7 +223,7 @@ function Documents() {
               size="icon"
               aria-label="Next page"
               disabled={search.page >= documents.pages}
-              onClick={() => change({ ...search, page: search.page + 1 })}
+              onClick={() => change({ page: search.page + 1 })}
             >
               <HugeiconsIcon icon={ArrowRight01Icon} />
             </Button>
@@ -209,13 +237,13 @@ function Documents() {
           />
         ) : (
           <DocumentCollection
-            visibleColumns={columns}
+            visibleColumns={search.columns}
             layout={search.layout}
             documents={documents.items}
             catalog={catalog}
             search={search}
             selectedId={preview?.document.id}
-            onSort={(sort) => change({ ...search, sort, page: 1 })}
+            onSort={(sort) => change({ sort, page: 1 })}
           />
         )}
       </Collection>

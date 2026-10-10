@@ -15,12 +15,12 @@ export function CreatorProposalEditor({
 }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="mb-2 text-xs font-medium">Creator</legend>
+      <legend className="mb-2 text-xs font-medium">Created by</legend>
       {value.length ? (
         value.map((creator, position) => (
           <div key={position} className="flex items-center gap-2">
             <Input
-              aria-label={`Creator ${position + 1}`}
+              aria-label={`Created by ${position + 1}`}
               value={creator.name}
               required
               maxLength={120}
@@ -41,7 +41,7 @@ export function CreatorProposalEditor({
             <Button
               type="button"
               variant="ghost"
-              aria-label={`Remove creator ${position + 1}`}
+              aria-label={`Remove name ${position + 1}`}
               onClick={() =>
                 onChange(value.filter((_, index) => index !== position))
               }
@@ -60,7 +60,7 @@ export function CreatorProposalEditor({
           onChange([...value, { catalog_id: null, name: "", aliases: [] }])
         }
       >
-        Add creator
+        Add person or organization
       </Button>
     </fieldset>
   );

@@ -24,7 +24,7 @@ export function DocumentFileIcon({
             <Link
               to="/documents/$documentId"
               params={{ documentId: document.id }}
-              search={{ ...search, view: "pdf" }}
+              search={search}
             />
           }
         />

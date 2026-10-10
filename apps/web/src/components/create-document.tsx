@@ -34,7 +34,7 @@ export function CreateDocument({
   });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const unsaved = useUnsavedChanges(JSON.stringify(draft));
+  const unsaved = useUnsavedChanges(JSON.stringify(draft), ["zoom"]);
   const navigate = useNavigate();
   const router = useRouter();
   const usedPages = new Set(

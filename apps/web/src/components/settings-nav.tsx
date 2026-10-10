@@ -22,7 +22,7 @@ export function SettingsNav({
         params={{ catalog: "creators" }}
         data-active={active === "creators"}
       >
-        Creators
+        Created by
       </Link>
       <Link
         to="/settings/$catalog"

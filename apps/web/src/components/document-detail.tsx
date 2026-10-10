@@ -296,9 +296,6 @@ export function DocumentDetail({
               )}
               onSaving={setSaving}
               catalog={catalog}
-              initialTab={
-                view === "pdf" || view === "source" ? "details" : view
-              }
               onDone={() => setEditing(false)}
             />
           ) : undefined

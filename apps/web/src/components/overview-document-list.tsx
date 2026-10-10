@@ -1,4 +1,3 @@
-import { documentSearch } from "@/lib/queries";
 import type { components } from "@/lib/schema";
 import { CollectionLink } from "./collection-workspace";
 import { DocumentIdentity } from "./document-identity";
@@ -12,7 +11,6 @@ export function OverviewDocumentList({
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
 }) {
-  const search = documentSearch.parse({});
   return (
     <ul className="@container/recent space-y-2">
       {documents.map((document) => (
@@ -25,7 +23,7 @@ export function OverviewDocumentList({
               itemId={document.id}
               selected={false}
               to="/documents"
-              search={{ preview: document.id, view: "pdf" }}
+              search={{ preview: document.id }}
               aria-label={`Preview ${document.title}`}
               title={document.title}
               className="after:absolute after:inset-0 after:rounded-lg"
@@ -39,7 +37,7 @@ export function OverviewDocumentList({
                 compact
                 ownerIds={document.owner_ids}
                 owners={catalog.owners}
-                search={search}
+                search={{}}
               />
             </div>
             <time
