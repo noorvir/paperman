@@ -6,6 +6,7 @@ import {
   pdfSearch,
 } from "@/lib/search";
 import { DocumentColumnMenu } from "@/components/document-column-menu";
+import { DocumentSortMenu } from "@/components/document-sort-menu";
 import { useLiveData } from "@/hooks/use-live-data";
 import { z } from "zod";
 import {
@@ -174,7 +175,7 @@ function Documents() {
               onChange={change}
             />
             <div className="ml-auto flex items-center gap-3">
-              {search.layout === "list" && (
+              {search.layout === "list" ? (
                 <DocumentColumnMenu
                   columns={search.columns}
                   onChange={(columns) =>
@@ -189,6 +190,11 @@ function Documents() {
                       resetScroll: false,
                     })
                   }
+                />
+              ) : (
+                <DocumentSortMenu
+                  sort={search.sort}
+                  onChange={(sort) => change({ sort, page: 1 })}
                 />
               )}
               <DocumentLayoutToggle

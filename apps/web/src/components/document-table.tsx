@@ -11,14 +11,7 @@ import { DocumentCreators } from "./document-creators";
 import { DocumentOwners } from "./document-owners";
 import { DocumentVerificationBadge } from "./document-verification-badge";
 import { formatDate } from "./page";
-import { Button } from "./ui/button";
-import { HugeiconsIcon } from "@hugeicons/react";
-import {
-  ArrowDownAZIcon,
-  ArrowUpZAIcon,
-  ArrowUpDownIcon,
-  FilterIcon,
-} from "@hugeicons/core-free-icons";
+import { DocumentSortButton, sortDirection } from "./document-sort-button";
 import {
   Table,
   TableHeader,
@@ -122,12 +115,7 @@ export function DocumentTable({
                 column.key === "document" || visibleColumns[column.key],
             )
             .map((column) => {
-              const direction =
-                search.sort === column.asc
-                  ? "ascending"
-                  : search.sort === column.desc
-                    ? "descending"
-                    : "none";
+              const direction = sortDirection(search.sort, column);
               return (
                 <TableHead
                   key={column.label}
@@ -135,34 +123,16 @@ export function DocumentTable({
                   aria-sort={onSort ? direction : undefined}
                 >
                   {onSort ? (
-                    <Button
-                      variant="ghost"
+                    <DocumentSortButton
                       className="-ml-2"
-                      onClick={() =>
-                        onSort(
-                          search.sort === column.asc ? column.desc : column.asc,
-                        )
-                      }
+                      sort={search.sort}
+                      asc={column.asc}
+                      desc={column.desc}
+                      onSort={onSort}
+                      filtered={filteredColumns[column.asc]}
                     >
                       {column.label}
-                      <HugeiconsIcon
-                        aria-hidden="true"
-                        icon={
-                          direction === "ascending"
-                            ? ArrowDownAZIcon
-                            : direction === "descending"
-                              ? ArrowUpZAIcon
-                              : ArrowUpDownIcon
-                        }
-                      />
-                      {filteredColumns[column.asc] && (
-                        <HugeiconsIcon
-                          icon={FilterIcon}
-                          role="img"
-                          aria-label="Filter applied"
-                        />
-                      )}
-                    </Button>
+                    </DocumentSortButton>
                   ) : (
                     column.label
                   )}
