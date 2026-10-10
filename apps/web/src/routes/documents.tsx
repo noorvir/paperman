@@ -55,6 +55,8 @@ const searchSchema = documentSearch
   });
 
 export const Route = createFileRoute("/documents")({
+  // Keep the collection and open preview mounted until navigation completes.
+  pendingMs: Infinity,
   ...persistedSearch(
     searchSchema,
     {

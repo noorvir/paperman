@@ -8,7 +8,9 @@ export function useLiveData(enabled = true) {
       return;
     }
     const timer = window.setInterval(() => {
-      if (document.visibilityState === "visible") void router.invalidate();
+      if (document.visibilityState === "visible" && !router.state.isLoading) {
+        void router.invalidate();
+      }
     }, 5000);
     return () => window.clearInterval(timer);
   }, [router, enabled]);
