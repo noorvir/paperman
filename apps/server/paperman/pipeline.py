@@ -9,6 +9,7 @@ from paperman_parser.models import ProcessingUsage, validate_analysis
 from paperman_parser.ocr import OCR
 from pypdf import PdfReader
 
+from paperman.catalog import CreatorConflict, resolve_creators
 from paperman.filing import file_documents
 from paperman.models import Document, Event, Scan
 from paperman.pdf import extract_pages, prepare_pdf
@@ -147,7 +148,7 @@ async def process_scan(
             await asyncio.to_thread(file_documents, storage, scan)
     except Exception as error:
         logger.exception("Scan %s failed during %s", scan.id, scan.phase)
-        scan.status = "failed"
+        scan.status = "review" if isinstance(error, CreatorConflict) else "failed"
         message = (
             str(error)
             if isinstance(error, ValueError)
@@ -191,19 +192,28 @@ async def enrich_document(
             document = storage.get_document(document.id)
             generated_tags = sorted(set(result.tag_ids))
             suggested_tags = sorted(set(result.suggested_tags))
+            creator_ids = (
+                document.creator_ids
+                if document.creators_edited
+                else resolve_creators(storage, result.creators)
+            )
             summary = document.summary if document.summary_edited else result.summary
             if (
                 document.generated_tags != generated_tags
                 or document.suggested_tags != suggested_tags
                 or document.summary != summary
+                or document.creator_ids != creator_ids
             ):
                 document.revision += 1
             document.generated_tags = generated_tags
             document.suggested_tags = suggested_tags
             document.summary = summary
+            document.creator_ids = creator_ids
             document.enrichment_version = inference.version
             document.enrichment_status = "complete"
-            completed = Event(stage="tag", message="Tags and summary updated")
+            completed = Event(
+                stage="tag", message="Creators, tags, and summary updated"
+            )
             document.processed_at = completed.at
             document.history.append(completed)
             storage.save_document(document)

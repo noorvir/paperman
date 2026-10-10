@@ -6,7 +6,13 @@ from pathlib import Path
 import pytest
 from fastapi.testclient import TestClient
 from paperman_parser.inference import EndpointInference
-from paperman_parser.models import Analysis, Catalog, Enrichment, ProcessingUsage
+from paperman_parser.models import (
+    Analysis,
+    Catalog,
+    Creator,
+    Enrichment,
+    ProcessingUsage,
+)
 from test_pipeline import FixtureInference
 from test_reprocess import file_scan
 
@@ -68,6 +74,7 @@ def test_document_reprocessing_uses_only_filed_pdf_and_preserves_filing(
             if fail:
                 raise ConnectionError("Model unavailable")
             return Enrichment(
+                creators=[Creator(name="Example Energy")],
                 tag_ids=["utilities", "invoice"],
                 suggested_tags=["Energy"],
                 summary="New electricity account summary",
@@ -111,6 +118,15 @@ def test_document_reprocessing_uses_only_filed_pdf_and_preserves_filing(
     assert updated.processed_at > target.processed_at
     assert not updated.enrichment_error
     assert updated.generated_tags == ["invoice", "utilities"]
+    assert len(updated.creator_ids) == 1
+    assert (
+        next(
+            entry.name
+            for entry in store.catalog().directory
+            if entry.id == updated.creator_ids[0]
+        )
+        == "Example Energy"
+    )
     assert updated.suggested_tags == ["Energy"]
     assert updated.summary == (
         target.summary if manual_summary else "New electricity account summary"

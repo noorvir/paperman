@@ -7,6 +7,7 @@ import { DocumentFilterLink } from "./document-filter-link";
 export function TagLink({
   tag,
   search,
+  size = "sm",
   ...props
 }: Omit<ComponentProps<typeof DocumentFilterLink>, "children" | "filter"> & {
   tag: components["schemas"]["CatalogEntry"];
@@ -15,16 +16,17 @@ export function TagLink({
     <DocumentFilterLink
       {...props}
       search={search}
+      size={size}
       filter={{ tag: [tag.id] }}
       aria-label={`Filter by ${tag.name}`}
     >
       <HugeiconsIcon
         icon={getTagIcon(tag)}
         size={16}
-        className="size-4 text-muted-foreground"
+        className={`${size === "xs" ? "size-3" : "size-4"} text-muted-foreground`}
         aria-hidden="true"
       />
-      {tag.name}
+      <span className="whitespace-nowrap">{tag.name}</span>
     </DocumentFilterLink>
   );
 }

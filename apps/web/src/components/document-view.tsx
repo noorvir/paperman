@@ -6,7 +6,7 @@ import { DocumentPdf } from "./document-pdf";
 import { PdfPreview } from "./pdf-preview";
 import { DocumentTags } from "./document-tags";
 import { ProcessingCost } from "./processing-cost";
-import { PipelineMessage } from "./pipeline-message";
+import { DocumentProcessingHistory } from "./document-processing-history";
 import { LocalTime } from "./local-time";
 import { DocumentInformation } from "./document-information";
 import { DetailViewLayout } from "./detail-view-layout";
@@ -104,20 +104,6 @@ export function DocumentView({
         ))
       }
     >
-      {document.enrichment_status !== "complete" && (
-        <PipelineMessage
-          title={
-            {
-              pending: "Waiting for document processing",
-              running: "Updating tags and summary",
-              failed: "Document processing stopped",
-            }[document.enrichment_status]
-          }
-          failed={document.enrichment_status === "failed"}
-        >
-          {document.enrichment_error || "Progress updates automatically."}
-        </PipelineMessage>
-      )}
       <div className="document-panels">
         <div
           className="document-panel"
@@ -197,6 +183,7 @@ export function DocumentView({
           aria-hidden={Boolean(editor) || view !== "details"}
           inert={Boolean(editor) || view !== "details"}
         >
+          <DocumentProcessingHistory document={document} />
           <div
             className={
               sidebar

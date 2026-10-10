@@ -54,14 +54,14 @@ function Users() {
       <section className="collection">
         <div className="collection-content">
           <div className="collection-body">
-            <Table>
+            <Table className="min-w-[800px]">
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
+                  <TableHead className="w-56">Name</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>
+                  <TableHead className="w-32">Role</TableHead>
+                  <TableHead className="w-28">Status</TableHead>
+                  <TableHead className="w-24">
                     <span className="sr-only">Actions</span>
                   </TableHead>
                 </TableRow>
@@ -69,8 +69,10 @@ function Users() {
               <TableBody>
                 {users.map((user) => (
                   <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell className="text-muted-foreground">
+                    <TableCell className="whitespace-normal break-words font-medium">
+                      {user.name}
+                    </TableCell>
+                    <TableCell className="whitespace-normal break-words text-muted-foreground">
                       {user.email}
                     </TableCell>
                     <TableCell>

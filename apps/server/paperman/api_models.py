@@ -146,6 +146,7 @@ class DocumentDelivery(Record):
 
 
 class DocumentEdit(Ownership):
+    creator_ids: list[Identifier] | None = None
     source_pages: list[Annotated[int, Field(ge=1)]] | None = Field(
         default=None, min_length=1
     )

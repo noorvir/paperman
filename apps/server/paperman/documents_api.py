@@ -20,6 +20,7 @@ from paperman.api_models import (
     TagSelection,
 )
 from paperman.auth import Auth, Principal, check_document
+from paperman.catalog import visible_catalog
 from paperman.models import Document, Event, SearchIndex, Verification, now
 from paperman.pdf import edit_pages
 from paperman.storage import FileStorage, atomic_target, safe_path
@@ -34,6 +35,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
         q: str = "",
         owner: Annotated[list[str] | None, Query()] = None,
         tag: Annotated[list[str] | None, Query()] = None,
+        creator: Annotated[list[str] | None, Query()] = None,
         status: str = "",
         delivery: Literal["", "review", "delivered"] = "",
         inbox: str = "",
@@ -44,6 +46,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             "date_asc",
             "title",
             "title_desc",
+            "creators_asc",
+            "creators_desc",
             "owners_asc",
             "owners_desc",
             "tags_asc",
@@ -59,6 +63,8 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
     ) -> DocumentPage:
         if after and before and after > before:
             raise HTTPException(422, "The start date must be on or before the end date")
+        creators = set(creator or ()) - {""}
+        directory = {entry.id: entry for entry in storage.catalog().directory}
         owners = set(owner or ()) - {""}
         tags = set(tag or ()) - {""}
         documents = storage.list_documents()
@@ -75,6 +81,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             for doc in documents
             if (principal is None or principal.can_view(doc))
             and (not owners or set(doc.owner_ids).intersection(owners))
+            and (not creators or set(doc.creator_ids).intersection(creators))
             and (not tags or not tags.isdisjoint(effective_tags(doc)))
             and (not status or doc.enrichment_status == status)
             and (not delivery or doc.delivery_status == delivery)
@@ -83,7 +90,14 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             and (not before or doc.document_date <= before)
             and all(
                 term
-                in f"{doc.title} {doc.summary}".casefold()
+                in (
+                    f"{doc.title} {doc.summary} "
+                    + " ".join(
+                        " ".join([directory[id].name, *directory[id].aliases])
+                        for id in doc.creator_ids
+                        if id in directory
+                    )
+                ).casefold()
                 + (
                     doc.text_override.casefold()
                     if doc.text_override is not None
@@ -96,6 +110,17 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
         items.sort(key=lambda doc: doc.id)
         if sort in ("title", "title_desc"):
             items.sort(key=lambda doc: doc.title.casefold(), reverse=descending)
+        elif sort.startswith("creators_"):
+            items.sort(
+                key=lambda doc: tuple(
+                    sorted(
+                        directory[id].name.casefold()
+                        for id in doc.creator_ids
+                        if id in directory
+                    )
+                ),
+                reverse=descending,
+            )
         elif sort.startswith("owners_"):
             names = {
                 entry.id: entry.name.casefold() for entry in storage.catalog().owners
@@ -183,6 +208,15 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             catalog = storage.catalog()
             if not set(value.owner_ids) <= {owner.id for owner in catalog.owners}:
                 raise ValueError("Select owners from the catalog")
+            creator_ids = (
+                doc.creator_ids
+                if value.creator_ids is None
+                else list(dict.fromkeys(value.creator_ids))
+            )
+            if not set(creator_ids) <= {
+                entry.id for entry in visible_catalog(storage, principal).directory
+            }:
+                raise ValueError("Select creators from the directory")
             allowed_tags = {tag.id for tag in catalog.tags}
             if not set(value.tag_ids) <= allowed_tags:
                 raise ValueError("Select tags from the catalog")
@@ -226,6 +260,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
                 "page rotation": bool(value.rotations),
                 "title": value.title != doc.title,
                 "owners": value.owner_ids != doc.owner_ids,
+                "creators": creator_ids != doc.creator_ids,
                 "date": (value.document_date or doc.scanned_at.date())
                 != doc.document_date
                 or (value.document_date is None)
@@ -243,6 +278,9 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
                     doc.delivery_status = "review"
             doc.title = value.title
             doc.owner_ids = value.owner_ids
+            doc.creator_ids = creator_ids
+            if updates["creators"]:
+                doc.creators_edited = True
             doc.document_date = value.document_date or doc.scanned_at.date()
             doc.date_source = "document" if value.document_date else "scan_fallback"
             if updates["summary"]:
@@ -416,7 +454,7 @@ def routes(storage: FileStorage, auth: Auth) -> APIRouter:
             doc.history.append(
                 Event(
                     stage="tag",
-                    message="Document reprocessing requested: tags and summary",
+                    message="Document reprocessing requested: creators, tags, and summary",
                 )
             )
             storage.save_document(doc)

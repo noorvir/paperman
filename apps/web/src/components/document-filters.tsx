@@ -5,6 +5,7 @@ import type { z } from "zod";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { FilterHorizontalIcon, Cancel01Icon } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
+import { getDirectory } from "@/lib/directory";
 import { documentSearch } from "@/lib/queries";
 import { getTagIcon } from "@/lib/catalog-icons";
 import { Button } from "./ui/button";
@@ -32,6 +33,7 @@ export function DocumentFilters({
   const [open, setOpen] = useState(false);
   const count = [
     search.owner.length,
+    search.creator.length,
     search.tag.length,
     search.after || search.before,
     search.status,
@@ -44,6 +46,7 @@ export function DocumentFilters({
   function reset() {
     change({
       owner: [],
+      creator: [],
       tag: [],
       after: "",
       before: "",
@@ -75,6 +78,17 @@ export function DocumentFilters({
             icon: <HugeiconsIcon icon={getTagIcon(entry)} />,
           }))}
           onChange={(tag) => change({ tag })}
+        />
+      </div>
+      <div className="w-full min-w-0 shrink-0 @min-[74rem]/library:w-32">
+        <MultiSelectFilter
+          label="Creator"
+          value={search.creator}
+          items={getDirectory(catalog).map((entry) => ({
+            value: entry.id,
+            label: entry.name,
+          }))}
+          onChange={(creator) => change({ creator })}
         />
       </div>
       <DateRangeFilter

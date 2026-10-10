@@ -414,3 +414,69 @@ def pdf_bytes(pages: list[str]) -> bytes:
         pdf.set_font("Helvetica", size=14)
         pdf.multi_cell(w=180, h=10, text=text)
     return bytes(pdf.output())
+
+
+def test_creator_directory_and_invalid_ids_at_model_boundary(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    responses = iter(
+        [
+            {
+                "document_starts": [1],
+                "blank_pages": [],
+                "confidence": 1,
+                "review_reason": "",
+            },
+            {
+                "owner_ids": ["unknown"],
+                "title": "Heat loss study",
+                "confidence": 1,
+                "creators": [{"catalog_id": "invented", "name": "Mira Patel"}],
+            },
+            {
+                "owner_ids": ["unknown"],
+                "title": "Heat loss study",
+                "confidence": 1,
+                "creators": [
+                    {"catalog_id": "mira", "name": "Mira Patel"},
+                    {"catalog_id": None, "name": "Leon Fischer"},
+                ],
+            },
+        ]
+    )
+    prompts: list[str] = []
+
+    def respond(messages: list[ModelMessage], _info: AgentInfo) -> ModelResponse:
+        for message in messages:
+            for part in message.parts:
+                if isinstance(part, UserPromptPart) and not isinstance(
+                    part.content, str
+                ):
+                    prompts.extend(
+                        content for content in part.content if isinstance(content, str)
+                    )
+        return ModelResponse(parts=[TextPart(json.dumps(next(responses)))])
+
+    replace_model(monkeypatch, respond)
+    catalog = Catalog(
+        creators=[CatalogEntry(id="mira", name="Mira Patel", aliases=["M. Patel"])]
+    )
+    catalog.owners.append(CatalogEntry(id="leon-owner", name="Leon Owner"))
+    inference = EndpointInference(
+        InferenceSettings(base_url="http://model.test/v1", model="test"), "local"
+    )
+    result = asyncio.run(
+        inference.analyze(
+            pdf_bytes(["Heat loss study by Mira Patel and Leon Fischer"]), catalog
+        )
+    )
+    creators = result.documents[0].creators
+    assert [(creator.catalog_id, creator.name) for creator in creators] == [
+        ("mira", "Mira Patel"),
+        (None, "Leon Fischer"),
+    ]
+    assert result.documents[0].title == "Heat loss study"
+    assert any(
+        '"id": "mira"' in prompt and "M. Patel" in prompt and "leon-owner" in prompt
+        for prompt in prompts
+    )

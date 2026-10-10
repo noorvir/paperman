@@ -4,6 +4,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { Input } from "./ui/input";
 import { Checkbox } from "./ui/checkbox";
 import { OwnerSelection } from "./owner-selection";
+import { getDirectory } from "@/lib/directory";
 import { DatePicker } from "./date-picker";
 
 export function DocumentEditorDetails({
@@ -44,6 +45,34 @@ export function DocumentEditorDetails({
             onChange={(owner_ids) => onChange({ ...value, owner_ids })}
           />
         )}
+        <fieldset className="space-y-2">
+          <legend className="mb-2 text-xs font-medium">Creator</legend>
+          <p className="text-xs text-muted-foreground">
+            People or organizations that produced this document. Leave empty
+            when this does not apply.
+          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(12rem,1fr))] gap-2">
+            {getDirectory(catalog).map((entry) => (
+              <label key={entry.id} className="flex items-center gap-2 text-xs">
+                <Checkbox
+                  disabled={disabled}
+                  checked={(value.creator_ids ?? []).includes(entry.id)}
+                  onCheckedChange={(checked) =>
+                    onChange({
+                      ...value,
+                      creator_ids: checked
+                        ? [...(value.creator_ids ?? []), entry.id]
+                        : (value.creator_ids ?? []).filter(
+                            (id) => id !== entry.id,
+                          ),
+                    })
+                  }
+                />
+                {entry.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="field-label">
           Issue date
           <DatePicker

@@ -23,7 +23,7 @@ export function RemoveCatalogEntry({
   kind,
   owners,
 }: {
-  kind: "owners" | "tags";
+  kind: "owners" | "tags" | "creators";
   entry: components["schemas"]["CatalogEntry"];
   owners: components["schemas"]["CatalogEntry"][];
 }) {
@@ -44,7 +44,7 @@ export function RemoveCatalogEntry({
         data: { kind, id: entry.id, reassignTo },
       });
       if (result.status === "in_use") {
-        setReplacement("unknown");
+        setReplacement(kind === "owners" ? "unknown" : "");
         setUsage(result);
         return;
       }
@@ -92,22 +92,24 @@ export function RemoveCatalogEntry({
           <DialogTitle>Remove {entry.name}?</DialogTitle>
           <DialogDescription>
             {usage
-              ? `${usage.documents} filed documents and ${usage.scans} scan batches use this owner. Select their new owner before removal.`
-              : `Remove this ${kind === "owners" ? "owner" : "tag"} from the catalog? This action cannot be undone.`}
+              ? `${usage.documents} filed documents and ${usage.scans} scan batches use this entry. Select its replacement before removal.`
+              : `Remove this ${kind === "owners" ? "owner" : kind === "creators" ? "creator" : "tag"} from the catalog? This action cannot be undone.`}
           </DialogDescription>
         </DialogHeader>
-        {usage && <label className="field-label">
-          Reassign to
-          <SelectField
-            label="Reassign to"
-            value={replacement}
-            disabled={pending}
-            onValueChange={setReplacement}
-            items={owners
-              .filter((owner) => owner.id !== entry.id)
-              .map((entry) => ({ value: entry.id, label: entry.name }))}
-          />
-        </label>}
+        {usage && (
+          <label className="field-label">
+            Reassign to
+            <SelectField
+              label="Reassign to"
+              value={replacement}
+              disabled={pending}
+              onValueChange={setReplacement}
+              items={owners
+                .filter((owner) => owner.id !== entry.id)
+                .map((entry) => ({ value: entry.id, label: entry.name }))}
+            />
+          </label>
+        )}
         <p className="text-xs text-muted-foreground">
           Documents are kept. Their stored files stay in the same location.
         </p>
@@ -119,6 +121,7 @@ export function RemoveCatalogEntry({
           <Button
             variant="destructive"
             loading={pending}
+            disabled={pending || Boolean(usage && !replacement)}
             onClick={() => void remove(usage ? replacement : undefined)}
           >
             {usage ? "Reassign and remove" : "Remove"}

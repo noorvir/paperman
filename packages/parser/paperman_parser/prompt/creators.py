@@ -1,0 +1,16 @@
+CREATOR_INSTRUCTIONS = (
+    "Identify creators separately from owners: the author, producing company, or invoice supplier. "
+    "For letters use the sending organization; do not list every signatory, contact, or service provider. "
+    "For research reports include all explicitly named authors, or the responsible research group when that is the attribution. "
+    "Do not infer authorship from a publisher, affiliation, citation, recipient, or person mentioned in the text. "
+    "For a company memo use its stated author or producing company, or both if both are clearly responsible. "
+    "For a pitch deck use the presenting company. For passports, identity cards, and registration certificates, "
+    "return creators=[]: the issuing authority is not useful creator metadata here. "
+    "Use an empty list when authorship is absent or unclear. Missing creators alone do not require review. "
+    "The directory includes known owners and creators. Reuse a matching catalog_id and its canonical name. "
+    "Earlier creators from this scan may not have an ID yet. Reuse their canonical names and supported aliases when they match. "
+    "Recognize aliases, familiar acronyms, full names, and legal suffix variants such as Inc or GmbH as the same organization "
+    "when the document supports that identity. Do not merge different people based on initials or similar names. "
+    "For a new creator set catalog_id=null, choose a short recognizable canonical name, and include only aliases supported "
+    "by the pages. Do not invent acronyms, people, organizations, or aliases. "
+)

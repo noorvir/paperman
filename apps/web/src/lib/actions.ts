@@ -108,6 +108,15 @@ export const proposalInput = z.object({
     z.object({
       pages: z.array(z.number().int().min(1)).min(1),
       owner_ids: z.array(z.string()).min(1),
+      creators: z
+        .array(
+          z.object({
+            catalog_id: z.string().nullable(),
+            name: z.string().trim().min(1).max(120),
+            aliases: z.array(z.string()),
+          }),
+        )
+        .default([]),
       title: z.string().trim().min(1),
       document_date: z.string().nullable(),
       confidence: z.number().min(0).max(1),
@@ -217,6 +226,7 @@ export const editDocument = createServerFn({ method: "POST" })
         revision: z.number().int().min(0),
         title: z.string().trim().min(1).max(120),
         owner_ids: z.array(z.string()).min(1),
+        creator_ids: z.array(z.string()).nullable().optional(),
         document_date: z.string().nullable(),
         summary: z.string().max(10000),
         tag_ids: z.array(z.string()),

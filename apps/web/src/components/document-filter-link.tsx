@@ -9,13 +9,17 @@ export function DocumentFilterLink({
   search,
   filter,
   className,
+  size = "sm",
+  variant = "ghost",
   ...props
 }: Omit<ComponentProps<"a">, "href"> & {
   search: z.output<typeof documentSearch>;
+  size?: "sm" | "xs";
+  variant?: "ghost" | "secondary";
   filter: Partial<
     Pick<
       z.output<typeof documentSearch>,
-      "owner" | "tag" | "after" | "before" | "status"
+      "creator" | "owner" | "tag" | "after" | "before" | "status"
     >
   >;
 }) {
@@ -27,12 +31,14 @@ export function DocumentFilterLink({
         ...search,
         ...filter,
         owner: [...search.owner, ...(filter.owner ?? [])],
+        creator: [...search.creator, ...(filter.creator ?? [])],
         tag: [...search.tag, ...(filter.tag ?? [])],
         page: 1,
       })}
       className={cn(
-        buttonVariants({ variant: "ghost", size: "sm" }),
-        "relative justify-start gap-2 px-1 font-normal",
+        buttonVariants({ variant, size }),
+        "relative justify-start font-normal",
+        size === "sm" && "gap-2 px-1",
         className,
       )}
     />

@@ -3,6 +3,7 @@ import { canAdmin } from "@/lib/auth/access";
 import { Pen01Icon } from "@hugeicons/core-free-icons";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { getTagIcon } from "@/lib/catalog-icons";
+import { getDirectory } from "@/lib/directory";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { catalogKind, getCatalog } from "@/lib/queries";
 import { EmptyState, PageHeader } from "@/components/page";
@@ -25,6 +26,7 @@ export const Route = createFileRoute("/settings/$catalog")({
     const catalog = await getCatalog();
     return {
       kind,
+      directory: getDirectory(catalog),
       entries: [...catalog[kind]].sort((a, b) =>
         a.name.localeCompare(b.name, "en", {
           sensitivity: "base",
@@ -37,8 +39,9 @@ export const Route = createFileRoute("/settings/$catalog")({
 });
 function Catalog() {
   const admin = canAdmin(useAccess());
-  const { kind, entries } = Route.useLoaderData();
-  const title = kind === "owners" ? "Owners" : "Tags";
+  const { kind, entries, directory } = Route.useLoaderData();
+  const title =
+    kind === "owners" ? "Owners" : kind === "creators" ? "Creators" : "Tags";
   return (
     <>
       <PageHeader
@@ -47,7 +50,9 @@ function Catalog() {
         description={
           kind === "owners"
             ? "People and companies that receive documents. Unknown is used when no owner matches."
-            : "Labels available for document classification."
+            : kind === "creators"
+              ? "People and organizations that produce documents. Existing owners are also available as creators."
+              : "Labels available for document classification."
         }
       >
         {admin && (
@@ -56,7 +61,12 @@ function Catalog() {
             params={{ catalog: kind }}
             className={buttonVariants()}
           >
-            Add {kind === "owners" ? "owner" : "tag"}
+            Add{" "}
+            {kind === "owners"
+              ? "owner"
+              : kind === "creators"
+                ? "creator"
+                : "tag"}
           </Link>
         )}
       </PageHeader>
@@ -72,7 +82,7 @@ function Catalog() {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                {kind === "owners" && <TableHead>Aliases</TableHead>}
+                {kind !== "tags" && <TableHead>Aliases</TableHead>}
                 {admin && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
@@ -80,7 +90,7 @@ function Catalog() {
               {entries.map((entry) => (
                 <TableRow key={entry.id}>
                   <TableCell>
-                    {kind === "owners" ? (
+                    {kind !== "tags" ? (
                       <OwnerLabel name={entry.name} />
                     ) : (
                       <span className="inline-flex min-h-6 items-center gap-2 text-xs">
@@ -93,7 +103,7 @@ function Catalog() {
                       </span>
                     )}
                   </TableCell>
-                  {kind === "owners" && (
+                  {kind !== "tags" && (
                     <TableCell>{entry.aliases.join(", ") || "—"}</TableCell>
                   )}
                   {admin && (
@@ -115,7 +125,7 @@ function Catalog() {
                           <RemoveCatalogEntry
                             kind={kind}
                             entry={entry}
-                            owners={entries}
+                            owners={kind === "creators" ? directory : entries}
                           />
                         )}
                       </div>

@@ -13,6 +13,7 @@ export function CollectionPreview({
   titleLink,
   description,
   badge,
+  icon,
   preview,
   back,
   openLink,
@@ -27,6 +28,7 @@ export function CollectionPreview({
   titleLink?: ReactNode;
   description: ReactNode;
   badge?: ReactNode;
+  icon?: ReactNode;
   preview: boolean;
   back: ReactNode;
   openLink: ReactNode;
@@ -48,6 +50,7 @@ export function CollectionPreview({
         titleLink={preview ? titleLink : undefined}
         description={description}
         badge={badge}
+        icon={icon}
         back={!preview && back}
       >
         {primaryAction}

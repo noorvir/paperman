@@ -36,6 +36,7 @@ export function DocumentEditor({
       revision: document.revision,
       title: document.title,
       owner_ids: document.owner_ids,
+      creator_ids: document.creator_ids,
       document_date:
         document.date_source === "document" ? document.document_date : null,
       summary: document.summary,

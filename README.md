@@ -1,6 +1,6 @@
 # PaperMan
 
-PaperMan turns scanned PDFs into a searchable document library. It splits scan batches into documents, identifies owners and dates, and adds titles, tags, and summaries. A web interface lets you review uncertain results and correct document groups.
+PaperMan turns scanned PDFs into a searchable document library. It splits scan batches into documents, identifies owners, creators, and dates, and adds titles, tags, and summaries. A web interface lets you review uncertain results and correct document groups.
 
 ## Goals
 
@@ -34,7 +34,23 @@ To apply new processing settings to a completed scan, open it in **Scans** and s
 
 Each document records its source scan, source pages, and processing run. The scan's **Details** tab shows model cost estimates by run, including recorded retries. Document cost estimates include only their own run. These estimates exclude hardware, storage, tax, and test calls made outside the worker.
 
-For a filed document, select **Reprocess** and confirm to generate tags, tag suggestions, and a summary again. Only that document's PDF goes to the current model. Its page groups, owners, date, title, PDF, and file location stay unchanged; OCR and scan analysis do not run again. Saved tag choices and summary or text corrections take priority. A failure keeps the previous results and can be retried with the same action. Additional model usage is included in the document's **Details** cost table.
+### Creators
+
+Creator is an optional list of people or organizations that produced a document. The existing details step identifies creators with owners, titles, and dates. Passports, identity cards, and registration certificates normally have no Creator. Reports can have several authors. Titles stay independent of Creator.
+
+Owners and creators share a name directory. Existing owners can be creators without a second entry. New creators, their names, and supported aliases are saved in `catalog.toml`; documents store `creator_ids`. The model receives this directory and reuses saved IDs. Filing also matches aliases, case, punctuation, and common company suffix variants. It does not infer that two people are the same from initials alone. Conflicting matches go to scan review.
+
+Use **Settings → Creators** to add or correct names and aliases. Use **Edit → Creator** to select or remove a document's creators. The library supports Creator filtering, sorting, and name/alias search. Removing a used creator requires a replacement; this merges its references and keeps its old names as aliases. Names shared with owners are edited under **Settings → Owners**.
+
+Creator metadata does not grant access, change owners, or reset routing. Members see directory entries connected to documents or source scans they can access. Existing documents default to an empty list. Set creators manually or reprocess a document to extract them. Manual Creator corrections, including removal, take priority over generated results.
+
+An isolated real-model check is available with `uv run --project apps/server python apps/server/scripts/evaluate_creators.py --help`. It requires a model settings file, the public fixture catalog and PDFs, a new output directory, and `PAPERMAN_MODEL_API_KEY`. It checks extraction, OCR, filing, enrichment, PDF access, filtering, and persistence. The samples are fictional and include multi-author and identity documents.
+
+### Document review and editing
+
+For a filed document, select **Reprocess** and confirm to generate creators, tags, tag suggestions, and a summary again. Only that document's PDF goes to the current model. Its page groups, owners, date, title, PDF, and file location stay unchanged; OCR and scan analysis do not run again. Saved Creator and tag choices and summary or text corrections take priority. A failure keeps the previous results and can be retried with the same action. Additional model usage is included in the document's **Details** cost table.
+
+The document header shows Waiting, Processing, or Failed while work is unfinished. Completed documents have no processing badge. The **Details** tab contains the recorded processing timeline and costs. Document tables reserve room for titles and scroll horizontally when their columns do not fit.
 
 **Processed at** shows the last successful document processing time in the user's local time zone. Successful reprocessing updates it; manual edits and failed runs do not. Older records use their saved completion event or successful model call timing when available. Missing times show `-`.
 

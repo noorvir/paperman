@@ -9,6 +9,7 @@ import { DocumentTagPopover } from "./document-tag-popover";
 import type { DocumentTable } from "./document-table";
 import { usePdfiumEngine } from "@embedpdf/engines/react";
 import wasmUrl from "@embedpdf/pdfium/pdfium.wasm?url";
+import { DocumentCreators } from "./document-creators";
 import { DocumentOwners } from "./document-owners";
 import { DocumentDelivery } from "./document-delivery";
 import { DocumentVerificationBadge } from "./document-verification-badge";
@@ -69,7 +70,10 @@ export default function DocumentGrid({
               />
             </CollectionLink>
             <div className="mt-3 flex items-center gap-2">
-              <p className="truncate text-xs font-medium" title={doc.title}>
+              <p
+                className="line-clamp-2 min-w-0 text-xs font-medium"
+                title={doc.title}
+              >
                 {doc.title}
               </p>
               <span className="relative z-10 inline-flex shrink-0 items-center gap-2">
@@ -107,6 +111,17 @@ export default function DocumentGrid({
                 search={search}
               />
             </div>
+            {doc.creator_ids.length > 0 && (
+              <div className="relative mt-2 min-w-0 text-xs">
+                <span className="text-muted-foreground">Creator</span>
+                <DocumentCreators
+                  compact
+                  document={doc}
+                  catalog={catalog}
+                  search={search}
+                />
+              </div>
+            )}
             <p className="mt-2 truncate text-[11px] text-muted-foreground">
               {doc.final_path.slice(0, doc.final_path.lastIndexOf("/"))}/
             </p>

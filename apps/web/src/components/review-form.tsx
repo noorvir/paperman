@@ -9,12 +9,14 @@ import { Input } from "./ui/input";
 import { Button, buttonVariants } from "./ui/button";
 import { OwnerSelection } from "./owner-selection";
 import { DatePicker } from "./date-picker";
+import { CreatorProposalEditor } from "./creator-proposal-editor";
 import { ReviewFeedback } from "./review-feedback";
 
 type Proposal = NonNullable<components["schemas"]["Scan"]["proposal"]>;
 type Draft = {
   pages: string;
   owner_ids: string[];
+  creators: Proposal["documents"][number]["creators"];
   title: string;
   document_date: string;
   review_reason: string;
@@ -248,6 +250,10 @@ export function ReviewForm({
                 />
               </label>
             </div>
+            <CreatorProposalEditor
+              value={draft.creators}
+              onChange={(creators) => update(index, { creators })}
+            />
             <div className="grid grid-cols-2 gap-3">
               <OwnerSelection
                 owners={owners}
@@ -286,6 +292,7 @@ export function ReviewForm({
                 pages: "",
                 title: "",
                 owner_ids: ["unknown"],
+                creators: [],
                 document_date: "",
                 review_reason: "",
                 confidence: 1,

@@ -14,7 +14,7 @@ export function CatalogForm({
   kind,
   entry,
 }: {
-  kind: "owners" | "tags";
+  kind: "owners" | "tags" | "creators";
   entry: components["schemas"]["CatalogEntry"] | null;
 }) {
   const [entryName, setEntryName] = useState(entry?.name ?? "");
@@ -52,7 +52,8 @@ export function CatalogForm({
       setPending(false);
     }
   }
-  const name = kind === "owners" ? "owner" : "tag";
+  const name =
+    kind === "owners" ? "owner" : kind === "creators" ? "creator" : "tag";
   return (
     <>
       <UnsavedChangesDialog blocker={unsaved.blocker} />
@@ -67,8 +68,8 @@ export function CatalogForm({
         }
         title={`${entry ? "Edit" : "Add"} ${name}`}
         description={
-          kind === "owners"
-            ? "Aliases help the model match names printed on mail."
+          kind !== "tags"
+            ? "Aliases help the model reuse names found in documents."
             : "Use a short, clear label."
         }
       />
@@ -86,7 +87,7 @@ export function CatalogForm({
             onChange={(event) => setEntryName(event.target.value)}
           />
         </label>
-        {kind === "owners" && (
+        {kind !== "tags" && (
           <label className="field-label">
             Aliases, separated by commas
             <Input

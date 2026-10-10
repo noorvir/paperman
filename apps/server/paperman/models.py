@@ -101,6 +101,8 @@ class Verification(Record):
 
 
 class Document(Ownership):
+    creator_ids: list[Identifier] = Field(default_factory=list)
+    creators_edited: bool = False
     inbox_id: Identifier = "shared"
     access_user_ids: list[Identifier] = Field(default_factory=list)
     delivery_status: Literal["review", "delivered"] = "review"
@@ -149,7 +151,10 @@ class Document(Ownership):
         if self.processed_at is not None:
             return self
         for event in reversed(self.history):
-            if event.stage == "tag" and event.message == "Tags and summary updated":
+            if event.stage == "tag" and event.message in {
+                "Tags and summary updated",
+                "Creators, tags, and summary updated",
+            }:
                 self.processed_at = event.at
                 return self
         if self.enrichment_status == "complete":

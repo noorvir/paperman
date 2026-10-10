@@ -1,3 +1,4 @@
+import { getDirectory } from "@/lib/directory";
 import { BackLink } from "@/components/back-link";
 import { createFileRoute } from "@tanstack/react-router";
 import { getCatalog, getDocument, getScan } from "@/lib/queries";
@@ -26,6 +27,13 @@ export const Route = createFileRoute("/scans_/$scanId/review")({
           return {
             pages: document.source_pages,
             owner_ids: document.owner_ids,
+            creators: getDirectory(catalog)
+              .filter((entry) => document.creator_ids.includes(entry.id))
+              .map((entry) => ({
+                catalog_id: entry.id,
+                name: entry.name,
+                aliases: entry.aliases,
+              })),
             title: document.title,
             document_date:
               document.date_source === "document"
@@ -55,7 +63,7 @@ function Review() {
           />
         }
         title={scan.status === "complete" ? "Edit pages" : "Review documents"}
-        description="Check each source page, document group, owner, title, and date."
+        description="Check each source page, document group, owner, creator, title, and date."
       />
       {!["review", "complete"].includes(scan.status) || !proposal ? (
         <p>Wait for this scan to finish before editing its groups.</p>

@@ -482,6 +482,8 @@ export interface components {
         };
         /** Catalog */
         Catalog: {
+            /** Creators */
+            creators: components["schemas"]["CatalogEntry"][];
             /** Owners */
             owners: components["schemas"]["CatalogEntry"][];
             /** Tags */
@@ -501,6 +503,30 @@ export interface components {
              * @enum {string}
              */
             icon: "auto" | "file" | "receipt" | "shield" | "bank" | "health" | "utilities" | "contract" | "home" | "car" | "business" | "education" | "travel" | "tax";
+        };
+        /** Creator */
+        "Creator-Input": {
+            /**
+             * Catalog Id
+             * @description Existing directory ID, or null for a new creator.
+             */
+            catalog_id?: string | null;
+            /** Name */
+            name: string;
+            /** Aliases */
+            aliases?: string[];
+        };
+        /** Creator */
+        "Creator-Output": {
+            /**
+             * Catalog Id
+             * @description Existing directory ID, or null for a new creator.
+             */
+            catalog_id: string | null;
+            /** Name */
+            name: string;
+            /** Aliases */
+            aliases: string[];
         };
         /** Dashboard */
         Dashboard: {
@@ -544,6 +570,13 @@ export interface components {
         Document: {
             /** Owner Ids */
             owner_ids: string[];
+            /** Creator Ids */
+            creator_ids: string[];
+            /**
+             * Creators Edited
+             * @default false
+             */
+            creators_edited: boolean;
             /**
              * Inbox Id
              * @default shared
@@ -681,6 +714,8 @@ export interface components {
         DocumentEdit: {
             /** Owner Ids */
             owner_ids: string[];
+            /** Creator Ids */
+            creator_ids?: string[] | null;
             /** Source Pages */
             source_pages?: number[] | null;
             /** Rotations */
@@ -717,8 +752,13 @@ export interface components {
              */
             owner_ids?: string[];
             /**
+             * Creators
+             * @description People or organizations responsible for the document. Empty for IDs or when attribution is not useful or clear. Include all named authors of a report.
+             */
+            creators?: components["schemas"]["Creator-Input"][];
+            /**
              * Title
-             * @description Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date.
+             * @description Short, human-readable title with the specific subject and document type. Include a creator or service name only when useful. Preserve a meaningful report title. No recipient, reference number, or date.
              */
             title: string;
             /**
@@ -751,8 +791,13 @@ export interface components {
              */
             owner_ids: string[];
             /**
+             * Creators
+             * @description People or organizations responsible for the document. Empty for IDs or when attribution is not useful or clear. Include all named authors of a report.
+             */
+            creators: components["schemas"]["Creator-Output"][];
+            /**
              * Title
-             * @description Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date.
+             * @description Short, human-readable title with the specific subject and document type. Include a creator or service name only when useful. Preserve a meaningful report title. No recipient, reference number, or date.
              */
             title: string;
             /**
@@ -1505,7 +1550,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kind: "owners" | "tags";
+                kind: "owners" | "tags" | "creators";
             };
             cookie?: never;
         };
@@ -1542,7 +1587,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kind: "owners" | "tags";
+                kind: "owners" | "tags" | "creators";
                 entry_id: string;
             };
             cookie?: never;
@@ -1582,7 +1627,7 @@ export interface operations {
                 authorization?: string | null;
             };
             path: {
-                kind: "owners" | "tags";
+                kind: "owners" | "tags" | "creators";
                 entry_id: string;
             };
             cookie?: never;
@@ -2003,12 +2048,13 @@ export interface operations {
                 q?: string;
                 owner?: string[] | null;
                 tag?: string[] | null;
+                creator?: string[] | null;
                 status?: string;
                 delivery?: "" | "review" | "delivered";
                 inbox?: string;
                 after?: string | null;
                 before?: string | null;
-                sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "delivery_asc" | "delivery_desc" | "processed_asc" | "processed_desc";
+                sort?: "date_desc" | "date_asc" | "title" | "title_desc" | "creators_asc" | "creators_desc" | "owners_asc" | "owners_desc" | "tags_asc" | "tags_desc" | "verification_asc" | "verification_desc" | "delivery_asc" | "delivery_desc" | "processed_asc" | "processed_desc";
                 page?: number;
             };
             header?: {

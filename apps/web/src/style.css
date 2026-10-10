@@ -37,6 +37,7 @@
   --color-success-foreground: var(--success-foreground);
   --color-attention: var(--attention);
   --color-attention-foreground: var(--attention-foreground);
+  --color-attention-indicator: var(--attention-indicator);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
   --color-accent-foreground: var(--accent-foreground);
@@ -82,6 +83,7 @@
   --success-foreground: oklch(0.508 0.118 166);
   --attention: oklch(0.987 0.022 95);
   --attention-foreground: oklch(0.555 0.14 55);
+  --attention-indicator: oklch(0.76 0.16 85);
   --info: oklch(0.97 0.014 255);
   --info-foreground: oklch(0.57 0.09 255);
   --border: oklch(0.922 0 0);
@@ -123,6 +125,7 @@
   --success-foreground: oklch(0.765 0.15 166);
   --attention: oklch(0.26 0.035 75);
   --attention-foreground: oklch(0.828 0.16 84);
+  --attention-indicator: oklch(0.828 0.16 84);
   --info: oklch(0.24 0.025 255);
   --info-foreground: oklch(0.79 0.075 255);
   --border: oklch(1 0 0 / 10%);
@@ -269,7 +272,16 @@
       @apply ml-auto;
     }
   }
-  @container preview (max-width: 36rem) {
+  @container preview (max-width: 48rem) {
+    .workspace-heading-content > div > div:first-child {
+      @apply flex-wrap;
+    }
+    .workspace-heading-content h1 {
+      @apply basis-full whitespace-normal break-words;
+    }
+    .document-verify-label {
+      @apply sr-only;
+    }
     .workspace-heading {
       @apply flex-wrap;
     }
@@ -277,7 +289,7 @@
       @apply basis-full;
     }
     .workspace-heading-actions {
-      @apply ml-auto;
+      @apply ml-auto max-w-full;
     }
   }
   .workspace-section {
@@ -354,7 +366,7 @@
     @apply relative flex min-h-0 flex-1 overflow-hidden;
   }
   .collection-body > [data-slot="table-container"] {
-    @apply overflow-visible;
+    @apply overflow-visible!;
   }
   .collection-body [data-slot="table"] {
     @apply table-fixed;
@@ -427,7 +439,7 @@
     @apply col-start-1 row-start-1;
   }
   .detail-view-layout[data-editing="true"] {
-    @apply grid-rows-[minmax(12rem,1fr)_minmax(20rem,1fr)] gap-4 overflow-y-auto;
+    @apply grid-rows-[minmax(0,2fr)_minmax(0,3fr)] gap-4 overflow-hidden;
   }
   .detail-editor {
     @apply col-start-1 row-start-2 flex min-h-0 min-w-0 flex-col overflow-hidden;

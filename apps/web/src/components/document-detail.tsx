@@ -14,6 +14,8 @@ import { DocumentView } from "@/components/document-view";
 import { DocumentTabs } from "@/components/document-tabs";
 import { VerifyDocument } from "@/components/verify-document";
 import { DocumentDelivery } from "./document-delivery";
+import { DocumentFileIcon } from "./document-file-icon";
+import { DocumentProcessingStatus } from "./document-processing-status";
 import { DocumentVerificationBadge } from "./document-verification-badge";
 import { ReprocessDocument } from "@/components/reprocess-document";
 import { DocumentFilterLink } from "@/components/document-filter-link";
@@ -83,6 +85,7 @@ export function DocumentDetail({
     <CollectionPreview
       id={document.id}
       title={document.title}
+      icon={<DocumentFileIcon document={document} search={search} size="lg" />}
       titleLink={
         <Link
           to="/documents/$documentId"
@@ -107,19 +110,7 @@ export function DocumentDetail({
               ) : undefined
             }
           />
-          <DocumentDelivery
-            key={document.id}
-            document={document}
-            render={
-              preview ? (
-                <Link
-                  to="/documents/$documentId"
-                  params={{ documentId: document.id }}
-                  search={{ ...search, view }}
-                />
-              ) : undefined
-            }
-          />
+          <DocumentProcessingStatus document={document} />
         </span>
       }
       description={

@@ -1,4 +1,5 @@
 import type { components } from "@/lib/schema";
+import { processingLabels } from "@/lib/processing";
 import {
   Table,
   TableBody,
@@ -28,14 +29,6 @@ export function ProcessingCost({
   const complete = processing.every(
     (item) => item.estimated_cost_usd !== null && item.call.usage_complete,
   );
-  const labels = {
-    ocr: "OCR",
-    split: "Split",
-    details: "Owner, date and title",
-    tagging: "Tags and summary",
-    review: "Review",
-    transcription: "Transcription",
-  };
   return (
     <section className="space-y-3 p-3" aria-label="Processing cost">
       <div className="flex flex-wrap items-baseline justify-between gap-2 text-xs">
@@ -60,7 +53,7 @@ export function ProcessingCost({
             <TableRow key={call.id}>
               <TableCell>
                 <div className="font-medium">
-                  {labels[call.stage]}
+                  {processingLabels[call.stage]}
                   {call.status === "failed" ? " · Failed" : ""}
                 </div>
                 <div className="mt-1 text-muted-foreground">{call.model}</div>

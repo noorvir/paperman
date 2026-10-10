@@ -132,11 +132,15 @@ export function OwnerAvatar({
   name: string;
   className?: string;
 }) {
-  const initials = name
-    .split(" ")
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join("");
+  const words = name.match(/[\p{L}\p{N}]+/gu) ?? [];
+  const first = words[0] ?? "";
+  const initials = /^[A-Z]{2,3}$/.test(first)
+    ? first
+    : words
+        .slice(0, 2)
+        .map((part) => part[0])
+        .join("")
+        .toUpperCase() || "?";
   return (
     <span
       aria-hidden="true"

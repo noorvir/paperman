@@ -2,6 +2,7 @@ from paperman_parser.models import validate_analysis
 from paperman_parser.pdf import rotate_pages
 from paperman_parser.usage import allocate_usage
 
+from paperman.catalog import resolve_creators
 from paperman.document_names import document_filename
 from paperman.models import Document, Event, Scan
 from paperman.pdf import split_pdf
@@ -37,14 +38,17 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
         if retained is not None:
             with storage.transaction():
                 document = storage.get_document(retained.id)
+                creator_ids = resolve_creators(storage, item.creators)
                 if (
-                    document.title != item.title
+                    document.creator_ids != creator_ids
+                    or document.title != item.title
                     or document.owner_ids != item.owner_ids
                     or document.page_rotations != rotations
                     or document.document_date != document_date
                     or document.date_source != date_source
                 ):
                     document.title = item.title
+                    document.creator_ids = creator_ids
                     if document.owner_ids != item.owner_ids:
                         document.delivery_confirmation = None
                         if document.inbox_id == "shared":
@@ -119,7 +123,11 @@ def file_documents(storage: Storage, scan: Scan) -> Scan:
                         timestamp += 1
                     scan.filing_paths[identifier] = final_path
                     storage.save_scan(scan)
+            creator_ids = resolve_creators(storage, item.creators)
+            if existing is not None:
+                existing.creator_ids = creator_ids
             document = existing or Document(
+                creator_ids=creator_ids,
                 id=identifier,
                 inbox_id=scan.inbox_id,
                 scan_id=scan.id,

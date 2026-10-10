@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from "react";
 import type { components } from "@/lib/schema";
+import { DocumentCreators } from "./document-creators";
 import { DocumentOwners } from "./document-owners";
 import { DocumentTags } from "./document-tags";
 import { LocalTime } from "./local-time";
@@ -30,6 +31,16 @@ export function DocumentInformation({
             <DocumentOwners
               ownerIds={document.owner_ids}
               owners={catalog.owners}
+              search={search}
+            />
+          </dd>
+        </div>
+        <div className="space-y-1.5">
+          <dt className="text-muted-foreground">Creator</dt>
+          <dd>
+            <DocumentCreators
+              document={document}
+              catalog={catalog}
               search={search}
             />
           </dd>

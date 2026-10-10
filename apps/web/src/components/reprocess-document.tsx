@@ -68,7 +68,8 @@ export function ReprocessDocument({
         <DialogHeader>
           <DialogTitle>Reprocess this document?</DialogTitle>
           <DialogDescription>
-            Update the generated tags and summary with the current model.
+            Update the generated creators, tags, and summary with the current
+            model.
           </DialogDescription>
         </DialogHeader>
         <ul className="list-disc space-y-2 pl-5 text-muted-foreground">

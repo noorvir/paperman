@@ -63,7 +63,8 @@
             "schema": {
               "enum": [
                 "owners",
-                "tags"
+                "tags",
+                "creators"
               ],
               "type": "string",
               "title": "Kind"
@@ -132,7 +133,8 @@
             "schema": {
               "enum": [
                 "owners",
-                "tags"
+                "tags",
+                "creators"
               ],
               "type": "string",
               "title": "Kind"
@@ -209,7 +211,8 @@
             "schema": {
               "enum": [
                 "owners",
-                "tags"
+                "tags",
+                "creators"
               ],
               "type": "string",
               "title": "Kind"
@@ -1046,6 +1049,25 @@
             }
           },
           {
+            "name": "creator",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Creator"
+            }
+          },
+          {
             "name": "status",
             "in": "query",
             "required": false,
@@ -1124,6 +1146,8 @@
                 "date_asc",
                 "title",
                 "title_desc",
+                "creators_asc",
+                "creators_desc",
                 "owners_asc",
                 "owners_desc",
                 "tags_asc",
@@ -2191,6 +2215,13 @@
       },
       "Catalog": {
         "properties": {
+          "creators": {
+            "items": {
+              "$ref": "#/components/schemas/CatalogEntry"
+            },
+            "type": "array",
+            "title": "Creators"
+          },
           "owners": {
             "items": {
               "$ref": "#/components/schemas/CatalogEntry"
@@ -2209,6 +2240,7 @@
         "additionalProperties": false,
         "type": "object",
         "required": [
+          "creators",
           "owners",
           "tags"
         ],
@@ -2265,6 +2297,84 @@
           "icon"
         ],
         "title": "CatalogEntry"
+      },
+      "Creator-Input": {
+        "properties": {
+          "catalog_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Id",
+            "description": "Existing directory ID, or null for a new creator."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "aliases": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Aliases"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "title": "Creator"
+      },
+      "Creator-Output": {
+        "properties": {
+          "catalog_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Catalog Id",
+            "description": "Existing directory ID, or null for a new creator."
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Name"
+          },
+          "aliases": {
+            "items": {
+              "type": "string",
+              "maxLength": 120,
+              "minLength": 1
+            },
+            "type": "array",
+            "title": "Aliases"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "catalog_id",
+          "name",
+          "aliases"
+        ],
+        "title": "Creator"
       },
       "Dashboard": {
         "properties": {
@@ -2389,6 +2499,19 @@
             "type": "array",
             "minItems": 1,
             "title": "Owner Ids"
+          },
+          "creator_ids": {
+            "items": {
+              "type": "string",
+              "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+            },
+            "type": "array",
+            "title": "Creator Ids"
+          },
+          "creators_edited": {
+            "type": "boolean",
+            "title": "Creators Edited",
+            "default": false
           },
           "inbox_id": {
             "type": "string",
@@ -2610,6 +2733,8 @@
         "type": "object",
         "required": [
           "owner_ids",
+          "creator_ids",
+          "creators_edited",
           "inbox_id",
           "access_user_ids",
           "delivery_status",
@@ -2765,6 +2890,21 @@
             "minItems": 1,
             "title": "Owner Ids"
           },
+          "creator_ids": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string",
+                  "pattern": "^[a-zA-Z0-9_-]{1,80}$"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Creator Ids"
+          },
           "source_pages": {
             "anyOf": [
               {
@@ -2887,12 +3027,20 @@
             "title": "Owner Ids",
             "description": "All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches."
           },
+          "creators": {
+            "items": {
+              "$ref": "#/components/schemas/Creator-Input"
+            },
+            "type": "array",
+            "title": "Creators",
+            "description": "People or organizations responsible for the document. Empty for IDs or when attribution is not useful or clear. Include all named authors of a report."
+          },
           "title": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
             "title": "Title",
-            "description": "Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date."
+            "description": "Short, human-readable title with the specific subject and document type. Include a creator or service name only when useful. Preserve a meaningful report title. No recipient, reference number, or date."
           },
           "document_date": {
             "anyOf": [
@@ -2952,12 +3100,20 @@
             "title": "Owner Ids",
             "description": "All catalog IDs matching actual recipients, not senders. Use [unknown] only if no owner matches."
           },
+          "creators": {
+            "items": {
+              "$ref": "#/components/schemas/Creator-Output"
+            },
+            "type": "array",
+            "title": "Creators",
+            "description": "People or organizations responsible for the document. Empty for IDs or when attribution is not useful or clear. Include all named authors of a report."
+          },
           "title": {
             "type": "string",
             "maxLength": 120,
             "minLength": 1,
             "title": "Title",
-            "description": "Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date."
+            "description": "Short, human-readable title with the specific subject and document type. Include a creator or service name only when useful. Preserve a meaningful report title. No recipient, reference number, or date."
           },
           "document_date": {
             "anyOf": [
@@ -3000,6 +3156,7 @@
         "type": "object",
         "required": [
           "owner_ids",
+          "creators",
           "title",
           "document_date",
           "confidence",

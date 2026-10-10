@@ -55,8 +55,8 @@ export function ReviewFeedback({
         />
       </label>
       <p className="workspace-description">
-        Ask the model to change page groups, owners, titles, dates, or blank
-        pages. Changes stay in this form until you approve them.
+        Ask the model to change page groups, owners, creators, titles, dates, or
+        blank pages. Changes stay in this form until you approve them.
       </p>
       <div className="flex items-center gap-2">
         <Button

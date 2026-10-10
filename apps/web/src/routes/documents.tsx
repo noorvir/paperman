@@ -1,3 +1,5 @@
+import { useDocumentColumns } from "@/hooks/use-document-columns";
+import { DocumentColumnMenu } from "@/components/document-column-menu";
 import { useLiveData } from "@/hooks/use-live-data";
 import { z } from "zod";
 import {
@@ -78,6 +80,7 @@ export const Route = createFileRoute("/documents")({
 });
 function Documents() {
   useLiveData();
+  const { columns, setColumns } = useDocumentColumns();
   const { documents, catalog, preview, source } = Route.useLoaderData();
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
@@ -157,6 +160,9 @@ function Documents() {
               onChange={change}
             />
             <div className="ml-auto flex items-center gap-3">
+              {search.layout === "list" && (
+                <DocumentColumnMenu columns={columns} onChange={setColumns} />
+              )}
               <DocumentLayoutToggle
                 value={search.layout}
                 onChange={(layout) =>
@@ -203,6 +209,7 @@ function Documents() {
           />
         ) : (
           <DocumentCollection
+            visibleColumns={columns}
             layout={search.layout}
             documents={documents.items}
             catalog={catalog}

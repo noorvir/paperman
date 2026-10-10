@@ -40,6 +40,7 @@ from paperman_parser.models import (
     ProcessingUsage,
     Record,
     validate_analysis,
+    validate_creators,
     validate_rotations,
 )
 from paperman_parser.pdf import pages_with_text, render_pdf, rotate_pages
@@ -66,7 +67,9 @@ class EndpointInference:
 
     @property
     def version(self) -> str:
-        return f"organization-v7-owners-orientation:{self.settings.base_url}:{self.settings.model}"
+        return (
+            f"organization-v8-creators:{self.settings.base_url}:{self.settings.model}"
+        )
 
     async def analyze(self, source: bytes, catalog: Catalog) -> Analysis:
         pages = await asyncio.to_thread(render_pdf, source)
@@ -116,6 +119,7 @@ class EndpointInference:
             pages = await asyncio.to_thread(render_pdf, upright)
 
         def validate_owner(result: DocumentDetails) -> None:
+            validate_creators(result.creators, catalog)
             if not set(result.owner_ids) <= owners:
                 raise ValueError(f"Use only these owner IDs: {sorted(owners)}")
 
@@ -130,7 +134,15 @@ class EndpointInference:
             images = [pages[page - 1] for page in source_pages]
             result = await self._request(
                 DocumentDetails,
-                details(images, catalog.owners),
+                details(
+                    images,
+                    catalog,
+                    previous_creators=[
+                        creator
+                        for document in documents
+                        for creator in document.creators
+                    ],
+                ),
                 validate_owner,
                 stage="details",
                 source_pages=source_pages,
@@ -139,6 +151,7 @@ class EndpointInference:
                 DocumentProposal(
                     pages=source_pages,
                     owner_ids=result.owner_ids,
+                    creators=result.creators,
                     title=result.title,
                     document_date=result.document_date,
                     confidence=min(boundaries.confidence, result.confidence),
@@ -161,6 +174,7 @@ class EndpointInference:
         pages = await asyncio.to_thread(render_pdf, source)
 
         def validate_tags(result: Enrichment) -> None:
+            validate_creators(result.creators, catalog)
             allowed = {tag.id for tag in catalog.tags}
             if not set(result.tag_ids) <= allowed:
                 raise ValueError(
@@ -169,7 +183,7 @@ class EndpointInference:
 
         return await self._request(
             Enrichment,
-            enrich(pages, catalog.tags),
+            enrich(pages, catalog),
             validate_tags,
             stage="tagging",
             source_pages=list(range(1, len(pages) + 1)),

@@ -19,6 +19,7 @@ export function PageHeader({
   count,
   back,
   badge,
+  icon,
 }: {
   title: string;
   titleLink?: ReactNode;
@@ -27,11 +28,13 @@ export function PageHeader({
   children?: ReactNode;
   back?: ReactNode;
   badge?: ReactNode;
+  icon?: ReactNode;
 }) {
   return (
     <header className="workspace-heading">
       <div className="workspace-heading-content flex min-w-0 items-start gap-2">
         {back}
+        {icon}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h1
@@ -50,7 +53,7 @@ export function PageHeader({
             )}
           </div>
           <p
-            className="truncate text-xs leading-5 text-muted-foreground"
+            className={`${typeof description === "string" ? "whitespace-normal" : "truncate"} text-xs leading-5 text-muted-foreground`}
             title={typeof description === "string" ? description : undefined}
           >
             {description}

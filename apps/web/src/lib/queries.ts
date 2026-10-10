@@ -14,6 +14,7 @@ export const documentSearch = z.object({
   inbox: z.string().default(""),
   q: z.string().default(""),
   owner: filterValues,
+  creator: filterValues,
   tag: filterValues,
   status: z.enum(["", "pending", "running", "complete", "failed"]).default(""),
   after: z.union([z.literal(""), z.iso.date()]).default(""),
@@ -24,6 +25,8 @@ export const documentSearch = z.object({
       "date_asc",
       "title",
       "title_desc",
+      "creators_asc",
+      "creators_desc",
       "owners_asc",
       "owners_desc",
       "tags_asc",
@@ -54,7 +57,7 @@ export const scanSearch = z.object({
     .default(""),
   page: z.coerce.number().int().min(1).default(1),
 });
-export const catalogKind = z.enum(["owners", "tags"]);
+export const catalogKind = z.enum(["owners", "tags", "creators"]);
 
 export const dashboardSearch = z.object({
   status: z

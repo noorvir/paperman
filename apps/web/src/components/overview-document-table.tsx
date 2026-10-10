@@ -1,11 +1,12 @@
 import { Link } from "@tanstack/react-router";
-import { useAccess } from "./auth/access-context";
-import { DocumentDelivery } from "./document-delivery";
+import { documentSearch } from "@/lib/queries";
 import type { components } from "@/lib/schema";
 import { CollectionLink, CollectionRow } from "./collection-workspace";
 import { OwnerAvatar } from "./collection";
+import { DocumentOwners } from "./document-owners";
 import { DocumentVerificationBadge } from "./document-verification-badge";
-import { FileIcon } from "./file-icon";
+import { DocumentFileIcon } from "./document-file-icon";
+import { DocumentTagPopover } from "./document-tag-popover";
 import { formatDate } from "./page";
 import {
   Table,
@@ -24,8 +25,7 @@ export function OverviewDocumentTable({
   documents: components["schemas"]["Document"][];
   catalog: components["schemas"]["Catalog"];
 }) {
-  const access = useAccess();
-  const showDelivery = access.state === "authenticated";
+  const search = documentSearch.parse({});
   return (
     <div className="@container/overview [&>[data-slot=table-container]]:overflow-visible">
       <Table className="table-fixed [&_td]:px-2 [&_th]:px-2">
@@ -35,21 +35,17 @@ export function OverviewDocumentTable({
               Date
             </TableHead>
             <TableHead>Document</TableHead>
-            <TableHead className="w-12 text-center @lg/overview:w-16">
+            <TableHead className="w-12 text-center @lg/overview:w-16 @min-[40rem]/overview:w-48">
               <span className="sr-only @lg/overview:not-sr-only">Owners</span>
+            </TableHead>
+            <TableHead className="hidden w-48 @min-[48rem]/overview:table-cell">
+              Tags
             </TableHead>
             <TableHead className="w-10 text-center @lg/overview:w-24">
               <span className="sr-only @lg/overview:not-sr-only">
                 Verification
               </span>
             </TableHead>
-            {showDelivery && (
-              <TableHead className="w-10 text-center @lg/overview:w-20">
-                <span className="sr-only @lg/overview:not-sr-only">
-                  Routing
-                </span>
-              </TableHead>
-            )}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -67,21 +63,31 @@ export function OverviewDocumentTable({
                 </TableCell>
                 <TableCell>
                   <div className="flex min-w-0 items-center gap-2">
-                    <span className="hidden @lg/overview:block">
-                      <FileIcon filename={document.final_path} />
-                    </span>
-                    <CollectionLink
-                      itemId={document.id}
-                      selected={false}
-                      to="/documents"
-                      search={{ preview: document.id, view: "pdf" }}
-                      aria-label={`Preview ${document.title}`}
-                      className="min-w-0 flex-1"
-                      title={document.title}
-                    >
-                      <span className="line-clamp-2 whitespace-normal @sm/overview:block @sm/overview:truncate">
-                        {document.title}
-                      </span>
+                    <DocumentFileIcon document={document} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1">
+                        <CollectionLink
+                          itemId={document.id}
+                          selected={false}
+                          to="/documents"
+                          search={{ preview: document.id, view: "pdf" }}
+                          aria-label={`Preview ${document.title}`}
+                          className="min-w-0 max-w-full"
+                          title={document.title}
+                        >
+                          <span className="line-clamp-2 whitespace-normal">
+                            {document.title}
+                          </span>
+                        </CollectionLink>
+                        <span className="contents @min-[48rem]/overview:hidden">
+                          <DocumentTagPopover
+                            compact
+                            document={document}
+                            catalog={catalog}
+                            search={search}
+                          />
+                        </span>
+                      </div>
                       <span className="document-caption mt-0.5 hidden font-normal @sm/overview:block">
                         {document.final_path.slice(
                           document.final_path.lastIndexOf("/") + 1,
@@ -93,27 +99,46 @@ export function OverviewDocumentTable({
                       >
                         {formatDate(document.document_date)}
                       </time>
-                    </CollectionLink>
+                    </div>
                   </div>
                 </TableCell>
                 <TableCell className="text-center">
-                  <Tooltip>
-                    <TooltipTrigger
-                      render={<span />}
-                      tabIndex={0}
-                      aria-label={`Owners: ${names.join(", ")}`}
-                      className="inline-flex items-center gap-1 rounded-sm align-middle outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <OwnerAvatar name={names[0] ?? "Unknown"} />
-                      {names.length > 1 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          +{names.length - 1}
-                        </span>
-                      )}
-                    </TooltipTrigger>
-                    <TooltipContent>{names.join(", ")}</TooltipContent>
-                  </Tooltip>
+                  <div className="hidden @min-[40rem]/overview:block">
+                    <DocumentOwners
+                      compact
+                      ownerIds={document.owner_ids}
+                      owners={catalog.owners}
+                      search={search}
+                    />
+                  </div>
+                  <span className="@min-[40rem]/overview:hidden">
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={<span />}
+                        tabIndex={0}
+                        aria-label={`Owners: ${names.join(", ")}`}
+                        className="inline-flex items-center gap-1 rounded-sm align-middle outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      >
+                        <OwnerAvatar name={names[0] ?? "Unknown"} />
+                        {names.length > 1 && (
+                          <span className="text-[10px] text-muted-foreground">
+                            +{names.length - 1}
+                          </span>
+                        )}
+                      </TooltipTrigger>
+                      <TooltipContent>{names.join(", ")}</TooltipContent>
+                    </Tooltip>
+                  </span>
                 </TableCell>
+                <DocumentTagPopover
+                  compact
+                  document={document}
+                  catalog={catalog}
+                  search={search}
+                  render={
+                    <TableCell className="hidden @min-[48rem]/overview:table-cell" />
+                  }
+                />
                 <TableCell className="text-center">
                   <DocumentVerificationBadge
                     verification={document.verification}
@@ -126,20 +151,6 @@ export function OverviewDocumentTable({
                     }
                   />
                 </TableCell>
-                {showDelivery && (
-                  <TableCell className="text-center">
-                    <DocumentDelivery
-                      document={document}
-                      render={
-                        <Link
-                          to="/documents/$documentId"
-                          params={{ documentId: document.id }}
-                          search={{ view: "pdf" }}
-                        />
-                      }
-                    />
-                  </TableCell>
-                )}
               </CollectionRow>
             );
           })}

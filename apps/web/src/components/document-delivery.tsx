@@ -13,10 +13,12 @@ export function DocumentDelivery({
   document,
   action = false,
   render,
+  marker = false,
 }: {
   document: components["schemas"]["Document"];
   action?: boolean;
   render?: ComponentProps<typeof StatusIcon>["render"];
+  marker?: boolean;
 }) {
   const access = useAccess();
   const router = useRouter();
@@ -26,6 +28,7 @@ export function DocumentDelivery({
   const confirmation = document.delivery_confirmation;
   const unknown = document.owner_ids.includes("unknown");
   const direct = document.inbox_id !== "shared";
+  if (marker && (direct || confirmation)) return null;
 
   if (!action) {
     if (direct) {
@@ -45,6 +48,7 @@ export function DocumentDelivery({
         icon={SignpostIcon}
         label={`${confirmation ? "Routed" : "Not routed"}: ${document.title}`}
         tone={confirmation ? "success" : "attention"}
+        marker={marker}
         render={render}
       >
         {confirmation ? (
@@ -58,7 +62,12 @@ export function DocumentDelivery({
     );
   }
 
-  if (direct || access.organizationRole !== "admin") return null;
+  if (
+    direct ||
+    access.organizationRole !== "admin" ||
+    (confirmation && !pending)
+  )
+    return null;
 
   async function route() {
     if (pending || confirmation || unknown) return;
@@ -86,8 +95,6 @@ export function DocumentDelivery({
         variant="outline"
         loading={pending}
         disabled={pending || Boolean(confirmation) || unknown}
-        aria-hidden={Boolean(confirmation) && !pending}
-        className={confirmation && !pending ? "invisible" : ""}
         title={unknown ? "Choose the owners before routing" : undefined}
         icon={
           <HugeiconsIcon

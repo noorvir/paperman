@@ -51,6 +51,7 @@ class CatalogEntry(Record):
 
 
 class Catalog(Record):
+    creators: list[CatalogEntry] = Field(default_factory=list)
     owners: list[CatalogEntry] = Field(
         default_factory=lambda: [CatalogEntry(id="unknown", name="Unknown")]
     )
@@ -68,6 +69,12 @@ class Catalog(Record):
             ]
         ]
     )
+
+    @property
+    def directory(self) -> list[CatalogEntry]:
+        return [
+            entry for entry in [*self.owners, *self.creators] if entry.id != "unknown"
+        ]
 
 
 class ModelPricing(Record):
@@ -157,9 +164,21 @@ class Ownership(Record):
         return sorted(value)
 
 
+class Creator(Record):
+    catalog_id: Identifier | None = Field(
+        default=None, description="Existing directory ID, or null for a new creator."
+    )
+    name: Name
+    aliases: list[Name] = Field(default_factory=list)
+
+
 class DocumentDetails(Ownership):
+    creators: list[Creator] = Field(
+        default_factory=list,
+        description="People or organizations responsible for the document. Empty for IDs or when attribution is not useful or clear. Include all named authors of a report.",
+    )
     title: Name = Field(
-        description="Short title with the named organization/service, specific subject, and document type. No recipient, reference number, or date."
+        description="Short, human-readable title with the specific subject and document type. Include a creator or service name only when useful. Preserve a meaningful report title. No recipient, reference number, or date."
     )
     document_date: date | None = Field(
         default=None,
@@ -195,6 +214,7 @@ class Analysis(Record):
 
 
 class Enrichment(Record):
+    creators: list[Creator] = Field(default_factory=list)
     tag_ids: list[Identifier] = Field(
         description="All relevant tag IDs from the supplied catalog only."
     )
@@ -220,10 +240,20 @@ def validate_analysis(proposal: Analysis, page_count: int, catalog: Catalog) -> 
     owners = {owner.id for owner in catalog.owners}
     validate_rotations(proposal.page_rotations, page_count)
     for document in proposal.documents:
+        validate_creators(document.creators, catalog)
         if not set(document.owner_ids) <= owners:
             raise ValueError(f"Use only these owner IDs: {sorted(owners)}")
         if not document.title.strip():
             raise ValueError("Each document needs a title")
+
+
+def validate_creators(creators: list[Creator], catalog: Catalog) -> None:
+    ids = {entry.id for entry in catalog.directory}
+    if any(
+        creator.catalog_id is not None and creator.catalog_id not in ids
+        for creator in creators
+    ):
+        raise ValueError("Use an existing directory ID or null for a new creator")
 
 
 def validate_rotations(rotations: list[PageRotation], page_count: int) -> None:

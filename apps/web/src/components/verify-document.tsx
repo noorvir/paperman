@@ -15,6 +15,7 @@ export function VerifyDocument({
 }) {
   const router = useRouter();
   const [pending, setPending] = useState(false);
+  if (document.verification && !pending) return null;
 
   async function confirm() {
     if (pending || document.verification) {
@@ -46,8 +47,7 @@ export function VerifyDocument({
     <Button
       variant="outline"
       disabled={pending || Boolean(document.verification)}
-      className={`active:not-aria-[haspopup]:translate-y-0 disabled:opacity-100 ${document.verification && !pending ? "invisible" : ""}`}
-      aria-hidden={Boolean(document.verification) && !pending}
+      className="active:not-aria-[haspopup]:translate-y-0 disabled:opacity-100"
       loading={pending}
       icon={
         <HugeiconsIcon
@@ -57,7 +57,7 @@ export function VerifyDocument({
       }
       onClick={() => void confirm()}
     >
-      Mark as verified
+      <span className="document-verify-label">Mark as verified</span>
     </Button>
   );
 }
