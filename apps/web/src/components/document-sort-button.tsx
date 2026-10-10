@@ -45,16 +45,7 @@ export function DocumentSortButton({
       children: (
         <>
           {children}
-          <HugeiconsIcon
-            aria-hidden="true"
-            icon={
-              direction === "ascending"
-                ? ArrowDownAZIcon
-                : direction === "descending"
-                  ? ArrowUpZAIcon
-                  : ArrowUpDownIcon
-            }
-          />
+          <DocumentSortIcon direction={direction} />
           {filtered && (
             <HugeiconsIcon
               icon={FilterIcon}
@@ -66,4 +57,23 @@ export function DocumentSortButton({
       ),
     },
   });
+}
+
+export function DocumentSortIcon({
+  direction,
+}: {
+  direction: ReturnType<typeof sortDirection>;
+}) {
+  return (
+    <HugeiconsIcon
+      aria-hidden="true"
+      icon={
+        direction === "ascending"
+          ? ArrowDownAZIcon
+          : direction === "descending"
+            ? ArrowUpZAIcon
+            : ArrowUpDownIcon
+      }
+    />
+  );
 }

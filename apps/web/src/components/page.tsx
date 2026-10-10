@@ -2,7 +2,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { useState } from "react";
 import { useRouter, type ErrorComponentProps } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/ui/spinner";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import {
   Empty,
@@ -119,20 +119,12 @@ export function ErrorNotice({ message }: { message: string }) {
 export function PageLoading() {
   return (
     <section
-      className="flex min-h-0 flex-1 flex-col gap-3"
+      className="flex min-h-0 flex-1 items-center justify-center text-muted-foreground"
+      role="status"
       aria-label="Loading page"
       aria-busy="true"
     >
-      <div className="workspace-heading">
-        <div className="space-y-2">
-          <Skeleton className="h-4 w-48" />
-          <Skeleton className="h-3 w-64" />
-        </div>
-      </div>
-      <Skeleton className="h-8 w-64 shrink-0" />
-      {[0, 1, 2, 3].map((key) => (
-        <Skeleton className="h-10 w-full" key={key} />
-      ))}
+      <Spinner className="size-6" />
     </section>
   );
 }
