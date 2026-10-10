@@ -1,5 +1,5 @@
 import { HugeiconsIcon } from "@hugeicons/react";
-import { Settings03Icon } from "@hugeicons/core-free-icons";
+import { ArrowDown01Icon } from "@hugeicons/core-free-icons";
 import {
   defaultDocumentColumns,
   type DocumentColumns,
@@ -35,8 +35,8 @@ export function DocumentColumnMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger render={<Button variant="outline" />}>
-        <HugeiconsIcon icon={Settings03Icon} />
         Columns
+        <HugeiconsIcon icon={ArrowDown01Icon} aria-hidden="true" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuGroup>

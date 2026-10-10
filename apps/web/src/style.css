@@ -273,23 +273,8 @@
     }
   }
   @container preview (max-width: 48rem) {
-    .workspace-heading-content > div > div:first-child {
-      @apply flex-wrap;
-    }
-    .workspace-heading-content h1 {
-      @apply basis-full whitespace-normal break-words;
-    }
     .document-verify-label {
       @apply sr-only;
-    }
-    .workspace-heading {
-      @apply flex-wrap;
-    }
-    .workspace-heading-content {
-      @apply basis-full;
-    }
-    .workspace-heading-actions {
-      @apply ml-auto max-w-full;
     }
   }
   .workspace-section {
@@ -488,11 +473,5 @@
 @media (prefers-reduced-motion: reduce) {
   .collection-preview[data-preview="true"] {
     animation: none;
-  }
-}
-
-@layer components {
-  .collection-body .document-link {
-    @apply line-clamp-2 break-words whitespace-normal sm:block sm:truncate;
   }
 }

@@ -3,7 +3,7 @@ import { HugeiconsIcon } from "@hugeicons/react";
 import { ArrowLeft01Icon, ArrowRight01Icon } from "@hugeicons/core-free-icons";
 import type { components } from "@/lib/schema";
 import { FileIcon } from "./file-icon";
-import { OverviewDocumentTable } from "./overview-document-table";
+import { OverviewDocumentList } from "./overview-document-list";
 import { Button, buttonVariants } from "./ui/button";
 import { CollectionFooter, ScanStatus } from "./collection";
 import { statuses } from "./overview-summary";
@@ -98,7 +98,7 @@ export function OverviewWork({
           </ul>
         )}
         {documents.length > 0 && (
-          <OverviewDocumentTable documents={documents} catalog={catalog} />
+          <OverviewDocumentList documents={documents} catalog={catalog} />
         )}
         {(filtered ? work.total === 0 : recent.length === 0) && (
           <p className="flex h-full items-center justify-center px-6 text-center text-xs text-muted-foreground">

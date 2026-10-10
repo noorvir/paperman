@@ -6,6 +6,7 @@ import { ScanStatus } from "./collection";
 import { buttonVariants } from "./ui/button";
 import { Alert, AlertTitle, AlertDescription } from "./ui/alert";
 import { DocumentVerificationBadge } from "./document-verification-badge";
+import { DocumentIdentity } from "./document-identity";
 
 export function OverviewAttention({
   state,
@@ -122,14 +123,20 @@ export function OverviewAttention({
             </h3>
             <ul className="divide-y">
               {state.routing_documents.map((document) => (
-                <li key={document.id}>
-                  <Link
-                    to="/documents/$documentId"
-                    params={{ documentId: document.id }}
-                    className="block truncate rounded py-2 text-xs hover:bg-accent"
-                  >
-                    {document.title}
-                  </Link>
+                <li
+                  key={document.id}
+                  className="relative rounded py-2 hover:bg-accent has-[a:focus-visible]:bg-accent/50"
+                >
+                  <DocumentIdentity document={document}>
+                    <Link
+                      to="/documents/$documentId"
+                      params={{ documentId: document.id }}
+                      title={document.title}
+                      className="document-link outline-none hover:no-underline after:absolute after:inset-0 after:rounded"
+                    >
+                      {document.title}
+                    </Link>
+                  </DocumentIdentity>
                 </li>
               ))}
             </ul>
@@ -156,15 +163,21 @@ export function OverviewAttention({
             </h3>
             <ul className="divide-y">
               {state.unverified_documents.map((document) => (
-                <li key={document.id}>
-                  <Link
-                    to="/documents/$documentId"
-                    params={{ documentId: document.id }}
-                    className="flex items-center gap-2 rounded-md py-2 text-xs hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <DocumentVerificationBadge verification={null} />
-                    <span className="min-w-0 truncate">{document.title}</span>
-                  </Link>
+                <li
+                  key={document.id}
+                  className="relative flex items-start gap-2 rounded py-2 hover:bg-accent has-[a:focus-visible]:bg-accent/50"
+                >
+                  <DocumentIdentity document={document}>
+                    <Link
+                      to="/documents/$documentId"
+                      params={{ documentId: document.id }}
+                      title={document.title}
+                      className="document-link outline-none hover:no-underline after:absolute after:inset-0 after:rounded"
+                    >
+                      {document.title}
+                    </Link>
+                  </DocumentIdentity>
+                  <DocumentVerificationBadge verification={null} />
                 </li>
               ))}
             </ul>
